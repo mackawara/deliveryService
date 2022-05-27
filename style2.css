@@ -168,11 +168,11 @@ hr.light-100 {
   display: flex;
   flex-wrap: wrap;
   align-content: center;
-  justify-content: center !important;
-  background-color: #3f3f3f !important;
+  justify-content: center;
+  background-color: #3f3f3f;
   background-image: url(images/masked_deliveryhwange-delivery-service_hand2hand-4.jpg) !important;
   background-blend-mode: difference;
-  background-attachment: fixed !important;
+  background-attachment: fixed;
 }
 
 .formContainer {
@@ -318,9 +318,6 @@ hr.light-100 {
   }
 
   .carousel-caption {
-    position: absolute;
-    top: 45%;
-    transform: translateY(-50%);
   }
   .carousel-caption h1 {
     font-size: 350%;
@@ -345,8 +342,6 @@ hr.light-100 {
 }
 @media (max-width: 576px) {
   .carousel-caption {
-    position: absolute;
-    top: 40%;
   }
   .carousel-caption h1 {
     font-size: 250%;
