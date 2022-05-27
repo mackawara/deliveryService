@@ -2,7 +2,6 @@
 
 html,
 body {
-  height: 100%;
   /* width: 100%;*/
   font-family: "Poppins", sans-serif;
   color: #222;
@@ -129,7 +128,7 @@ hr.light-100 {
   backface-visibility: visible;
 }
 /*--- Fixed Background Image --*/
-figure {
+/* figure {
   position: relative;
   width: 100%;
   height: 60%;
@@ -141,7 +140,7 @@ figure {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
 }
 #fixed {
   background-image: url("img/selective-closeup-shot-black-globe.jpeg");
@@ -156,17 +155,18 @@ figure {
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   will-change: transform;
-}
+} */
 /*--- Bootstrap Padding Fix --*/
 [class*="col-"] {
   padding: 1rem;
 }
 
 /*---sign Up Form --*/
-.container-signUpForm,
+/* .container-signUpForm, */
 .container-fluid {
-  position: relative;
+  /* position: relative; */
   display: flex;
+  flex-wrap: wrap;
   align-content: center;
   justify-content: center !important;
   background-color: #3f3f3f !important;
@@ -175,9 +175,8 @@ figure {
   background-attachment: fixed !important;
 }
 
-.signUpForm,
 .formContainer {
-  width: 376px;
+  width: 40vw;
   height: auto;
   margin: 0 auto;
   position: absolute;
@@ -201,12 +200,12 @@ figure {
   width: 100%;
   height: 100%;
 }
-.formContainer {
+/* .formContainer {
   margin: 0 auto;
   position: absolute;
   top: 100px;
 }
-
+ */
 .form {
   padding: 30px 40px;
 }
