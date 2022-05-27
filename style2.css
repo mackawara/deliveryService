@@ -19,6 +19,7 @@ body {
 .carousel-inner img {
   width: 100%;
   height: 100%;
+  margin: 0;
 }
 .carousel-caption {
   position: absolute;
@@ -126,6 +127,12 @@ hr.light-100 {
   transition: transform 0.5s ease, -webkit-transform 0.5s ease;
   -webkit-backface-visibility: visible;
   backface-visibility: visible;
+}
+.carousel-inner {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100vh;
 }
 /*--- Fixed Background Image --*/
 /* figure {
@@ -330,7 +337,6 @@ hr.light-100 {
   }
   .carousel-caption .btn {
     font-size: 95%;
-    padding: 8px 14px;
   }
   .display-4 {
     font-size: 200%;
@@ -341,8 +347,6 @@ hr.light-100 {
   }
 }
 @media (max-width: 576px) {
-  .carousel-caption {
-  }
   .carousel-caption h1 {
     font-size: 250%;
   }
