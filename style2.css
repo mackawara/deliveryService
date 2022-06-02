@@ -1,11 +1,32 @@
 @import url("https://fonts.googleapis.com/css?family=Poppins:400,500,700");
+@import "typescale";
+:root {
+  /* CSS HEX */
+  --silver: #c3c3c3ff;
+  --light-gray: #d6d6d6ff;
+  --khaki-x-11-light-khaki: #ebe284ff;
+  --aureolin: #ffee32ff;
+  --cyber-yellow: #ffd100ff;
+  --eerie-black: #202020ff;
+  --jet: #2a2b2aff;
+  --black-olive: #464746ff;
 
+  /* CSS HSL */
+  --silver: hsla(0, 0%, 76%, 1);
+  --light-gray: hsla(0, 0%, 84%, 1);
+  --khaki-x-11-light-khaki: hsla(55, 72%, 72%, 1);
+  --aureolin: hsla(55, 100%, 60%, 1);
+  --cyber-yellow: hsla(49, 100%, 50%, 1);
+  --eerie-black: hsla(0, 0%, 13%, 1);
+  --jet: hsla(120, 1%, 17%, 1);
+  --black-olive: hsla(120, 1%, 28%, 1);
+}
 html,
 body {
   height: 100%;
   /* width: 100%;*/
   font-family: "Poppins", sans-serif;
-  color: #222;
+  color: var(--black-olive);
   font-size: 12px;
 }
 .navbar {
@@ -39,12 +60,13 @@ body {
   padding-bottom: 1rem;
 }
 .btn-primary {
-  background-color: #6648b1;
-  border: 1px solid #6648b1;
+  background-color: var(--cyber-yellow);
+  color: var(--eerie-black);
+  border: 1px solid var(--silver);
 }
 .btn-primary:hover {
-  background-color: #563d7c;
-  border: 1px solid #563d7c;
+  background-color: var(--aureolin);
+  border: 1px solid var(--black-olive);
 }
 .border-radius {
   border-radius: 1rem;
@@ -96,16 +118,16 @@ body {
   color: #d5d5d5;
 }
 footer {
-  background-color: #3f3f3f;
-  color: #d5d5d5;
-  padding-top: 2rem;
+  background-color: var(--jet);
+  color: var(--light-gray);
+  margin-top: 2rem;
   width: 100%;
 }
 footer a {
   color: #d5d5d5;
 }
 hr.light {
-  border-top: 1px solid #d5d5d5;
+  border-top: 1px solid var(--silver);
   width: 75%;
   margin-top: 00.8rem;
   margin-bottom: 1rem;
@@ -113,7 +135,7 @@ hr.light {
   margin-right: 0 auto;
 }
 hr.light-100 {
-  border-top: 1px solid #d5d5d5;
+  border-top: 1px solid var(--silver);
   width: 100%;
   margin-left: 0 auto;
   margin-right: 0 auto;
@@ -170,7 +192,7 @@ figure {
   display: flex;
   align-content: center;
   justify-content: center !important;
-  background-color: #3f3f3f !important;
+  background-color: var(--eerie-black) !important;
   background-image: url(images/masked_deliveryhwange-delivery-service_hand2hand-4.jpg) !important;
   background-blend-mode: difference;
   background-attachment: fixed !important;
@@ -183,17 +205,16 @@ figure {
   margin: 0 auto;
   position: absolute;
   top: 10rem;
-  box-shadow: 10px #3f3f3f;
+  box-shadow: 10px var(--light-gray);
 }
 
 .signUpForm h3 {
   font-weight: 500;
-  text-shadow: 1px 1px 20px #d5d5d5;
+  text-shadow: 1px 1px 20px var(--khaki-x-11-light-khaki);
 }
 
 .container {
   position: relative;
-  background-color: #3f3f3f;
   background-image: url(images/delivery_manhwange-delivery-service_hand2hand-7.jpg);
   background-blend-mode: difference;
   background-attachment: fixed;
@@ -213,10 +234,12 @@ figure {
 }
 
 .form-control {
-  margin: 0.6rem;
+  margin: 1rem 0;
   position: relative;
   display: flex;
-  align-content: space-between;
+  align-content: center;
+  justify-content: flex-start;
+  border: 1px solid red;
 }
 
 .form-control label {
@@ -234,7 +257,7 @@ figure {
 
 .form-control input:focus {
   outline: 0;
-  border-color: #777;
+  border-color: var(--light-gray);
 }
 
 .form-control.success input {
@@ -290,10 +313,10 @@ figure {
 } */
 
 .form button {
-  background-color: #8e44ad;
-  border: 2px solid #8e44ad;
+  background-color: var(--cyber-yellow);
+  border: 1px solid var(--khaki-x-11-light-khaki);
   border-radius: 4px;
-  color: #fff;
+  color: var(--black-olive);
   display: block;
   font-family: inherit;
   font-size: 16px;
