@@ -6,6 +6,7 @@ body {
   /* width: 100%;*/
   font-family: "Poppins", sans-serif;
   color: #222;
+  font-size: 12px;
 }
 .navbar {
   padding: 0.8rem;
@@ -177,7 +178,7 @@ figure {
 
 .signUpForm,
 .formContainer {
-  width: 376px;
+  width: 60%;
   height: auto;
   margin: 0 auto;
   position: absolute;
@@ -193,7 +194,7 @@ figure {
 .container {
   position: relative;
   background-color: #3f3f3f;
-  background-image: url(images/masked_deliveryhwange-delivery-service_hand2hand-4.jpg);
+  background-image: url(images/delivery_manhwange-delivery-service_hand2hand-7.jpg);
   background-blend-mode: difference;
   background-attachment: fixed;
 }
@@ -213,7 +214,6 @@ figure {
 
 .form-control {
   margin: 0.6rem;
-  padding: bottom 1rem;
   position: relative;
   display: flex;
   align-content: space-between;
@@ -224,12 +224,11 @@ figure {
 }
 
 .form-control input {
-  border: 2px solid #f0f0f0;
+  border: 1px solid #f0f0f0;
   border-radius: 4px;
-  display: block;
+  display: flex;
   font-family: inherit;
   font-size: 14px;
-  padding: 10px;
   width: 100%;
 }
 
