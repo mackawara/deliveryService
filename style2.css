@@ -72,11 +72,10 @@ body {
   border-radius: 1rem;
 }
 .jumbotron {
-  padding: 1rem;
   border-radius: none;
 }
 .welcome {
-  max-width: 75%;
+  max-width: 100%;
   margin: 0 auto;
   padding-top: 2rem;
 }
@@ -233,55 +232,58 @@ figure {
 .form {
   padding: 30px 40px;
 }
+input {
+  height: 2.56rem;
+}
 
-.form-control {
-  margin: 1.6rem 0 0;
+.input-grp {
+  margin: 1.82rem 0.69rem;
   position: relative;
   display: flex;
   align-content: center;
-  justify-content: flex-start;
+  justify-content: center;
   flex-wrap: wrap;
-  background-color: var(--light-gray);
+  background-color: hsla(0, 0%, 84%, 0.51);
   color: var(--black-olive);
 }
 
-.form-control label {
+.input-grp label {
   display: block;
   width: 100%;
 }
 
-.form-control input {
+.input-grp input {
   border: 1px solid var(--aureolin);
-  border-radius: 4px;
+  border-radius: 5px;
   display: flex;
   font-family: inherit;
-  font-size: 1.5rem;
+  font-size: 1rem;
   width: 100%;
-  background-color: var(--silver);
+  /* background-color: var(--khaki-x-11-light-khaki); */
 }
 
-.form-control input:focus {
-  outline: 0;
-  border-color: var(--light-gray);
+.input-grp input:focus {
+  outline: 0; /* 
+  border-color: var(--light-gray); */
 }
 
-.form-control.success input {
+.input-grp.success input {
   border-color: #2ecc71;
 }
-.form-control.success select {
+.input-grp.success select {
   border-color: #2ecc71;
 }
 
-.form-control.error input {
+.input-grp.error input {
   border-color: #e74c3c;
 }
 
-.form-control.error select {
+.input-grp.error select {
   border-color: #e74c3c;
   color: #e74c3c;
 }
 
-.form-control i {
+.input-grp i {
   visibility: hidden;
   position: absolute;
   top: 50%;
@@ -289,17 +291,17 @@ figure {
   right: 20px;
 }
 
-.form-control.success i.fa-check-circle {
+.input-grp.success i.fa-check-circle {
   color: #2ecc71;
   visibility: visible;
 }
 
-.form-control.error i.fa-exclamation-circle {
+.input-grp.error i.fa-exclamation-circle {
   color: #e74c3c;
   visibility: visible;
 }
 
-.form-control small {
+.input-grp small {
   color: #e74c3c;
   position: absolute;
   bottom: 0;
@@ -307,7 +309,7 @@ figure {
   visibility: hidden;
 }
 
-.form-control.error small {
+.input-grp.error small {
   visibility: visible;
 }
 /* .error {
@@ -333,10 +335,11 @@ figure {
   margin-top: 1rem;
   width: 100%;
 }
-.dimensions {
-  margin: 0.62rem;
+select > option {
+  width: 100%;
+  color: var(--jet);
+  background-color: aqua;
 }
-
 /*---Media Queries --*/
 @media (max-width: 992px) {
   .social a {
