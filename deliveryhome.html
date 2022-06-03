@@ -85,31 +85,31 @@
               <h3 class="dispaly-6 text-center">Pick-up</h3>
               <label for="pickupslot">Pick up Slot</label>
 
-              <div class="form-control">
+              <div class="input-grp">
                 <select
                   name="deliverySlot"
                   id="deliverySlot"
-                  class="form-control selectFields"
+                  class="selectFields"
                   onchange=""
                 >
                   <option selected disabled>SELECT ONE</option>
                   <option
                     id="deliveryslot1"
-                    class="form-input form-control form-group"
+                    class="form-input form-group"
                     value="1000-1130hrs"
                   >
                     Between 1000 and 1130hrs
                   </option>
                   <option
                     id="deliveryslot2"
-                    class="form-input form-control form-group"
+                    class="form-input form-group"
                     value="1400-1330hrs"
                   >
                     Between 1400 and 1330hrs
                   </option>
                   <option
                     id="deliveryslot3"
-                    class="form-input form-control form-group"
+                    class="form-input form-group"
                     value="1700-1830hrs"
                   >
                     Between 1700 and 1830hrs
@@ -118,49 +118,29 @@
                 <small></small>
               </div>
               <!-- insert function removeDimensions onchange -->
-              <div class="form-control">
+              <div class="input-grp">
                 <label for="typeOfParcel">Type of Parcel</label>
                 <select
                   name="typeOfParcel"
                   id="typeOfParcel"
-                  class="form-control selectFields"
+                  class="selectFields"
                   onchange=""
                 >
                   <option selected disabled>SELECT ONE</option>
-                  <option
-                    value="hardware"
-                    class="form-input form-control form-group"
-                  >
+                  <option value="hardware" class="form-input form-group">
                     Hardware
                   </option>
-                  <option
-                    value="box"
-                    class="form-input form-control form-group"
-                  >
-                    Box
-                  </option>
-                  <option
-                    value="envelope"
-                    class="form-input form-control form-group"
-                  >
+                  <option value="box" class="form-input form-group">Box</option>
+                  <option value="envelope" class="form-input form-group">
                     Envelope/Document
                   </option>
-                  <option
-                    value="Cash"
-                    class="form-input form-control form-group"
-                  >
+                  <option value="Cash" class="form-input form-group">
                     Cash
                   </option>
-                  <option
-                    value="Groceries"
-                    class="form-input form-control form-group"
-                  >
+                  <option value="Groceries" class="form-input form-group">
                     Groceries
                   </option>
-                  <option
-                    value="Other"
-                    class="form-input form-control form-group"
-                  >
+                  <option value="Other" class="form-input form-group">
                     Other
                   </option>
                 </select>
@@ -168,7 +148,7 @@
               </div>
               <p class="text-centre">Dimensions and Weight of the Parcel</p>
 
-              <div class="form-control col">
+              <div class="col">
                 <!--  <label for="length">Length (cm)</label> -->
                 <input
                   type=" "
@@ -182,7 +162,7 @@
                 <small>Error message</small>
               </div>
 
-              <div class="form-control col">
+              <div class="input-grp">
                 <!-- <label for="width">Width (cm)</label> -->
                 <input
                   type=" "
@@ -195,7 +175,7 @@
                 <i class="fas fa-exclamation-circle"></i>
                 <small></small>
               </div>
-              <div class="form-control col">
+              <div class="input-grp">
                 <!--  <label for="height">Height (cm)</label> -->
                 <input
                   type=" "
@@ -209,7 +189,7 @@
                 <small></small>
               </div>
 
-              <div class="form-control col">
+              <div class="input-grp">
                 <!--  <label for="weight">Weight (kgs)</label> -->
                 <input
                   type=""
@@ -225,13 +205,13 @@
                 <small></small>
               </div>
 
-              <div class="form-control">
+              <div class="input-grp">
                 <!-- <label for="senderFirstName">Sender`s First Name</label> -->
                 <input
                   type="text"
                   name="senderFirstName"
                   id="senderFirstName"
-                  class="form-control names"
+                  class=" "
                   placeholder="Sender`s First Name"
                 />
                 <i class="fas fa-check-circle"></i>
@@ -239,13 +219,13 @@
                 <small></small>
               </div>
 
-              <div class="form-control">
+              <div class="input-grp">
                 <!--  <label for="senderLastName">Sender`Surname</label> -->
                 <input
                   type="text"
                   name="senderLastName"
                   id="senderLastName"
-                  class="form-control names"
+                  class=""
                   placeholder="Sender`s Last Name"
                 />
                 <i class="fas fa-check-circle"></i>
@@ -253,7 +233,7 @@
                 <small></small>
               </div>
 
-              <div class="form-control">
+              <div class="input-grp">
                 <!--  <label for="senderTelephoneNumber"
                   >Telephone/Cell :Format (0700000000)</label
                 > -->
@@ -261,7 +241,7 @@
                   type="tel"
                   name="senderTelephoneNumber"
                   id="senderCellphoneNumber"
-                  class="form-control phoneNumber"
+                  class="phoneNumber"
                   placeholder="Sender`s Last Name"
                 />
                 <i class="fas fa-check-circle"></i>
@@ -269,13 +249,13 @@
                 <small></small>
               </div>
 
-              <div class="form-control">
+              <div class="input-grp">
                 <!-- <label for="userEmail">Email</label> -->
                 <input
                   type="email"
                   name="userEmail"
                   id="userEmail"
-                  class="form-control"
+                  class=""
                   placeholder="Email"
                 />
                 <i class="fas fa-check-circle"></i>
@@ -283,14 +263,14 @@
                 <small></small>
               </div>
 
-              <address>Select the pickup zone from the list below</address>
-              <div class="form-control">
+              <label>Select the pickup zone from the list below</label>
+              <div class="input-grp">
                 <select
                   name="departureLocation"
                   id="departureLocation"
-                  class="form-control selectFields"
+                  class="selectFields"
                 >
-                  <option selected disabled>SELECT ONE</option>
+                  <option selected disabled>SELECT ONE4</option>
                   <option
                     name="departureLocation"
                     value="empumalanga"
@@ -358,23 +338,20 @@
                 <small></small>)
               </div>
 
-              <div class="form-group col border border-light p-1">
+              <div class="form-group border border-light p-1">
                 <h3 class="dispaly-6 text-center">Destination</h3>
-                <div class="form-control">
+                <div class="input-grp">
                   <label for="pickUpSlot">Delivery Slot</label>
                   <select
                     name="pickUpSlot"
                     id="pickUpSlot"
-                    class="form-control selectFields"
+                    class="selectFields"
                     onchange=""
                   >
                     <option selected disabled value="SELECT ONE">
                       SELECT ONE
                     </option>
-                    <option
-                      class="form-input form-control"
-                      value="1000-1130hrs"
-                    >
+                    <option class="form-input" value="1000-1130hrs">
                       Between 1000 and 1130hrs
                     </option>
                     <option class="form-input" value="1400-1330hrs">
@@ -391,13 +368,13 @@
                   <small></small>
                 </div>
 
-                <div class="form-control">
+                <div class="input-grp">
                   <!--  <label for="receiverFirstName">Reciever`s First Name</label> -->
                   <input
                     type="text"
                     name="receiverFirstName"
                     id="receiverFirstName"
-                    class="form-control names"
+                    class=""
                     placeholder="REceivers First Name"
                   />
 
@@ -406,13 +383,13 @@
                   <small></small>
                 </div>
 
-                <div class="form-control">
+                <div class="input-grp">
                   <!-- <label for="receiverLastName">Reciever`s Surname</label> -->
                   <input
                     type="text"
                     name="receiverLastName"
                     id="receiverLastName"
-                    class="form-control names"
+                    class=""
                     placeholder=" Receiver`s Last name"
                   />
                   <i class="fas fa-check-circle"></i>
@@ -420,7 +397,7 @@
                   <small></small>
                 </div>
 
-                <div class="form-control">
+                <div class="input-grp">
                   <label for="telephoneNumber"
                     >Telephone/Cell (Receiver) Format:0700000000</label
                   >
@@ -428,14 +405,14 @@
                     type="tel"
                     name="receiverTelephoneNumber"
                     id="receiverTelephoneNumber"
-                    class="form-control phoneNumber"
+                    class="phoneNumber"
                   />
                   <i class="fas fa-check-circle"></i>
                   <i class="fas fa-exclamation-circle"></i>
                   <small></small>
                 </div>
 
-                <div class="form-control">
+                <div class="input-grp">
                   <label for="destination"
                     >Select the delivery zone from the list below</label
                   >
@@ -443,7 +420,7 @@
                     name="destinationOfParcel"
                     id="destinationOfParcel"
                     onchange=""
-                    class="form-control selectFields"
+                    class="selectFields"
                     required
                   >
                     <option selected disabled value="SELECT ONE">
