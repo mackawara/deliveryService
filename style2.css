@@ -197,9 +197,8 @@ figure {
   background-attachment: fixed !important;
 }
 
-.signUpForm,
 .formContainer {
-  width: 60%;
+  width: 75%;
   height: auto;
   margin: 0 auto;
   position: absolute;
@@ -265,6 +264,15 @@ input {
 .input-grp input:focus {
   outline: 0; /* 
   border-color: var(--light-gray); */
+}
+
+.input-grp select {
+  width: 100%;
+}
+
+.input-grp select option {
+  width: 100%;
+  background-color: var(--khaki-x-11-light-khaki);
 }
 
 .input-grp.success input {
@@ -335,10 +343,11 @@ input {
   margin-top: 1rem;
   width: 100%;
 }
-select > option {
+.selectOption {
   width: 100%;
   color: var(--jet);
   background-color: aqua;
+  border: 1px solid red;
 }
 /*---Media Queries --*/
 @media (max-width: 992px) {
