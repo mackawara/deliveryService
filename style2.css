@@ -206,6 +206,7 @@ figure {
   position: absolute;
   top: 10rem;
   box-shadow: 10px var(--light-gray);
+  border-radius: 0.5rem;
 }
 
 .signUpForm h3 {
@@ -234,25 +235,29 @@ figure {
 }
 
 .form-control {
-  margin: 1rem 0;
+  margin: 1.6rem 0 0;
   position: relative;
   display: flex;
   align-content: center;
   justify-content: flex-start;
-  border: 1px solid red;
+  flex-wrap: wrap;
+  background-color: var(--light-gray);
+  color: var(--black-olive);
 }
 
 .form-control label {
-  display: inline-block;
+  display: block;
+  width: 100%;
 }
 
 .form-control input {
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--aureolin);
   border-radius: 4px;
   display: flex;
   font-family: inherit;
-  font-size: 14px;
+  font-size: 1.5rem;
   width: 100%;
+  background-color: var(--silver);
 }
 
 .form-control input:focus {
@@ -311,17 +316,21 @@ figure {
 .success {
   border: 2px solid green;
 } */
-
+.button-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
 .form button {
   background-color: var(--cyber-yellow);
   border: 1px solid var(--khaki-x-11-light-khaki);
-  border-radius: 4px;
+  border-radius: 2px;
   color: var(--black-olive);
   display: block;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 1rem;
   padding: 10px;
-  margin-top: 20px;
+  margin-top: 1rem;
   width: 100%;
 }
 .dimensions {
