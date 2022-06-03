@@ -54,10 +54,7 @@ function assign() {
   for (let i = 0; i < phoneNumbers.length; i++) {
     phoneNumber = phoneNumbers[i];
     let phoneNumberFields = new inputValidation(phoneNumber);
-    if (^263[7][13478][0-7]{7}$.test(phoneNumber.value) === false) {
-      phoneNumberFields.setError();
-      phoneNumberFields.invalid();
-    }
+  
   }
 
   dimensions = form.querySelectorAll(".dimensions");
