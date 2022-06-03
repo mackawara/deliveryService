@@ -79,22 +79,15 @@
           id="mainContainer"
         >
           <div class="col">
-            <form
-              name="myForm"
-              id="myForm"
-              class="form-group m-2"
-              action="#"
-            >
+            <form name="myForm" id="myForm" class="form-group m-2" action="#">
               <!-- prevent form from reloading submit will be done by JS-->
 
-              <h3 class="dispaly-6 text-center">
-                Pick-up
-              </h3>
+              <h3 class="dispaly-6 text-center">Pick-up</h3>
               <label for="pickupslot">Pick up Slot</label>
 
               <div class="form-control">
                 <select
-                  name="Delivery Slot"
+                  name="deliverySlot"
                   id="deliverySlot"
                   class="form-control selectFields"
                   onchange=""
@@ -128,7 +121,7 @@
               <div class="form-control">
                 <label for="typeOfParcel">Type of Parcel</label>
                 <select
-                  name="Type of Parcel"
+                  name="typeOfParcel"
                   id="typeOfParcel"
                   class="form-control selectFields"
                   onchange=""
@@ -176,13 +169,13 @@
               <p class="text-centre">Dimensions and Weight of the Parcel</p>
 
               <div class="form-control col">
-                <label for="length">Length (cm)</label>
+                <!--  <label for="length">Length (cm)</label> -->
                 <input
                   type=" "
-                  name="Length"
+                  name="length"
                   id="length"
                   class="dimensions"
-                  placeholder="cm"
+                  placeholder="Length (cm)"
                 />
                 <i class="fas fa-check-circle"></i>
                 <i class="fas fa-exclamation-circle"></i>
@@ -190,26 +183,26 @@
               </div>
 
               <div class="form-control col">
-                <label for="width">Width (cm)</label>
+                <!-- <label for="width">Width (cm)</label> -->
                 <input
                   type=" "
                   name="Width"
                   id="width"
                   class="dimensions"
-                  placeholder="cm"
+                  placeholder="Width (cm)"
                 />
                 <i class="fas fa-check-circle"></i>
                 <i class="fas fa-exclamation-circle"></i>
                 <small></small>
               </div>
               <div class="form-control col">
-                <label for="height">Height (cm)</label>
+                <!--  <label for="height">Height (cm)</label> -->
                 <input
                   type=" "
-                  name="Height"
+                  name="height"
                   id="height"
                   class="dimensions"
-                  placeholder="cm"
+                  placeholder="Height (cm)"
                 />
                 <i class="fas fa-check-circle"></i>
                 <i class="fas fa-exclamation-circle"></i>
@@ -217,13 +210,13 @@
               </div>
 
               <div class="form-control col">
-                <label for="weight">Weight (kgs)</label>
+                <!--  <label for="weight">Weight (kgs)</label> -->
                 <input
                   type=""
-                  name="Weight"
+                  name="weight"
                   id="weight"
                   class="dimensions"
-                  placeholder="kg"
+                  placeholder="Weight kgs"
                   min="0"
                   max="100"
                 />
@@ -233,12 +226,13 @@
               </div>
 
               <div class="form-control">
-                <label for="senderFirstName">Sender`s First Name</label>
+                <!-- <label for="senderFirstName">Sender`s First Name</label> -->
                 <input
                   type="text"
-                  name="Sender`s First Name"
+                  name="senderFirstName"
                   id="senderFirstName"
                   class="form-control names"
+                  placeholder="Sender`s First Name"
                 />
                 <i class="fas fa-check-circle"></i>
                 <i class="fas fa-exclamation-circle"></i>
@@ -246,12 +240,13 @@
               </div>
 
               <div class="form-control">
-                <label for="senderLastName">Sender`Surname</label>
+                <!--  <label for="senderLastName">Sender`Surname</label> -->
                 <input
                   type="text"
-                  name="Sender`s Last Name"
+                  name="senderLastName"
                   id="senderLastName"
                   class="form-control names"
+                  placeholder="Sender`s Last Name"
                 />
                 <i class="fas fa-check-circle"></i>
                 <i class="fas fa-exclamation-circle"></i>
@@ -259,14 +254,15 @@
               </div>
 
               <div class="form-control">
-                <label for="senderTelephoneNumber"
+                <!--  <label for="senderTelephoneNumber"
                   >Telephone/Cell :Format (0700000000)</label
-                >
+                > -->
                 <input
                   type="tel"
-                  name="Sender`s cellphone number"
+                  name="senderTelephoneNumber"
                   id="senderCellphoneNumber"
                   class="form-control phoneNumber"
+                  placeholder="Sender`s Last Name"
                 />
                 <i class="fas fa-check-circle"></i>
                 <i class="fas fa-exclamation-circle"></i>
@@ -274,12 +270,13 @@
               </div>
 
               <div class="form-control">
-                <label for="userEmail">Email</label>
+                <!-- <label for="userEmail">Email</label> -->
                 <input
                   type="email"
-                  name="user email"
+                  name="userEmail"
                   id="userEmail"
                   class="form-control"
+                  placeholder="Email"
                 />
                 <i class="fas fa-check-circle"></i>
                 <i class="fas fa-exclamation-circle"></i>
@@ -289,9 +286,8 @@
               <address>Select the pickup zone from the list below</address>
               <div class="form-control">
                 <select
-                  name="Departure Location"
+                  name="departureLocation"
                   id="departureLocation"
-                  onchange=""
                   class="form-control selectFields"
                 >
                   <option selected disabled>SELECT ONE</option>
@@ -300,7 +296,6 @@
                     value="empumalanga"
                     class="selectOptions"
                     id="empumalanga"
-                    v
                   >
                     Empumalanga
                   </option>
@@ -309,7 +304,6 @@
                     value="cbdHub"
                     class="selectOptions"
                     id="cbdHub"
-                    v
                   >
                     cbdHub
                   </option>
@@ -357,7 +351,6 @@
                     name="departureLocation"
                     value="cindrella"
                     class="selectOptions"
-                    id="cindrella"
                   >
                     No1 North (Cindrella)
                   </option>
@@ -366,13 +359,11 @@
               </div>
 
               <div class="form-group col border border-light p-1">
-                <h3 class=" dispaly-6 text-center ">
-                  Destination
-                </h3>
+                <h3 class="dispaly-6 text-center">Destination</h3>
                 <div class="form-control">
                   <label for="pickUpSlot">Delivery Slot</label>
                   <select
-                    name="Pick up slot"
+                    name="pickUpSlot"
                     id="pickUpSlot"
                     class="form-control selectFields"
                     onchange=""
@@ -381,17 +372,12 @@
                       SELECT ONE
                     </option>
                     <option
-                      id="pickupslot1"
                       class="form-input form-control"
                       value="1000-1130hrs"
                     >
                       Between 1000 and 1130hrs
                     </option>
-                    <option
-                      id="pickupslot2"
-                      class="form-input"
-                      value="1400-1330hrs"
-                    >
+                    <option class="form-input" value="1400-1330hrs">
                       Between 1400 and 1330hrs
                     </option>
                     <option
@@ -406,12 +392,13 @@
                 </div>
 
                 <div class="form-control">
-                  <label for="receiverFirstName">Reciever`s First Name</label>
+                  <!--  <label for="receiverFirstName">Reciever`s First Name</label> -->
                   <input
                     type="text"
-                    name="Receiver`s First Name"
+                    name="receiverFirstName"
                     id="receiverFirstName"
                     class="form-control names"
+                    placeholder="REceivers First Name"
                   />
 
                   <i class="fas fa-check-circle"></i>
@@ -420,12 +407,13 @@
                 </div>
 
                 <div class="form-control">
-                  <label for="receiverLastName">Reciever`s Surname</label>
+                  <!-- <label for="receiverLastName">Reciever`s Surname</label> -->
                   <input
                     type="text"
-                    name="Receiver`s Last Name"
+                    name="receiverLastName"
                     id="receiverLastName"
                     class="form-control names"
+                    placeholder=" Receiver`s Last name"
                   />
                   <i class="fas fa-check-circle"></i>
                   <i class="fas fa-exclamation-circle"></i>
@@ -438,7 +426,7 @@
                   >
                   <input
                     type="tel"
-                    name="Receiver`s cellphone Number"
+                    name="receiverTelephoneNumber"
                     id="receiverTelephoneNumber"
                     class="form-control phoneNumber"
                   />
@@ -452,8 +440,8 @@
                     >Select the delivery zone from the list below</label
                   >
                   <select
-                    name="Destination of Parcel"
-                    id="destination"
+                    name="destinationOfParcel"
+                    id="destinationOfParcel"
                     onchange=""
                     class="form-control selectFields"
                     required
@@ -462,7 +450,7 @@
                       SELECT ONE
                     </option>
                     <option
-                      name="destination"
+                      name="destinationOfParcel"
                       value="cbdHub"
                       class="selectOptions"
                       id="cbdHubDestination"
@@ -470,7 +458,7 @@
                       cbdHub
                     </option>
                     <option
-                      name="destination"
+                      name="destinationOfParcel"
                       value="empumalanga"
                       class="selectOptions"
                       id="empumalangaDestination"
@@ -478,7 +466,7 @@
                       Empumalanga
                     </option>
                     <option
-                      name="destination"
+                      name="destinationOfParcel"
                       value="lwendulu"
                       class="selectOptions"
                       id="lwenduluDestination"
@@ -486,7 +474,7 @@
                       Lwendulu (No1 Area)
                     </option>
                     <option
-                      name="destination"
+                      name="destinationOfParcel"
                       value="ingagula"
                       class="selectOptions"
                       id="ingagulaDestination"
@@ -494,7 +482,7 @@
                       Ingagula
                     </option>
                     <option
-                      name="destination"
+                      name="destinationOfParcel"
                       value="madumabisa"
                       class="selectOptions"
                       id="madumabisaDestination"
@@ -502,7 +490,7 @@
                       Madumabisa (No2 Area)
                     </option>
                     <option
-                      name="destination"
+                      name="destinationOfParcel"
                       value="makwika"
                       class="selectOptions"
                       id="makwikaDestination"
@@ -510,7 +498,7 @@
                       Makwika
                     </option>
                     <option
-                      name="destination"
+                      name="destinationOfParcel"
                       value="ngumija"
                       class="selectOptions"
                       id="ngumijaDestination"
@@ -518,7 +506,7 @@
                       Ngumija (Railways Area
                     </option>
                     <option
-                      name="destination"
+                      name="destinationOfParcel"
                       value="cindrella"
                       class="selectOptions"
                       id="cindrellaDestination"
