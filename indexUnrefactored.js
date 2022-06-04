@@ -1,6 +1,6 @@
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", ready);
-}
+window.addEventListener("DOMContentLoaded", async () => {
+  console.log("dom content loaded");
+});
 
 var form = document.getElementById("myForm");
 form.addEventListener("submit", function (e) {
