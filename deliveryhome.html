@@ -32,7 +32,7 @@
       src="https://kit.fontawesome.com/37d9067307.js"
       crossorigin="anonymous"
     ></script>
-    <link rel="stylesheet" href="typescale.scss" />
+
     <link rel="stylesheet" href="style2.css" />
 
     <title>hand2hand</title>
@@ -73,13 +73,13 @@
           us. Book a pickup and/or delivery below and you will get your delivery
         </article>
       </div>
-      <div class="container-fluid">
+      <section class="container-fluid">
         <div
-          class="formContainer container form-group row p-1"
+          class="formContainer container form-group row"
           id="mainContainer"
         >
-          <div class="col">
-            <form name="myForm" id="myForm" class="form-group m-2" action="#">
+          <section class="pickUp border-light">
+            <form name="myForm" id="myForm" action="#">
               <!-- prevent form from reloading submit will be done by JS-->
 
               <h3 class="dispaly-6 text-center">Pick-up</h3>
@@ -112,7 +112,6 @@
                   name="typeOfParcel"
                   id="typeOfParcel"
                   class="selectFields"
-                  onchange=""
                 >
                   <option selected disabled>SELECT ONE</option>
                   <option value="hardware" class="">Hardware</option>
@@ -123,11 +122,10 @@
                   <option value="Other" class="">Other</option>
                 </select>
                 <small></small>
+                <p class="text-centre">Dimensions and Weight of the Parcel</p>
               </div>
-              <p class="text-centre">Dimensions and Weight of the Parcel</p>
 
-              <div class="col">
-                <!--  <label for="length">Length (cm)</label> -->
+              <div class="input-grp col">
                 <input
                   type=" "
                   name="length"
@@ -137,11 +135,10 @@
                 />
                 <i class="fas fa-check-circle"></i>
                 <i class="fas fa-exclamation-circle"></i>
-                <small>Error message</small>
+                <small></small>
               </div>
 
               <div class="input-grp">
-                <!-- <label for="width">Width (cm)</label> -->
                 <input
                   type=" "
                   name="Width"
@@ -154,7 +151,6 @@
                 <small></small>
               </div>
               <div class="input-grp">
-                <!--  <label for="height">Height (cm)</label> -->
                 <input
                   type=" "
                   name="height"
@@ -184,7 +180,6 @@
               </div>
 
               <div class="input-grp">
-                <!-- <label for="senderFirstName">Sender`s First Name</label> -->
                 <input
                   type="text"
                   name="senderFirstName"
@@ -198,7 +193,6 @@
               </div>
 
               <div class="input-grp">
-                <!--  <label for="senderLastName">Sender`Surname</label> -->
                 <input
                   type="text"
                   name="senderLastName"
@@ -248,7 +242,7 @@
                   id="departureLocation"
                   class="selectFields"
                 >
-                  <option selected disabled>SELECT ONE4</option>
+                  <option selected disabled>SELECT ONE</option>
                   <option
                     name="departureLocation"
                     value="empumalanga"
@@ -315,8 +309,9 @@
                 </select>
                 <small></small>)
               </div>
+              
 
-              <div class="form-group border border-light p-1">
+              <section class="delivery border border-light p-1">
                 <h3 class="dispaly-6 text-center">Destination</h3>
                 <div class="input-grp">
                   <label for="pickUpSlot">Delivery Slot</label>
@@ -325,7 +320,7 @@
                     id="pickUpSlot"
                     class="selectFields"
                     onchange=""
-                  >
+                    >
                     <option selected disabled value="SELECT ONE">
                       SELECT ONE
                     </option>
@@ -336,160 +331,164 @@
                       Between 1400 and 1330hrs
                     </option>
                     <option
-                      id="pickupslot3"
-                      class="form-input"
-                      value="1700-1830hrs"
+                    id="pickupslot3"
+                    class="form-input"
+                    value="1700-1830hrs"
                     >
-                      Between 1700 and 1830hrs
-                    </option>
-                  </select>
+                    Between 1700 and 1830hrs
+                  </option>
+                  
                   <small></small>
                 </div>
-
-                <div class="input-grp">
-                  <!--  <label for="receiverFirstName">Reciever`s First Name</label> -->
-                  <input
-                    type="text"
-                    name="receiverFirstName"
-                    id="receiverFirstName"
-                    class=""
-                    placeholder="REceivers First Name"
-                  />
-
-                  <i class="fas fa-check-circle"></i>
-                  <i class="fas fa-exclamation-circle"></i>
-                  <small></small>
+              </section>
+              <!-- Receiver details -->
+                <div class="col">
+                  <div class="input-grp">
+                    <!--  <label for="receiverFirstName">Reciever`s First Name</label> -->
+                    <input
+                      type="text"
+                      name="receiverFirstName"
+                      id="receiverFirstName"
+                      class=""
+                      placeholder="REceivers First Name"
+                    />
+  
+                    <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <small></small>
+                  </div>
+  
+                  <div class="input-grp">
+                    <!-- <label for="receiverLastName">Reciever`s Surname</label> -->
+                    <input
+                      type="text"
+                      name="receiverLastName"
+                      id="receiverLastName"
+                      class=""
+                      placeholder=" Receiver`s Last name"
+                    />
+                    <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <small></small>
+                  </div>
+  
+                  <div class="input-grp">
+                    <input
+                      type="tel"
+                      name="receiverTelephoneNumber"
+                      id="receiverTelephoneNumber"
+                      class="phoneNumber"
+                      placeholder="  >Telephone/Cell (Receiver) "
+                    />
+                    <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-exclamation-circle"></i>
+                    <small></small>
+                  </div>
+  
+                  <div class="input-grp">
+                    <label for="destination"
+                      >Select the delivery zone from the list below</label
+                    >
+                    <select
+                      name="destinationOfParcel"
+                      id="destinationOfParcel"
+                      onchange=""
+                      class="selectFields"
+                      required
+                    >
+                      <option selected disabled value="SELECT ONE">
+                        SELECT ONE
+                      </option>
+                      <option
+                        name="destinationOfParcel"
+                        value="cbdHub"
+                        class="selectOptions"
+                        id="cbdHubDestination"
+                      >
+                        cbdHub
+                      </option>
+                      <option
+                        name="destinationOfParcel"
+                        value="empumalanga"
+                        class="selectOptions"
+                        id="empumalangaDestination"
+                      >
+                        Empumalanga
+                      </option>
+                      <option
+                        name="destinationOfParcel"
+                        value="lwendulu"
+                        class="selectOptions"
+                        id="lwenduluDestination"
+                      >
+                        Lwendulu (No1 Area)
+                      </option>
+                      <option
+                        name="destinationOfParcel"
+                        value="ingagula"
+                        class="selectOptions"
+                        id="ingagulaDestination"
+                      >
+                        Ingagula
+                      </option>
+                      <option
+                        name="destinationOfParcel"
+                        value="madumabisa"
+                        class="selectOptions"
+                        id="madumabisaDestination"
+                      >
+                        Madumabisa (No2 Area)
+                      </option>
+                      <option
+                        name="destinationOfParcel"
+                        value="makwika"
+                        class="selectOptions"
+                        id="makwikaDestination"
+                      >
+                        Makwika
+                      </option>
+                      <option
+                        name="destinationOfParcel"
+                        value="ngumija"
+                        class="selectOptions"
+                        id="ngumijaDestination"
+                      >
+                        Ngumija (Railways Area
+                      </option>
+                      <option
+                        name="destinationOfParcel"
+                        value="cindrella"
+                        class="selectOptions"
+                        id="cindrellaDestination"
+                      >
+                        No1 North (Cindrella)
+                      </option>
+                    </select>
+                    <small></small>
+                  </div>
                 </div>
-
-                <div class="input-grp">
-                  <!-- <label for="receiverLastName">Reciever`s Surname</label> -->
-                  <input
-                    type="text"
-                    name="receiverLastName"
-                    id="receiverLastName"
-                    class=""
-                    placeholder=" Receiver`s Last name"
-                  />
-                  <i class="fas fa-check-circle"></i>
-                  <i class="fas fa-exclamation-circle"></i>
-                  <small></small>
-                </div>
-
-                <div class="input-grp">
-                  <input
-                    type="tel"
-                    name="receiverTelephoneNumber"
-                    id="receiverTelephoneNumber"
-                    class="phoneNumber"
-                    placeholder="  >Telephone/Cell (Receiver) "
-                  />
-                  <i class="fas fa-check-circle"></i>
-                  <i class="fas fa-exclamation-circle"></i>
-                  <small></small>
-                </div>
-
-                <div class="input-grp">
-                  <label for="destination"
-                    >Select the delivery zone from the list below</label
+                <div class="button-wrapper">
+                  <button
+                    type="reset"
+                    class="btn btn-primary p-2 m-2 col"
+                    id="reset"
                   >
-                  <select
-                    name="destinationOfParcel"
-                    id="destinationOfParcel"
-                    onchange=""
-                    class="selectFields"
-                    required
+                    Reset
+                  </button>
+                  <!--
+                               <button type="button" class="btn btn-primary  p-2 m-2 col"
+                              id="confirmDetails" >CONFIRM Details</button>-->
+                  <button
+                    type="submit"
+                    class="btn btn-primary p-2 m-2 col"
+                    id="submit"
                   >
-                    <option selected disabled value="SELECT ONE">
-                      SELECT ONE
-                    </option>
-                    <option
-                      name="destinationOfParcel"
-                      value="cbdHub"
-                      class="selectOptions"
-                      id="cbdHubDestination"
-                    >
-                      cbdHub
-                    </option>
-                    <option
-                      name="destinationOfParcel"
-                      value="empumalanga"
-                      class="selectOptions"
-                      id="empumalangaDestination"
-                    >
-                      Empumalanga
-                    </option>
-                    <option
-                      name="destinationOfParcel"
-                      value="lwendulu"
-                      class="selectOptions"
-                      id="lwenduluDestination"
-                    >
-                      Lwendulu (No1 Area)
-                    </option>
-                    <option
-                      name="destinationOfParcel"
-                      value="ingagula"
-                      class="selectOptions"
-                      id="ingagulaDestination"
-                    >
-                      Ingagula
-                    </option>
-                    <option
-                      name="destinationOfParcel"
-                      value="madumabisa"
-                      class="selectOptions"
-                      id="madumabisaDestination"
-                    >
-                      Madumabisa (No2 Area)
-                    </option>
-                    <option
-                      name="destinationOfParcel"
-                      value="makwika"
-                      class="selectOptions"
-                      id="makwikaDestination"
-                    >
-                      Makwika
-                    </option>
-                    <option
-                      name="destinationOfParcel"
-                      value="ngumija"
-                      class="selectOptions"
-                      id="ngumijaDestination"
-                    >
-                      Ngumija (Railways Area
-                    </option>
-                    <option
-                      name="destinationOfParcel"
-                      value="cindrella"
-                      class="selectOptions"
-                      id="cindrellaDestination"
-                    >
-                      No1 North (Cindrella)
-                    </option>
-                  </select>
-                  <small></small>
+                    Submit
+                  </button>
                 </div>
-              </div>
-              <div class="button-wrapper">
-                <button
-                  type="reset"
-                  class="btn btn-primary p-2 m-2 col"
-                  id="reset"
-                >
-                  Reset
-                </button>
-                <!--
-                             <button type="button" class="btn btn-primary  p-2 m-2 col"
-                            id="confirmDetails" >CONFIRM Details</button>-->
-                <button
-                  type="submit"
-                  class="btn btn-primary p-2 m-2 col"
-                  id="submit"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
+              </form>
+                </div>
+               
           </div>
         </div>
 
@@ -505,9 +504,9 @@
         <!--   <div class="map" id="map"></div>
         ul#checkOutPage.list-group>li.list-group-item*16>p#
          <button id="showmap btn ptn-primary" onclick="initMap()">Show Map</button>  For Google Maps API do not forget to remove comments -->
-      </div>
+      </section>
       <!--   </div> -->
     </section>
-    <script src="index.js" async></script>
+    <script type="text/javascript" src="index.js"></script>
   </body>
 </html>
