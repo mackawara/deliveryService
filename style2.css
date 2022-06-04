@@ -196,6 +196,10 @@ figure {
   background-blend-mode: difference;
   background-attachment: fixed !important;
 }
+.pickUp,
+.delivery {
+  border: 1px solid red;
+}
 
 .formContainer {
   width: 75%;
