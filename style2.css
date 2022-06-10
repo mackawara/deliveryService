@@ -23,7 +23,6 @@
 }
 html,
 body {
-  height: 100%;
   /* width: 100%;*/
   font-family: "Poppins", sans-serif;
   color: var(--black-olive);
@@ -42,6 +41,7 @@ body {
 .carousel-inner img {
   width: 100%;
   height: 100%;
+  margin: 0;
 }
 .carousel-caption {
   position: absolute;
@@ -150,8 +150,14 @@ hr.light-100 {
   -webkit-backface-visibility: visible;
   backface-visibility: visible;
 }
+.carousel-inner {
+  display: flex;
+  flex-wrap: wrap;
+  width: 100%;
+  height: 100vh;
+}
 /*--- Fixed Background Image --*/
-figure {
+/* figure {
   position: relative;
   width: 100%;
   height: 60%;
@@ -163,7 +169,7 @@ figure {
   top: 0;
   left: 0;
   width: 100%;
-  height: 100%;
+  height: 100vh;
 }
 #fixed {
   background-image: url("img/selective-closeup-shot-black-globe.jpeg");
@@ -178,17 +184,17 @@ figure {
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
   will-change: transform;
-}
+} */
 /*--- Bootstrap Padding Fix --*/
 [class*="col-"] {
   padding: 1rem;
 }
 
 /*---sign Up Form --*/
-
 .container-fluid {
-  position: relative;
+  /* position: relative; */
   display: flex;
+  flex-wrap: wrap;
   align-content: center;
   justify-content: center;
   background-color: var(--eerie-black);
@@ -227,13 +233,13 @@ figure {
   width: 100%;
   height: 100%;
 }
-.formContainer {
+/* .formContainer {
   margin: 0 auto;
   position: absolute;
   top: 100px;
   border-radius: 10px;
 }
-
+ */
 .form {
   padding: 30px 40px;
 }
@@ -367,11 +373,7 @@ input {
     width: 100%;
   }
 
-  .carousel-caption {
-    position: absolute;
-    top: 45%;
-    transform: translateY(-50%);
-  }
+
   .carousel-caption h1 {
     font-size: 350%;
     text-shadow: 1px 1px 10px #000;
@@ -383,7 +385,6 @@ input {
   }
   .carousel-caption .btn {
     font-size: 95%;
-    padding: 8px 14px;
   }
   .display-4 {
     font-size: 200%;
@@ -394,10 +395,6 @@ input {
   }
 }
 @media (max-width: 576px) {
-  .carousel-caption {
-    position: absolute;
-    top: 40%;
-  }
   .carousel-caption h1 {
     font-size: 250%;
   }
