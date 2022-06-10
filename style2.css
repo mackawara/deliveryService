@@ -190,11 +190,11 @@ figure {
   position: relative;
   display: flex;
   align-content: center;
-  justify-content: center !important;
+  justify-content: center;
   background-color: var(--eerie-black) !important;
-  background-image: url(images/masked_deliveryhwange-delivery-service_hand2hand-4.jpg) !important;
+  background-image: url(images/masked_deliveryhwange-delivery-service_hand2hand-4.jpg);
   background-blend-mode: difference;
-  background-attachment: fixed !important;
+  background-attachment: fixed;
 }
 .pickUp,
 .delivery {
@@ -230,6 +230,7 @@ figure {
   margin: 0 auto;
   position: absolute;
   top: 100px;
+  border-radius: 10px;
 }
 
 .form {
