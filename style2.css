@@ -335,7 +335,7 @@ input {
   width: 100%;
   display: flex;
   justify-content: space-around;
-}
+} /* 
 .form button {
   background-color: var(--cyber-yellow);
   border: 1px solid var(--khaki-x-11-light-khaki);
@@ -347,11 +347,10 @@ input {
   padding: 10px;
   margin-top: 1rem;
   width: 100%;
-}
+} */
 .selectOption {
   width: 100%;
   color: var(--jet);
-  background-color: aqua;
   border: 1px solid red;
 }
 /*---Media Queries --*/
