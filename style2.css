@@ -28,6 +28,12 @@ body {
   color: var(--black-olive);
   font-size: 12px;
 }
+header {
+  height: 4rem;
+  display: flex;
+  align-content: center;
+  justify-content: space-between;
+}
 .navbar {
   padding: 0.8rem;
 }
@@ -220,7 +226,6 @@ hr.light-100 {
 }
 
 .container {
-  position: relative;
   background-image: url(images/delivery_manhwange-delivery-service_hand2hand-7.jpg);
   background-blend-mode: difference;
   background-attachment: fixed;
