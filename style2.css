@@ -337,7 +337,6 @@ input {
   width: 100%;
   display: flex;
   justify-content: space-around;
-  bottom: 0;
 }
 .selectOption {
   width: 100%;
@@ -355,7 +354,6 @@ input {
   .signUpForm {
     width: 100%;
   }
-
 
   .carousel-caption h1 {
     font-size: 350%;
