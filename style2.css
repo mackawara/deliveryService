@@ -380,6 +380,9 @@ input {
     font-size: 2.5rem;
     padding: 1.2rem;
   }
+  .dimensions div {
+    width: 40%;
+  }
 }
 @media (max-width: 576px) {
   .carousel-caption h1 {
