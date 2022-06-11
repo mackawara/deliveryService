@@ -79,6 +79,7 @@ header {
 }
 .jumbotron {
   border-radius: none;
+  width: 100%;
 }
 .welcome {
   max-width: 100%;
