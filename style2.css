@@ -219,6 +219,7 @@ hr.light-100 {
   width: 50%;
   box-shadow: 10px var(--light-gray);
   border-radius: 0.5rem;
+  margin-top: 10rem;
 }
 
 .signUpForm h3 {
