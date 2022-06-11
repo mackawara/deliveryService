@@ -236,6 +236,16 @@ hr.light-100 {
   border-radius: 10px;
 }
  */
+
+.dimensions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-around;
+  align-content: center;
+}
+.dimensions div {
+  width: 20%;
+}
 .form {
   padding: 30px 40px;
 }
