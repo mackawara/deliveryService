@@ -332,12 +332,7 @@ input {
 .input-grp.error small {
   visibility: visible;
 }
-/* .error {
-  border: 2px solid red;
-}
-.success {
-  border: 2px solid green;
-} */
+
 .button-wrapper {
   width: 100%;
   display: flex;
