@@ -210,10 +210,6 @@ hr.light-100 {
 
 .formContainer {
   width: 50%;
-  height: auto;
-  margin: 0 auto;
-  position: absolute;
-  top: 10rem;
   box-shadow: 10px var(--light-gray);
   border-radius: 0.5rem;
 }
