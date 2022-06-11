@@ -7,6 +7,7 @@ form.addEventListener("submit", function (e) {
   assign();
   e.preventDefault();
 });
+document.querySelector("#date").innerHTML = new Date();
 
 var selects = [];
 function assign() {
