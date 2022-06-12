@@ -44,10 +44,8 @@ header {
 .navbar-nav li {
   margin-right: 1.2rem;
 }
-.navbar-nav li a{
+.navbar-nav li a {
   color: var(--eerie-black);
-
-  
 }
 .nav-link {
   font-size: 1.1em !important;
@@ -231,7 +229,7 @@ hr.light-100 {
   box-shadow: 10px var(--light-gray);
   border-radius: 1rem;
   margin: 10rem 0;
-  background-color: var(--silver); */
+  background-color: var(--silver);
 }
 
 .signUpForm h3 {
