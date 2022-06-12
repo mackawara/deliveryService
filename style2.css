@@ -255,7 +255,7 @@ hr.light-100 {
  */
 
 .dimensions {
-  display: flex;
+  display: none;
   flex-wrap: wrap;
   justify-content: space-around;
   align-content: center;
