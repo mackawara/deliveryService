@@ -5,9 +5,9 @@ const typeOfParcel = document.getElementById("typeOfParcel");
 const dimensionFields = document.querySelector(".dimensions");
 typeOfParcel.addEventListener("change", (e) => {
   console.log(e.target.value);
-  typeOfParcel.value === "Envelope" || "Cash"
-    ? (dimensionFields.style.display = "none")
-    : (dimensionFields.style.display = "flex");
+  typeOfParcel.value === "Hardware" || "Box"
+    ? (dimensionFields.style.display = "flex")
+    : (dimensionFields.style.display = "none");
 });
 
 var form = document.getElementById("myForm");
