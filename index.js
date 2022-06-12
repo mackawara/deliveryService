@@ -1,6 +1,14 @@
 window.addEventListener("DOMContentLoaded", async () => {
   console.log("dom content loaded");
 });
+const typeOfParcel = document.getElementById("typeOfParcel");
+const dimensionFields = document.querySelector(".dimensions");
+typeOfParcel.addEventListener("change", (e) => {
+  console.log(e.target.value);
+  typeOfParcel.value === "Envelope" || "Cash"
+    ? (dimensionFields.style.display = "none")
+    : (dimensionFields.style.display = "flex");
+});
 
 var form = document.getElementById("myForm");
 form.addEventListener("submit", function (e) {
