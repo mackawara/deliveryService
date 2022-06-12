@@ -28,9 +28,9 @@
 
 <body class="">
   <header class="header">
-   <p>
-    Hand to Hand
-   </p> 
+    <p>
+      Hand to Hand
+    </p>
     <p id="date"></p>
   </header>
   <nav class="navbar navbar-expand-lg navbar-dark " id="navbar">
@@ -49,157 +49,158 @@
       </li>
     </ul>
   </nav>
-  
-    <!-- <div class="container"> -->
-    <div class="jumbotron text-center">
-      <h3 class="display-4" style="font-family: 'Dancing Script', cursive">
-        Hand2Hand
-      </h3>
-      <h5>We go further than door to door</h5>
-      <article>
-        Fast , efficient, safe delivery of all types pf goods and parcels.
-        <br />
-        <a href="http://">Sign up</a>and get your first deliery for free on
-        us. Book a pickup and/or delivery below and you will get your delivery
-      </article>
-    </div>
-  
+
+  <!-- <div class="container"> -->
+  <div class="jumbotron text-center">
+    <h3 class="display-4" style="font-family: 'Dancing Script', cursive">
+      Hand2Hand
+    </h3>
+    <h5>We go further than door to door</h5>
+    <article>
+      Fast , efficient, safe delivery of all types pf goods and parcels.
+      <br />
+      <a href="http://">Sign up</a>and get your first deliery for free on
+      us. Book a pickup and/or delivery below and you will get your delivery
+    </article>
+  </div>
+
   <section class="wrapper">
     <div class="formContainer container form-group row" id="mainContainer">
 
       <form name="myForm" id="myForm" action="#">
         <!-- prevent form from reloading submit will be done by JS-->
-<section class="border border-light">
-  <h3 class="dispaly-6 text-center">Pick-up</h3>
-  <label for="pickupslot">Pick up Slot</label>
+        <section class="border border-light">
+          <h3 class="dispaly-6 text-center">Pick-up</h3>
+          
+          <div class="input-grp">
+            <label for="pickupslot">Pick up Slot</label>
+            <select name="deliverySlot" id="deliverySlot" class="selectFields" >
+              <option selected disabled>SELECT ONE</option>
+              <option id="deliveryslot1" class="" value="1000-1130hrs">
+                Between 1000 and 1130hrs
+              </option>
+              <option id="deliveryslot2" class="" value="1400-1330hrs">
+                Between 1400 and 1330hrs
+              </option>
+              <option id="deliveryslot3" class="" value="1700-1830hrs">
+                Between 1700 and 1830hrs
+              </option>
+            </select>
+            <small></small>
+          </div>
 
-  <div class="input-grp">
-    <select name="deliverySlot" id="deliverySlot" class="selectFields" onchange="">
-      <option selected disabled>SELECT ONE</option>
-      <option id="deliveryslot1" class="" value="1000-1130hrs">
-        Between 1000 and 1130hrs
-      </option>
-      <option id="deliveryslot2" class="" value="1400-1330hrs">
-        Between 1400 and 1330hrs
-      </option>
-      <option id="deliveryslot3" class="" value="1700-1830hrs">
-        Between 1700 and 1830hrs
-      </option>
-    </select>
-    <small></small>
-  </div>
-  <!-- insert function removeDimensions onchange -->
-  <div class="input-grp">
-    <label for="typeOfParcel">Type of Parcel</label>
-    <select name="typeOfParcel" id="typeOfParcel" class="selectFields">
-      <option selected disabled>SELECT ONE</option>
-      <option value="hardware" class="">Hardware</option>
-      <option value="box" class="">Box</option>
-      <option value="envelope" class="">Envelope/Document</option>
-      <option value="Cash" class="">Cash</option>
-      <option value="Groceries" class="">Groceries</option>
-      <option value="Other" class="">Other</option>
-    </select>
-    <small></small>
-  </div>
-  <p class="text-centre">Dimensions and Weight of the Parcel</p>
+          <div class="input-grp">
+            <label for="typeOfParcel">Type of Parcel</label>
+            <select name="typeOfParcel" id="typeOfParcel" class="selectFields">
+              <option selected disabled>SELECT ONE</option>
+              <option value="hardware" class="">Hardware</option>
+              <option value="box" class="">Box</option>
+              <option value="envelope" class="">Envelope/Document</option>
+              <option value="Cash" class="">Cash</option>
+              <option value="Groceries" class="">Groceries</option>
+              <option value="Other" class="">Other</option>
+            </select>
+            <small></small>
+          </div>
+          
+          <label class="text-centre">Dimensions and Weight of the Parcel</label>
+          <div class="dimensions">
+            <div class="input-grp dimensions">
+              <input type=" " name="length" id="length" class="dimensions" placeholder="Length (cm)" />
+              <i class="fas fa-check-circle"></i>
+              <i class="fas fa-exclamation-circle"></i>
+              <small></small>
+            </div>
 
-  <div class="dimensions">
-    <div class="input-grp dimensions">
-      <input type=" " name="length" id="length" class="dimensions" placeholder="Length (cm)" />
-      <i class="fas fa-check-circle"></i>
-      <i class="fas fa-exclamation-circle"></i>
-      <small></small>
-    </div>
+            <div class="input-grp dimensions">
+              <input type=" " name="Width" id="width" class="dimensions" placeholder="Width (cm)" />
+              <i class="fas fa-check-circle"></i>
+              <i class="fas fa-exclamation-circle"></i>
+              <small></small>
+            </div>
+            <div class="input-grp dimensions">
+              <input type=" " name="height" id="height" class="dimensions" placeholder="Height (cm)" />
+              <i class="fas fa-check-circle"></i>
+              <i class="fas fa-exclamation-circle"></i>
+              <small></small>
+            </div>
 
-    <div class="input-grp dimensions">
-      <input type=" " name="Width" id="width" class="dimensions" placeholder="Width (cm)" />
-      <i class="fas fa-check-circle"></i>
-      <i class="fas fa-exclamation-circle"></i>
-      <small></small>
-    </div>
-    <div class="input-grp dimensions">
-      <input type=" " name="height" id="height" class="dimensions" placeholder="Height (cm)" />
-      <i class="fas fa-check-circle"></i>
-      <i class="fas fa-exclamation-circle"></i>
-      <small></small>
-    </div>
+            <div class="input-grp dimensions">
+              <!--  <label for="weight">Weight (kgs)</label> -->
+              <input type="" name="weight" id="weight" class="dimensions" placeholder="Weight kgs" min="0" max="100" />
+              <i class="fas fa-check-circle"></i>
+              <i class="fas fa-exclamation-circle"></i>
+              <small></small>
+            </div>
+          </div>
 
-    <div class="input-grp dimensions">
-      <!--  <label for="weight">Weight (kgs)</label> -->
-      <input type="" name="weight" id="weight" class="dimensions" placeholder="Weight kgs" min="0" max="100" />
-      <i class="fas fa-check-circle"></i>
-      <i class="fas fa-exclamation-circle"></i>
-      <small></small>
-    </div>
-  </div>
- 
 
-  <div class="input-grp">
-    <input type="text" name="senderFirstName" id="senderFirstName" class=" " placeholder="Sender`s First Name" />
-    <i class="fas fa-check-circle"></i>
-    <i class="fas fa-exclamation-circle"></i>
-    <small></small>
-  </div>
+          <div class="input-grp">
+            <input type="text" name="senderFirstName" id="senderFirstName" class=" "
+              placeholder="Sender`s First Name" />
+            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-exclamation-circle"></i>
+            <small></small>
+          </div>
 
-  <div class="input-grp">
-    <input type="text" name="senderLastName" id="senderLastName" class="" placeholder="Sender`s Last Name" />
-    <i class="fas fa-check-circle"></i>
-    <i class="fas fa-exclamation-circle"></i>
-    <small></small>
-  </div>
+          <div class="input-grp">
+            <input type="text" name="senderLastName" id="senderLastName" class="" placeholder="Sender`s Last Name" />
+            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-exclamation-circle"></i>
+            <small></small>
+          </div>
 
-  <div class="input-grp">
-    
-    <input type="tel" name="senderTelephoneNumber" id="senderCellphoneNumber" class="phoneNumber"
-      placeholder="Sender`s phone number" />
-    <i class="fas fa-check-circle"></i>
-    <i class="fas fa-exclamation-circle"></i>
-    <small></small>
-  </div>
+          <div class="input-grp">
 
-  <div class="input-grp">
-    <!-- <label for="userEmail">Email</label> -->
-    <input type="email" name="userEmail" id="userEmail" class="" placeholder="Email" />
-    <i class="fas fa-check-circle"></i>
-    <i class="fas fa-exclamation-circle"></i>
-    <small></small>
-  </div>
+            <input type="tel" name="senderTelephoneNumber" id="senderCellphoneNumber" class="phoneNumber"
+              placeholder="Sender`s phone number" />
+            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-exclamation-circle"></i>
+            <small></small>
+          </div>
 
-  <label>Select the pickup zone from the list below</label>
-  <div class="input-grp">
-    <select name="departureLocation" id="departureLocation" class="selectFields">
-      <option selected disabled>SELECT ONE</option>
-      <option name="departureLocation" value="empumalanga" class="selectOptions" id="empumalanga">
-        Empumalanga
-      </option>
-      <option name="departureLocation" value="cbdHub" class="selectOptions" id="cbdHub">
-        cbdHub
-      </option>
-      <option name="departureLocation" value="lwendulu" class="selectOptions" id="lwendulu">
-        Lwendulu (No1 Area)
-      </option>
-      <option name="departureLocation" value="ingagula" class="selectOptions" id="ingagula">
-        Ingagula
-      </option>
-      <option name="departureLocation" value="madumabisa" class="selectOptions" id="madumabisa">
-        Madumabisa (No2 Area)
-      </option>
-      <option name="departureLocation" value="makwika" class="selectOptions" id="makwika">
-        Makwika
-      </option>
-      <option name="departureLocation" value="ngumija" class="selectOptions" id="ngumija">
-        Ngumija (Railways Area
-      </option>
-      <option name="departureLocation" value="cindrella" class="selectOptions">
-        No1 North (Cindrella)
-      </option>
-    </select>
-    <small></small>)
-  </div>
+          <div class="input-grp">
+            <!-- <label for="userEmail">Email</label> -->
+            <input type="email" name="userEmail" id="userEmail" class="" placeholder="Email" />
+            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-exclamation-circle"></i>
+            <small></small>
+          </div>
 
-</section>
-       
+          <div class="input-grp">
+            <label>Select the pickup zone from the list below</label>
+            <select name="departureLocation" id="departureLocation" class="selectFields">
+              <option selected disabled>SELECT ONE</option>
+              <option name="departureLocation" value="empumalanga" class="selectOptions" id="empumalanga">
+                Empumalanga
+              </option>
+              <option name="departureLocation" value="cbdHub" class="selectOptions" id="cbdHub">
+                cbdHub
+              </option>
+              <option name="departureLocation" value="lwendulu" class="selectOptions" id="lwendulu">
+                Lwendulu (No1 Area)
+              </option>
+              <option name="departureLocation" value="ingagula" class="selectOptions" id="ingagula">
+                Ingagula
+              </option>
+              <option name="departureLocation" value="madumabisa" class="selectOptions" id="madumabisa">
+                Madumabisa (No2 Area)
+              </option>
+              <option name="departureLocation" value="makwika" class="selectOptions" id="makwika">
+                Makwika
+              </option>
+              <option name="departureLocation" value="ngumija" class="selectOptions" id="ngumija">
+                Ngumija (Railways Area
+              </option>
+              <option name="departureLocation" value="cindrella" class="selectOptions">
+                No1 North (Cindrella)
+              </option>
+            </select>
+            <small></small>
+          </div>
+
+        </section>
+
 
         <section class="delivery border border-light p-1">
           <h3 class="dispaly-6 text-center">Destination</h3>
@@ -223,9 +224,9 @@
           </div>
         </section>
         <!-- Receiver details -->
-        <div class="col">
+        <div class="receiver">
           <div class="input-grp">
-            <!--  <label for="receiverFirstName">Reciever`s First Name</label> -->
+            
             <input type="text" name="receiverFirstName" id="receiverFirstName" class=""
               placeholder="Receivers First Name" />
 
@@ -245,7 +246,7 @@
 
           <div class="input-grp">
             <input type="tel" name="receiverTelephoneNumber" id="receiverTelephoneNumber" class="phoneNumber"
-              placeholder="  >Telephone/Cell (Receiver) " />
+              placeholder="Telephone/Cell (Receiver) " />
             <i class="fas fa-check-circle"></i>
             <i class="fas fa-exclamation-circle"></i>
             <small></small>
@@ -301,7 +302,7 @@
             slot times
             <p class="results" id="deliveryCost"></p>
             <p class="results" id="deliverySlot"></p>
-      
+
             <p class="results" id="wayBillNumber"></p>
           </div>
         </div>
@@ -310,7 +311,7 @@
     </div>
     </div>
 
-   
+
     <!--   <div class="map" id="map"></div>
         ul#checkOutPage.list-group>li.list-group-item*16>p#
          <button id="showmap btn ptn-primary" onclick="initMap()">Show Map</button>  For Google Maps API do not forget to remove comments -->
