@@ -83,7 +83,7 @@ header {
 .jumbotron {
   border-radius: none;
   width: 100%;
-  background-color: var(--light-gray);
+  background-color: var(--cyber-yellow);
 }
 .welcome {
   max-width: 100%;
@@ -224,19 +224,20 @@ hr.light-100 {
   min-width: 500px;
   box-shadow: 10px var(--light-gray);
   border-radius: 1rem;
-  margin-top: 10rem;
+  margin: 10rem 0;
+  background-color: var(--silver); */
 }
 
 .signUpForm h3 {
   font-weight: 500;
   text-shadow: 1px 1px 20px var(--khaki-x-11-light-khaki);
 }
-
+/* 
 .container {
   background-image: url(images/delivery_manhwange-delivery-service_hand2hand-7.jpg);
   background-blend-mode: difference;
   background-attachment: fixed;
-}
+} */
 .container-fluid img {
   width: 100%;
   height: 100%;
