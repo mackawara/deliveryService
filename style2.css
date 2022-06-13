@@ -1,51 +1,44 @@
 @import url("https://fonts.googleapis.com/css?family=Poppins:400,500,700");
 @import "typescale";
 :root {
-  /* CSS HEX */
-  --silver: #c3c3c3ff;
-  --light-gray: #d6d6d6ff;
-  --khaki-x-11-light-khaki: #ebe284ff;
-  --aureolin: #ffee32ff;
-  --cyber-yellow: #ffd100ff;
-  --eerie-black: #202020ff;
-  --jet: #2a2b2aff;
-  --black-olive: #464746ff;
+  --emerald: #12bf62ff;
+  --malachite: #04e762ff;
+  --dark-jungle-green: #121713ff;
+  --floral-white: #fffcf2ff;
+  --dartmouth-green: #1a7431ff;
 
   /* CSS HSL */
-  --silver: hsla(0, 0%, 76%, 1);
-  --light-gray: hsla(0, 0%, 84%, 1);
-  --khaki-x-11-light-khaki: hsla(55, 72%, 72%, 1);
-  --aureolin: hsla(55, 100%, 60%, 1);
-  --cyber-yellow: hsla(49, 100%, 50%, 1);
-  --eerie-black: hsla(0, 0%, 13%, 1);
-  --jet: hsla(120, 1%, 17%, 1);
-  --black-olive: hsla(120, 1%, 28%, 1);
+  --emerald: hsla(148, 83%, 41%, 1);
+  --malachite: hsla(145, 97%, 46%, 1);
+  --dark-jungle-green: hsla(132, 12%, 8%, 1);
+  --floral-white: hsla(46, 100%, 97%, 1);
+  --dartmouth-green: hsla(135, 63%, 28%, 1);
 }
 html,
 body {
   /* width: 100%;*/
   font-family: "Poppins", sans-serif;
-  color: var(--black-olive);
+  color: var(--dark-jungle-green);
   font-size: 16px;
-  background-color: --cyber-yellow;
+  background-color: --emerald;
 }
 header {
   height: 4rem;
   display: flex;
   align-content: center;
   justify-content: space-between;
-  background-color: var(--cyber-yellow);
+  background-color: var(--emerald);
 }
 .navbar {
   padding: 0.8rem;
-  background-color: var(--silver);
-  color: var(--eerie-black);
+  background-color: var(--floral-white);
+  color: var(--dartmouth-green);
 }
 .navbar-nav li {
   margin-right: 1.2rem;
 }
 .navbar-nav li a {
-  color: var(--eerie-black);
+  color: var(--dartmouth-green);
 }
 .nav-link {
   font-size: 1.1em !important;
@@ -73,13 +66,13 @@ header {
   padding-bottom: 1rem;
 }
 .btn-primary {
-  background-color: var(--cyber-yellow);
-  color: var(--eerie-black);
-  border: 1px solid var(--silver);
+  background-color: var(--emerald);
+  color: var(--dartmouth-green);
+  border: 1px solid var(--floral-white);
 }
 .btn-primary:hover {
-  background-color: var(--aureolin);
-  border: 1px solid var(--black-olive);
+  background-color: var(--malachite);
+  border: 1px solid var(--dark-jungle-green);
 }
 .border-radius {
   border-radius: 1rem;
@@ -87,7 +80,7 @@ header {
 .jumbotron {
   border-radius: none;
   width: 100%;
-  background-color: var(--cyber-yellow);
+  background-color: var(--emerald);
 }
 .welcome {
   max-width: 100%;
@@ -132,8 +125,8 @@ header {
   color: #d5d5d5;
 }
 footer {
-  background-color: var(--jet);
-  color: var(--light-gray);
+  background-color: var(--dark-jungle-green);
+  color: var(--floral-white);
   margin-top: 2rem;
   width: 100%;
 }
@@ -141,7 +134,7 @@ footer a {
   color: #d5d5d5;
 }
 hr.light {
-  border-top: 1px solid var(--silver);
+  border-top: 1px solid var(--floral-white);
   width: 75%;
   margin-top: 00.8rem;
   margin-bottom: 1rem;
@@ -149,7 +142,7 @@ hr.light {
   margin-right: 0 auto;
 }
 hr.light-100 {
-  border-top: 1px solid var(--silver);
+  border-top: 1px solid var(--floral-white);
   width: 100%;
   margin-left: 0 auto;
   margin-right: 0 auto;
@@ -212,7 +205,7 @@ hr.light-100 {
   flex-wrap: wrap;
   align-content: center;
   justify-content: center;
-  background-color: var(--cyber-yellow);
+  background-color: var(--emerald);
   /* background-image: url(images/masked_deliveryhwange-delivery-service_hand2hand-4.jpg); */
   background-blend-mode: difference;
   background-attachment: fixed;
@@ -235,15 +228,15 @@ hr.light-100 {
 .formContainer {
   width: 80%;
   min-width: 500px;
-  box-shadow: 10px var(--light-gray);
+  box-shadow: 10px var(--floral-white);
   border-radius: 1rem;
   margin: 10rem 0;
-  background-color: var(--silver);
+  background-color: var(--floral-white);
 }
 
 .signUpForm h3 {
   font-weight: 500;
-  text-shadow: 1px 1px 20px var(--khaki-x-11-light-khaki);
+  text-shadow: 1px 1px 20px var(--malachite);
 }
 /* 
 .container {
@@ -287,7 +280,7 @@ input {
   justify-content: center;
   flex-wrap: wrap;
   background-color: hsla(0, 0%, 84%, 0.51);
-  color: var(--black-olive);
+  color: var(--dark-jungle-green);
 }
 
 .input-grp label {
@@ -296,18 +289,18 @@ input {
 }
 
 .input-grp input {
-  border: 1px solid var(--aureolin);
+  border: 1px solid var(--malachite);
   border-radius: 5px;
   display: flex;
   font-family: inherit;
   font-size: 1rem;
   width: 100%;
-  /* background-color: var(--khaki-x-11-light-khaki); */
+  /* background-color: var(--malachite); */
 }
 
 .input-grp input:focus {
   outline: 0; /* 
-  border-color: var(--light-gray); */
+  border-color: var(--floral-white); */
 }
 
 .input-grp select {
@@ -316,7 +309,7 @@ input {
 
 .input-grp select option {
   width: 100%;
-  background-color: var(--khaki-x-11-light-khaki);
+  background-color: var(--malachite);
 }
 
 .input-grp.success input {
@@ -372,7 +365,7 @@ input {
 }
 .selectOption {
   width: 100%;
-  color: var(--jet);
+  color: var(--dark-jungle-green);
   border: 1px solid red;
 }
 /*---Media Queries --*/
