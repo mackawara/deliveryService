@@ -65,16 +65,18 @@
   </div>
 
   <section class="wrapper">
-    <div class="formContainer container form-group row" id="mainContainer">
+  <div class="formContainer container form-group row" id="mainContainer">
 
-      <form name="myForm" id="myForm" action="#">
-        <!-- prevent form from reloading submit will be done by JS-->
-        <section class="border border-light">
+    <form name="myForm" id="myForm" action="#">
+<div class="section-wrapper">
+
+
+        <section class="pickUp border border-light">
           <h3 class="dispaly-6 text-center">Pick-up</h3>
-          
+
           <div class="input-grp">
             <label for="pickupslot">Pick up Slot</label>
-            <select name="deliverySlot" id="deliverySlot" class="selectFields" >
+            <select name="deliverySlot" id="deliverySlot" class="selectFields">
               <option selected disabled>SELECT ONE</option>
               <option id="deliveryslot1" class="" value="1000-1130hrs">
                 Between 1000 and 1130hrs
@@ -102,7 +104,7 @@
             </select>
             <small></small>
           </div>
-          
+
           <label class="text-centre">Dimensions and Weight of the Parcel</label>
           <div class="dimensions">
             <div class="input-grp dimensions">
@@ -213,93 +215,95 @@
                 Between 1700 and 1830hrs
               </option>
               <small></small>
-              </select>
-          </div>
-       
-        <!-- Receiver details -->
-        <div class="receiver">
-          <div class="input-grp">
-            
-            <input type="text" name="receiverFirstName" id="receiverFirstName" class=""
-              placeholder="Receiver`s Name and Surname" />
-
-            <i class="fas fa-check-circle"></i>
-            <i class="fas fa-exclamation-circle"></i>
-            <small></small>
-          </div>
-
-          <div class="input-grp">
-            <input type="tel" name="receiverTelephoneNumber" id="receiverTelephoneNumber" class="phoneNumber"
-              placeholder="Telephone/Cell (Receiver)" />
-            <i class="fas fa-check-circle"></i>
-            <i class="fas fa-exclamation-circle"></i>
-            <small></small>
-          </div>
-
-          <div class="input-grp">
-            <label for="destination">Select the delivery zone from the list below</label>
-            <select name="destinationOfParcel" id="destinationOfParcel" onchange="" class="selectFields" required>
-              <option selected disabled value="SELECT ONE">
-                SELECT ONE
-              </option>
-              <option name="destinationOfParcel" value="cbdHub" class="selectOptions" id="cbdHubDestination">
-                cbdHub
-              </option>
-              <option name="destinationOfParcel" value="empumalanga" class="selectOptions" id="empumalangaDestination">
-                Empumalanga
-              </option>
-              <option name="destinationOfParcel" value="lwendulu" class="selectOptions" id="lwenduluDestination">
-                Lwendulu (No1 Area)
-              </option>
-              <option name="destinationOfParcel" value="ingagula" class="selectOptions" id="ingagulaDestination">
-                Ingagula
-              </option>
-              <option name="destinationOfParcel" value="madumabisa" class="selectOptions" id="madumabisaDestination">
-                Madumabisa (No2 Area)
-              </option>
-              <option name="destinationOfParcel" value="makwika" class="selectOptions" id="makwikaDestination">
-                Makwika
-              </option>
-              <option name="destinationOfParcel" value="ngumija" class="selectOptions" id="ngumijaDestination">
-                Ngumija (Railways Area
-              </option>
-              <option name="destinationOfParcel" value="cindrella" class="selectOptions" id="cindrellaDestination">
-                No1 North (Cindrella)
-              </option>
             </select>
-            <small></small>
           </div>
-          <div class="button-wrapper">
-            <button type="reset" class="btn btn-primary p-2 m-2 col" id="reset">
-              Reset
-            </button>
-            <!--
+
+          <!-- Receiver details -->
+          <div class="receiver">
+            <div class="input-grp">
+
+              <input type="text" name="receiverFirstName" id="receiverFirstName" class=""
+                placeholder="Receiver`s Name and Surname" />
+
+              <i class="fas fa-check-circle"></i>
+              <i class="fas fa-exclamation-circle"></i>
+              <small></small>
+            </div>
+
+            <div class="input-grp">
+              <input type="tel" name="receiverTelephoneNumber" id="receiverTelephoneNumber" class="phoneNumber"
+                placeholder="Telephone/Cell (Receiver)" />
+              <i class="fas fa-check-circle"></i>
+              <i class="fas fa-exclamation-circle"></i>
+              <small></small>
+            </div>
+
+            <div class="input-grp">
+              <label for="destination">Select the delivery zone from the list below</label>
+              <select name="destinationOfParcel" id="destinationOfParcel" onchange="" class="selectFields" required>
+                <option selected disabled value="SELECT ONE">
+                  SELECT ONE
+                </option>
+                <option name="destinationOfParcel" value="cbdHub" class="selectOptions" id="cbdHubDestination">
+                  cbdHub
+                </option>
+                <option name="destinationOfParcel" value="empumalanga" class="selectOptions"
+                  id="empumalangaDestination">
+                  Empumalanga
+                </option>
+                <option name="destinationOfParcel" value="lwendulu" class="selectOptions" id="lwenduluDestination">
+                  Lwendulu (No1 Area)
+                </option>
+                <option name="destinationOfParcel" value="ingagula" class="selectOptions" id="ingagulaDestination">
+                  Ingagula
+                </option>
+                <option name="destinationOfParcel" value="madumabisa" class="selectOptions" id="madumabisaDestination">
+                  Madumabisa (No2 Area)
+                </option>
+                <option name="destinationOfParcel" value="makwika" class="selectOptions" id="makwikaDestination">
+                  Makwika
+                </option>
+                <option name="destinationOfParcel" value="ngumija" class="selectOptions" id="ngumijaDestination">
+                  Ngumija (Railways Area
+                </option>
+                <option name="destinationOfParcel" value="cindrella" class="selectOptions" id="cindrellaDestination">
+                  No1 North (Cindrella)
+                </option>
+              </select>
+              <small></small>
+            </div>
+            <div class="button-wrapper">
+              <button type="reset" class="btn btn-primary p-2 m-2 col" id="reset">
+                Reset
+              </button>
+              <!--
                                  <button type="button" class="btn btn-primary  p-2 m-2 col"
                                 id="confirmDetails" >CONFIRM Details</button>-->
-            <button type="submit" class="btn btn-primary p-2 m-2 col" id="submit">
-              Submit
-            </button>
-          </div>
-          <div class="container">
-            Kindly note that our driver will not call the reciver, therefore
-            please ensure that the reciever is there at the presrcibed delivery
-            slot times
-            <p class="results" id="deliveryCost"></p>
-            <p class="results" id="deliverySlot"></p>
+              <button type="submit" class="btn btn-primary p-2 m-2 col" id="submit">
+                Submit
+              </button>
+            </div>
+            <div class="container">
+              Kindly note that our driver will not call the reciver, therefore
+              please ensure that the reciever is there at the presrcibed delivery
+              slot times
+              <p class="results" id="deliveryCost"></p>
+              <p class="results" id="deliverySlot"></p>
 
-            <p class="results" id="wayBillNumber"></p>
+              <p class="results" id="wayBillNumber"></p>
+            </div>
           </div>
+        </section>
         </div>
-      </form>
-    </div>
-    </div>
-    </div>
+    </form>
+  </div>
+  </div>
+  </div>
 
 
-    <!--   <div class="map" id="map"></div>
+  <!--   <div class="map" id="map"></div>
         ul#checkOutPage.list-group>li.list-group-item*16>p#
          <button id="showmap btn ptn-primary" onclick="initMap()">Show Map</button>  For Google Maps API do not forget to remove comments -->
-  </section>
   <!--   </div> -->
   </section>
   <script type="text/javascript" src="index.js"></script>
