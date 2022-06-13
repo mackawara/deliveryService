@@ -431,9 +431,14 @@ input {
   }
   .signUpForm,
   .formContainer {
+    flex-wrap: nowrap;
     width: 100%;
     border-radius: none;
   }
+
+.pickUp,
+.delivery {
+  width: 80%;
 }
 
 /*
