@@ -1,17 +1,13 @@
 window.addEventListener("DOMContentLoaded", async () => {
   console.log("dom content loaded");
 });
-const input = document.querySelectorAll("input");
-console.log(input);
 
-
-const numbers = [1, 2, 3, 4, 5];
-numbers.forEach((number) => {
-  number.toString();
-  console.log(number + 1);
-  const lis = "liz";
+const numbers = [1, 2, 3, 4, 5, 8, 9, 11, 23];
+//console.log(numbers[3]);
+const numbers2 = numbers.filter((number) => {
+  return number < 6;
 });
-console.log(number);
+console.log(numbers2);
 
 const typeOfParcel = document.getElementById("typeOfParcel");
 const dimensionFields = document.querySelector(".dimensions");
