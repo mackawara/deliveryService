@@ -307,6 +307,7 @@ input {
 
 .input-grp select {
   width: 100%;
+  background-color: var(--floral-white);
 }
 
 .input-grp select option {
