@@ -218,13 +218,21 @@ hr.light-100 {
   background-attachment: fixed;
   background-position: center;
 }
+.section-wrapper {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content: center;
+}
 .pickUp,
 .delivery {
-  border: 1px solid red;
+  width: 48%;
+  border: 2px solid red;
 }
 
 .formContainer {
-  width: 50%;
+  width: 80%;
   min-width: 500px;
   box-shadow: 10px var(--light-gray);
   border-radius: 1rem;
