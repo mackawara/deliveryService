@@ -5,7 +5,7 @@
   --malachite: #04e762ff;
   --dark-jungle-green: #121713ff;
   --floral-white: #fffcf2ff;
-  --dartmouth-green: #1a7431ff;
+  --darmouth-green: #1a7431ff;
 
   /* CSS HSL */
   --emerald: hsla(148, 83%, 41%, 1);
@@ -39,7 +39,7 @@ header {
 }
 .navbar-nav li a {
   color: var(--dart-jungle-green);
-  border: 1px solid red;
+  background-color: var(--floral-white) !important  ;
 }
 .nav-link {
   font-size: 1.1em !important;
@@ -73,6 +73,7 @@ header {
 }
 .btn-primary:hover {
   background-color: var(--malachite);
+  color: var(--floral-white);
 }
 .border-radius {
   border-radius: 1rem;
@@ -290,8 +291,8 @@ input {
 }
 
 .input-grp input {
-  border: 1px solid var(--malachite);
-  border-radius: 5px;
+  border: none;
+  border-bottom: 1px solid var(--dark-jungle-green);
   display: flex;
   font-family: inherit;
   font-size: 1rem;
