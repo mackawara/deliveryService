@@ -32,13 +32,14 @@ header {
 .navbar {
   padding: 0.8rem;
   background-color: var(--floral-white);
-  color: var(--dartmouth-green);
+  color: var(--dart-jungle-green) !important;
 }
 .navbar-nav li {
   margin-right: 1.2rem;
 }
 .navbar-nav li a {
-  color: var(--dartmouth-green);
+  color: var(--dart-jungle-green);
+  border: 1px solid red;
 }
 .nav-link {
   font-size: 1.1em !important;
@@ -67,12 +68,11 @@ header {
 }
 .btn-primary {
   background-color: var(--emerald);
-  color: var(--dartmouth-green);
+  color: var(--dark-jungle-green);
   border: 1px solid var(--floral-white);
 }
 .btn-primary:hover {
   background-color: var(--malachite);
-  border: 1px solid var(--dark-jungle-green);
 }
 .border-radius {
   border-radius: 1rem;
@@ -286,6 +286,7 @@ input {
 .input-grp label {
   display: block;
   width: 100%;
+  border-color: var(--malachite);
 }
 
 .input-grp input {
