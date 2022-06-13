@@ -1,6 +1,18 @@
 window.addEventListener("DOMContentLoaded", async () => {
   console.log("dom content loaded");
 });
+const input = document.querySelectorAll("input");
+console.log(input);
+
+
+const numbers = [1, 2, 3, 4, 5];
+numbers.forEach((number) => {
+  number.toString();
+  console.log(number + 1);
+  const lis = "liz";
+});
+console.log(number);
+
 const typeOfParcel = document.getElementById("typeOfParcel");
 const dimensionFields = document.querySelector(".dimensions");
 typeOfParcel.addEventListener("change", (e) => {
