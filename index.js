@@ -4,10 +4,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 const typeOfParcel = document.getElementById("typeOfParcel");
 const dimensionFields = document.querySelector(".dimensions");
 typeOfParcel.addEventListener("change", (e) => {
-  console.log(e.target.value);
-  typeOfParcel.value === "Hardware" || "Box"
-    ? (dimensionFields.style.display = "flex")
-    : (dimensionFields.style.display = "none");
+  console.log(dimensionFields);
+  if (typeOfParcel.value === "Hardware" || typeOfParcel.value === "Box") {
+    dimensionFields.style.display = "flex";
+  } else {
+    dimensionFields.style.display = "none";
+  }
 });
 
 var form = document.getElementById("myForm");
@@ -98,26 +100,26 @@ function assign() {
     console.log("testSuccess");
   }
   /* 
-  selects = [
-    destination,
-    pickUpSlotTime,
-    deliverySlotTime,
-    typeOfParcel,
-    departureLocation,
-  ];
+ selects = [
+   destination,
+   pickUpSlotTime,
+   deliverySlotTime,
+   typeOfParcel,
+   departureLocation,
+ ];
 
-  for (var i = 0, len = selects.length; i < len; i++) {
-    //loops through all the selects. this helps in blanket
-    select = selects[i];
-    if (selects[i].value === "SELECT ONE") {
-      // alert("Please make a valid selection for "+ selects[i].name);
-      selects[i].parentElement.classList.add("error");
-      /* console.log(selects[i].parentElement.classList) 
-    } else {
-      selects[i].parentElement.classList.add("success");
-      selects[i].parentElement.classList.remove("error");
-    }
-  } */
+ for (var i = 0, len = selects.length; i < len; i++) {
+   //loops through all the selects. this helps in blanket
+   select = selects[i];
+   if (selects[i].value === "SELECT ONE") {
+     // alert("Please make a valid selection for "+ selects[i].name);
+     selects[i].parentElement.classList.add("error");
+     /* console.log(selects[i].parentElement.classList) 
+   } else {
+     selects[i].parentElement.classList.add("success");
+     selects[i].parentElement.classList.remove("error");
+   }
+ } */
   function inputValidation(inputsField) {
     this.inputsField = inputsField;
     const small = inputsField.parentElement.querySelector("small");
