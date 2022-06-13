@@ -228,7 +228,9 @@ hr.light-100 {
 .pickUp,
 .delivery {
   width: 48%;
-  border: 2px solid red;
+
+  margin: 3rem 1%;
+  border-radius: 0.2rem;
 }
 
 .formContainer {
