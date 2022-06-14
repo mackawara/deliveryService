@@ -398,6 +398,13 @@ input {
   .signUpForm {
     width: 100%;
   }
+  .formContainer {
+    flex-wrap: nowrap;}
+
+.pickUp,
+.delivery {
+  width: 80%;
+}
 
   .carousel-caption h1 {
     font-size: 350%;
