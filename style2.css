@@ -47,6 +47,13 @@ header p{
   color: var(--dart-jungle-green);
   background-color: var(--floral-white) !important  ;
 }
+.navbar-nav li a:hover {
+  color: var(--floral-white);
+  background-color: var(--emerald) !important  ;
+  border-radius: .5rem;
+}
+
+
 .nav-link {
   font-size: 1.1em !important;
 }
