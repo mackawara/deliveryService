@@ -414,6 +414,18 @@ input {
   .dimensions div {
     width: 40%;
   }
+  .navbar-nav li {
+    text-align: center;
+    width: 100%;
+  }
+  .navbar-nav {
+    margin: 0;
+    width: 100%;
+  }
+  header{
+    display: none;
+  }
+ 
 }
 @media (max-width: 576px) {
   .carousel-caption h1 {
@@ -442,7 +454,7 @@ input {
   .formContainer {
     flex-wrap: nowrap;
     width: 100%;
-    border-radius: none;
+    border-radius: 0;
     min-width: none;
   }
 
