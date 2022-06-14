@@ -231,8 +231,9 @@ hr.light-100 {
   min-width: 500px;
   box-shadow: 10px var(--floral-white);
   border-radius: 1rem;
-  margin: 10rem 0;
+  margin: 5rem 0;
   background-color: var(--floral-white);
+  
 }
 
 .signUpForm h3 {
@@ -265,6 +266,7 @@ hr.light-100 {
 }
 .dimensions div {
   width: 20%;
+  min-width: 60px;
 }
 .form {
   padding: 30px 40px;
@@ -288,6 +290,7 @@ input {
   display: block;
   width: 100%;
   border-color: var(--malachite);
+  color: var(--dark-jungle-green);
 }
 
 .input-grp input {
@@ -308,8 +311,8 @@ input {
 .input-grp select {
   width: 100%;
   background-color: var(--floral-white);
+  border: 1px solid var(--darmouth-green)
 }
-
 .input-grp select option {
   width: 100%;
   background-color: var(--malachite);
@@ -434,6 +437,7 @@ input {
     flex-wrap: nowrap;
     width: 100%;
     border-radius: none;
+    min-width: none;
   }
 
 .pickUp,
