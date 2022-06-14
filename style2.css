@@ -23,11 +23,17 @@ body {
   background-color: --emerald;
 }
 header {
-  height: 4rem;
+  height: 5rem;
   display: flex;
-  align-content: center;
+  align-content: center !important ;
   justify-content: space-between;
   background-color: var(--emerald);
+}
+header p{
+  margin: 0 1rem;
+  display: flex;
+  align-content: center;
+  align-self: center;
 }
 .navbar {
   padding: 0.8rem;
