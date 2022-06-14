@@ -14,4 +14,12 @@ app.get("/", (req, res) => {
   console.log(__dirname + "/public/deliveryhome.html");
   res.sendFile(__dirname + "/public/deliveryhome.html");
 });
+app.get("/home", (req, res) => {
+  console.log(__dirname + "/public/index.html");
+  res.sendFile(__dirname + "/public/index.html");
+});
+app.get("/signup", (req, res) => {
+  console.log(__dirname + "/public/signup.html");
+  res.sendFile(__dirname + "/public/signup.html");
+});
 app.use(express.static("public"));
