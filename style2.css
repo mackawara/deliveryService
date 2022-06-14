@@ -282,7 +282,7 @@ input {
   align-content: center;
   justify-content: center;
   flex-wrap: wrap;
-  background-color: hsla(0, 0%, 84%, 0.51);
+  background-color:var(--emerald);
   color: var(--dark-jungle-green);
 }
 
