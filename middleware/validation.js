@@ -20,15 +20,15 @@ const validationRules = () => {
       .trim()
       .escape(),
     body("receiverName")
-    .not()
-    .isEmpty()
-    .withMessage("Please enter your name")
-    .isLength({ min: 2, max: 35 })
-    .withMessage("Please ensure that your name is valid")
-    .isAlpha()
-    .withMessage("Please ensure that there are no numerals in your name")
-    .trim()
-    .escape(),
+      .not()
+      .isEmpty()
+      .withMessage("Please enter your name")
+      .isLength({ min: 2, max: 35 })
+      .withMessage("Please ensure that your name is valid")
+      .isAlpha()
+      .withMessage("Please ensure that there are no numerals in your name")
+      .trim()
+      .escape(),
     //.isAlpha()
 
     body("senderNumber", "please enter a valid number")
@@ -91,26 +91,23 @@ const validationRules = () => {
       .escape(),
   ];
 };
-
-const validate = (req, res, next) => {
-  console.log("validate is working");
+const validate= (req, res, next) => {
+  console.log(req.body)
   const errors = validationResult(req);
-  if (errors.isEmpty()) {
-    console.log("validation passed");
-    console.log(req.body);
-    return next();
-  } else {
-    console.log("validation failed");
-    const exctractedErrors = [];
-    errors.array().map((err) => {
-      exctractedErrors.push({ [err.param]: err.msg });
-    });
-    console.log(exctractedErrors);
+  const errorFormatter = ({ location, msg, param, value, nestedErrors }) => {
+    // Build your resulting errors however you want! String, object, whatever - it works!
+    return `${param}: ${msg}`;
+  };
+  const result = errors.formatWith(errorFormatter);
+  console.log(errors)
 
-    res.status(422).json({
-      errors: exctractedErrors,
-    });
+  //const result = validationResult(req).formatWith(errorFormatter);
+  if (!result.isEmpty()) {
+    console.log(result);
+    //mapped only returns the first error
+    return res.json({ errors: result.mapped() });
   }
-};
+  console.log("Validation passed");
+    return next();}
 module.exports = { validationRules, validate };
 // validation still needs to be consolidated
