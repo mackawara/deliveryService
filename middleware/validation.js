@@ -14,10 +14,9 @@ const validationRules = () => {
       .isEmpty()
       .withMessage("Please enter your name")
       .isLength({ min: 2, max: 35 })
-      .withMessage("Please ensure that your name is valid")
-      // ignore is telling the code what to ignore
+      .withMessage("Please enter a valid name")
       .isAlpha("en-GB", { ignore: " -" })
-      .withMessage("Please ensure that there are no numerals in your name")
+      .withMessage("Please enter a valid name, (no numerals)")
       .trim()
       .escape(),
     body("receiverName")
@@ -25,9 +24,9 @@ const validationRules = () => {
       .isEmpty()
       .withMessage("Please enter your name")
       .isLength({ min: 2, max: 35 })
-      .withMessage("Please ensure that your name is valid")
+      .withMessage("Please enter a valid name")
       .isAlpha("en-GB", { ignore: " -" })
-      .withMessage("Please ensure that there are no numerals in your name")
+      .withMessage("Please enter a valid name, (no numerals)")
       .trim()
       .escape(),
     //.isAlpha()
