@@ -1,7 +1,7 @@
 const { body, validationResult } = require("express-validator");
 const validationRules = () => {
   return [
-    body("email")
+    body("email", "Please enter a valid email")
       .isEmail()
       .isLength({ min: 4 })
       .withMessage("Please enter a valid email")
