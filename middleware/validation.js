@@ -7,8 +7,17 @@ const validationRules = () => {
       .withMessage("Please enter a valid email")
       .normalizeEmail()
       .trim()
+      .escape()
+      .optional(),
+    body("senderName")
+      .not()
+      .isEmpty()
+      .withMessage("Please enter your name")
+      .isLength({ min: 2, max: 35 })
+      .withMessage("Please ensure that your name contains no numbers")
+      .trim()
       .escape(),
-    body("name")
+      body("receiverName")
       .not()
       .isEmpty()
       .withMessage("Please enter your name")
@@ -18,7 +27,15 @@ const validationRules = () => {
       .escape(),
     //.isAlpha()
 
-    body("mobileNumber", "please enter a valid number")
+    body("senderNumber", "please enter a valid number")
+      .not()
+      .isEmpty()
+      .isLength({ min: 10, max: 13 })
+      .isNumeric()
+      .withMessage("Please enter a valid Zimbabwean mobile number")
+      .trim()
+      .escape(),
+      body("receiverNumber", "please enter a valid number")
       .not()
       .isEmpty()
       .isLength({ min: 10, max: 13 })
@@ -39,17 +56,41 @@ const validationRules = () => {
       .withMessage("Your message is not detailed enough")
       .trim()
       .escape(),
-      body("deliverySlot")
-      .not().matches(/SELECT ONE/g).withMessage("please make a valid selection"),
-      body("pickUpSlot")
-      .not().matches(/SELECT ONE/g).withMessage("please make a valid selection"),
-      body("typeOfParcel")
-      .not().matches(/SELECT ONE/g).withMessage("please make a valid selection"),
-      body("departureLocation")
-      .not().matches(/SELECT ONE/g).withMessage("please make a valid selection"),
-      body("destinationOfParcel")
-      .not().matches(/SELECT ONE/g).withMessage("please make a valid selection"),
-
+    body("deliverySlot", "You have made an invalid selection")
+      .not()
+      .matches(/SELECT ONE/g)
+      .withMessage("please make a valid selection")
+      .notEmpty()
+      .trim()
+      .escape(),
+    body("pickUpSlot", "You have made an invalid selection")
+      .not()
+      .matches(/SELECT ONE/g)
+      .withMessage("please make a valid selection")
+      .notEmpty()
+      .trim()
+      .escape(),
+    body("typeOfParcel", "You have made an invalid selection")
+      .not()
+      .matches(/SELECT ONE/g)
+      .withMessage("please make a valid selection")
+      .notEmpty()
+      .trim()
+      .escape(),
+    body("departureLocation", "You have made an invalid selection")
+      .not()
+      .matches(/SELECT ONE/g)
+      .withMessage("please make a valid selection")
+      .notEmpty()
+      .trim()
+      .escape(),
+    body("destinationOfParcel", "You have made an invalid selection")
+      .not()
+      .matches(/SELECT ONE/g)
+      .withMessage("please make a valid selection")
+      .notEmpty()
+      .trim()
+      .escape(),
   ];
 };
 
