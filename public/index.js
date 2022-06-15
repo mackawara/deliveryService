@@ -21,10 +21,10 @@ typeOfParcel.addEventListener("change", (e) => {
 });
 
 var form = document.getElementById("myForm");
-form.addEventListener("submit", function (e) {
+/* form.addEventListener("submit", function (e) {
   assign();
   e.preventDefault();
-});
+}); */
 document.querySelector("#date").innerHTML = new Date();
 
 var selects = [];
