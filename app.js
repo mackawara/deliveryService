@@ -32,5 +32,5 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 app.post("/booking", (req, res) => {
   console.log(req.body);
-  res.send(`${req.body.name}`);
+  res.send(req.body);
 });
