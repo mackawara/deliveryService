@@ -80,6 +80,10 @@ const validationRules = () => {
       .not()
       .matches(/SELECT ONE/g)
       .withMessage("please make a valid selection")
+      .matches(
+        /\b(Empumalanga|Ingagula|Lwendulu| Ngumija|Makwika|cindrella|cbdHub|madumabisa)\b/i
+      )
+      .withMessage("Please select from the given options")
       .notEmpty()
       .trim()
       .escape(),
@@ -87,7 +91,9 @@ const validationRules = () => {
       .not()
       .matches(/SELECT ONE/g)
       .withMessage("please make a valid selection")
-      .matches(/\b(Empumalanga|Ingagula|Lwendulu| Ngumija|Makwika|cindrella|cbdHub|madumabisa)\b/i)
+      .matches(
+        /\b(Empumalanga|Ingagula|Lwendulu| Ngumija|Makwika|cindrella|cbdHub|madumabisa)\b/i
+      )
       .withMessage("Please select from the given options")
       .notEmpty()
       .trim()
