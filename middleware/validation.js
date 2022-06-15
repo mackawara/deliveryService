@@ -36,7 +36,7 @@ const validationRules = () => {
       .not()
       .isEmpty()
       .isLength({ min: 10, max: 13 })
-      .isNumeric()
+      .matches(/(\+263|0)7[7-8|1|3][0-9]{7}$/)
       .withMessage("Please enter a valid Zimbabwean mobile number")
       .trim()
       .escape(),
@@ -44,14 +44,8 @@ const validationRules = () => {
       .not()
       .isEmpty()
       .isLength({ min: 10, max: 13 })
-      .isNumeric()
+      .matches(/(\+263|0)7[7-8|1|3][0-9]{7}$/)
       .withMessage("Please enter a valid Zimbabwean mobile number")
-      .trim()
-      .escape(),
-    body("subject")
-      .optional()
-      .isLength({ min: 3, max: 25 })
-      .withMessage("Please enter a valid Subject")
       .trim()
       .escape(),
 
