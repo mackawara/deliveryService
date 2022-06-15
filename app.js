@@ -1,6 +1,7 @@
 const express = require("express");
 const dotenv = require("dotenv");
 const bodyParser = require("body-parser");
+const multer = require("multer");
 
 // server config
 const app = express();
@@ -23,10 +24,13 @@ app.get("/signup", (req, res) => {
   console.log(__dirname + "/public/signup.html");
   res.sendFile(__dirname + "/public/signup.html");
 });
-app.post("/booking", (req, res) => {
-  console.log(req.body);
-  res.send(`${req.body}`);
-});
 app.use(express.static("public"));
 app.use(express.json());
-app.use(express.urlencoded());
+app.use(bodyParser.urlencoded({ extended: false }));
+
+// parse application/json
+app.use(bodyParser.json());
+app.post("/booking", (req, res) => {
+  console.log(req.body);
+  res.send(`${req.body.name}`);
+});
