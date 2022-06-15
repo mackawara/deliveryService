@@ -20,13 +20,15 @@ const validationRules = () => {
       .trim()
       .escape(),
     body("receiverName")
-      .not()
-      .isEmpty()
-      .withMessage("Please enter your name")
-      .isLength({ min: 2, max: 35 })
-      .withMessage("Please ensure that your name contains no numbers")
-      .trim()
-      .escape(),
+    .not()
+    .isEmpty()
+    .withMessage("Please enter your name")
+    .isLength({ min: 2, max: 35 })
+    .withMessage("Please ensure that your name is valid")
+    .isAlpha()
+    .withMessage("Please ensure that there are no numerals in your name")
+    .trim()
+    .escape(),
     //.isAlpha()
 
     body("senderNumber", "please enter a valid number")
