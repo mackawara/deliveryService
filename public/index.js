@@ -104,9 +104,10 @@ async function formValidator() {
     if (name.value.length > 35 || name.value.length < 3) {
       namefield.invalid();
       namefield.setError();
+    } else if (name.value.match(/[0-9]/g)) {
+      namefield.invalid();
+      namefield.setError();
+      console.log("regex not match");
     }
-    /*  else if (){
-
-    } */
   });
 }
