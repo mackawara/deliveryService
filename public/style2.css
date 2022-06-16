@@ -326,10 +326,7 @@ input {
   background-color: var(--floral-white);
   border: 1px solid var(--darmouth-green)
 }
-.input-grp select option {
-  width: 100%;
-  background-color: var(--malachite);
-}
+
 
 .input-grp.success input {
   border-color: #2ecc71;
@@ -367,8 +364,8 @@ input {
 
 .input-grp small {
   color: #e74c3c;
-  position: absolute;
-  bottom: 0;
+  /* position: absolute;
+  bottom: 0; */
   left: 10px;
   visibility: hidden;
 }
