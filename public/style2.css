@@ -295,7 +295,6 @@ input {
   align-content: center;
   justify-content: center;
   flex-wrap: wrap;
-  background-color:var(--emerald);
   color: var(--dark-jungle-green);
 }
 
