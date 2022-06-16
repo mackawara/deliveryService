@@ -109,5 +109,6 @@ async function formValidator() {
       namefield.setError();
       console.log("regex not match");
     }
+    else namefield.setSuccess()
   });
 }
