@@ -33,7 +33,7 @@ async function formValidator() {
     const name = this.inputsField.name;
     /* set error is the function which catches all errors and inputs the errors CSS */
     this.setError = function () {
-      inputsField.parentElement.className = "input-group error";
+      inputsField.parentElement.className = "input-grp error";
       inputErrors.push(inputsField.name);
     };
     /* function which checks if field is empty */
@@ -72,7 +72,7 @@ async function formValidator() {
       /* remove any error messages */
       small.innerText = "";
       /* add styling to show successful validation */
-      inputsField.parentElement.className = "input-group success";
+      inputsField.parentElement.className = "input-grp success";
       /* append field data into entrant data Object */
       entrantData[name] = value;
     };
