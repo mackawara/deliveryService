@@ -322,7 +322,7 @@ input {
 
 .input-grp select {
   width: 100%;
-  background-color: var(--floral-white);
+  background-color: var(--emerald);
   border: 1px solid var(--darmouth-green)
 }
 
@@ -346,7 +346,7 @@ input {
 .input-grp i {
   visibility: hidden;
   position: absolute;
-  top: 50%;
+  top: 30%;
   translate: y(-50%);
   right: 20px;
 }
@@ -367,6 +367,7 @@ input {
   bottom: 0; */
   left: 10px;
   visibility: hidden;
+  font-weight: 100;
 }
 
 .input-grp.error small {
