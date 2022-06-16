@@ -98,6 +98,20 @@ async function formValidator() {
     }
   });
 
+  const numbers = form.querySelectorAll(".numbers");
+  numbers.forEach((number) => {
+    const numberfield = new inputValidator(number);
+    if (number.value.length > 13 || number.value.length < 10) {
+      numberfield.invalid();
+      numberfield.setError();
+      console.log(numbers);
+    } else if (!/((\+263|0)7[7-8|1|3][0-9]{7}$)/.test(number.value)) {
+      numberfield.invalid();
+      numberfield.setError();
+      console.log("number regex not match");
+    } else numberfield.setSuccess();
+  });
+
   const names = form.querySelectorAll(".names");
   names.forEach((name) => {
     const namefield = new inputValidator(name);
@@ -108,7 +122,6 @@ async function formValidator() {
       namefield.invalid();
       namefield.setError();
       console.log("regex not match");
-    }
-    else namefield.setSuccess()
+    } else namefield.setSuccess();
   });
 }
