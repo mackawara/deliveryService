@@ -13,6 +13,7 @@ typeOfParcel.addEventListener("change", (e) => {
   }
 });
 
+let data = {};
 var form = document.getElementById("myForm");
 form.addEventListener("submit", function (e) {
   e.preventDefault();
@@ -74,7 +75,7 @@ async function formValidator() {
       /* add styling to show successful validation */
       inputsField.parentElement.className = "input-grp success";
       /* append field data into entrant data Object */
-      entrantData[name] = value;
+      data[name] = value;
     };
   }
 
