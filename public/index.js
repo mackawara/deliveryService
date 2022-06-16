@@ -16,14 +16,17 @@ typeOfParcel.addEventListener("change", (e) => {
 var form = document.getElementById("myForm");
 form.addEventListener("submit", function (e) {
   e.preventDefault();
-
-  const formData = new FormData(form);
-  console.log(formData);
+  formValidator();
 });
-async function formValidation() {
+
+async function formValidator() {
+  console.log("validotor running");
+  const selects = form.querySelectorAll("select");
+  const inputs = form.querySelectorAll("input");
+
   let inputErrors = [];
 
-  function inputValidation(inputsField) {
+  function inputValidator(inputsField) {
     this.inputsField = inputsField;
     const small = inputsField.parentElement.querySelector("small");
     const value = this.inputsField.value;
@@ -46,9 +49,7 @@ async function formValidation() {
       /* returns true if value is tool long */
       return value.length > figure;
     };
-    this.regexTest = function (regex) {
-      return regex.test(value);
-    };
+
     /* function to run when the field is empty */
     this.empty = function () {
       console.log(`${inputsField.name} is empty`);
@@ -76,4 +77,21 @@ async function formValidation() {
       entrantData[name] = value;
     };
   }
+
+  // VALIDATE INDIVIDUAL OR GRUP OF FIELDS
+  selects.forEach((select) => {
+    const selectFields = new inputValidator(select);
+    if (select.value == "SELECT ONE") {
+      selectFields.setError();
+      console.log("please make selection");
+    }
+  });
+
+  inputs.forEach((input) => {
+    const inputField = new inputValidator(input);
+    if (input.value === "") {
+      console.log("input empty");
+      inputField.setError();
+    }
+  });
 }
