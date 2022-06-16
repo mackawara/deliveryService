@@ -83,6 +83,7 @@ async function formValidator() {
     const selectFields = new inputValidator(select);
     if (select.value == "SELECT ONE") {
       selectFields.setError();
+      selectFields.empty();
       console.log("please make selection");
     }
   });
@@ -92,6 +93,7 @@ async function formValidator() {
     if (input.value === "") {
       console.log("input empty");
       inputField.setError();
+      inputField.empty();
     }
   });
 }
