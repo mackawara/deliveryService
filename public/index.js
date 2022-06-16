@@ -112,16 +112,12 @@ async function formValidator() {
     } else numberfield.setSuccess();
   });
 
-  const email=form.querySelector("#email")
-const emailField=new inputValidator(email)
-if (email.value===""){
-  emailField.empty()
-emailField.setError()}
-else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)){
-  emailField.invalid()
-  emailField.setError()
-}
-else emailField.setSuccess()
+  const email = form.querySelector("#email");
+  const emailField = new inputValidator(email);
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.value)) {
+    emailField.invalid();
+    emailField.setError();
+  } else emailField.setSuccess();
 
   const names = form.querySelectorAll(".names");
   names.forEach((name) => {
