@@ -54,7 +54,7 @@ async function formValidator() {
     /* function to run when the field is empty */
     this.empty = function () {
       console.log(`${inputsField.name} is empty`);
-      small.innerText = inputsField.name + " cannot be empty";
+      small.innerText = "Cannot be empty";
       inputErrors.push(inputsField.name);
     };
     /* input the errors message into the small tag */
@@ -84,7 +84,7 @@ async function formValidator() {
     const selectFields = new inputValidator(select);
     if (select.value == "SELECT ONE") {
       selectFields.setError();
-      selectFields.empty();
+      selectFields.invalid();
       console.log("please make selection");
     }
   });
@@ -96,5 +96,17 @@ async function formValidator() {
       inputField.setError();
       inputField.empty();
     }
+  });
+
+  const names = form.querySelectorAll(".names");
+  names.forEach((name) => {
+    const namefield = new inputValidator(name);
+    if (name.value.length > 35 || name.value.length < 3) {
+      namefield.invalid();
+      namefield.setError();
+    }
+    /*  else if (){
+
+    } */
   });
 }
