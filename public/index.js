@@ -59,7 +59,7 @@ async function formValidator() {
     /* input the errors message into the small tag */
     this.invalid = function () {
       console.log("invalid");
-      small.innerText = `Invalid ipnut `;
+      small.innerText = `Invalid input `;
 
       inputErrors.push(`${inputsField.name}`);
     };
