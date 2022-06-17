@@ -52,8 +52,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 
       /* function to run when the field is empty */
       this.empty = function () {
-        console.log(`${inputsField.name} is empty`);
-        small.innerText = "Cannot be empty";
+        small.innerText = "Cannot be empty!";
         inputErrors.push(inputsField.name);
       };
       /* input the errors message into the small tag */
@@ -77,25 +76,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         data[name] = value;
       };
     }
-
-    // VALIDATE INDIVIDUAL OR GRUP OF FIELDS
-    selects.forEach((select) => {
-      const selectFields = new inputValidator(select);
-      if (select.value == "SELECT ONE") {
-        selectFields.setError();
-        selectFields.invalid();
-        console.log("please make selection");
-      } else selectFields.setSuccess();
-    });
-
-    inputs.forEach((input) => {
-      const inputField = new inputValidator(input);
-      if (input.value === "") {
-        console.log("input empty");
-        inputField.setError();
-        inputField.empty();
-      }
-    });
 
     const numbers = form.querySelectorAll(".numbers");
     numbers.forEach((number) => {
@@ -130,6 +110,25 @@ window.addEventListener("DOMContentLoaded", async () => {
         console.log("regex not match");
       } else namefield.setSuccess();
     });
+    // VALIDATE INDIVIDUAL OR GRUP OF FIELDS
+    selects.forEach((select) => {
+      const selectFields = new inputValidator(select);
+      if (select.value == "SELECT ONE") {
+        selectFields.setError();
+        selectFields.invalid();
+        console.log("please make selection");
+      } else selectFields.setSuccess();
+    });
+
+    inputs.forEach((input) => {
+      const inputField = new inputValidator(input);
+      if (input.value === "") {
+        console.log("input empty");
+        inputField.setError();
+        inputField.empty();
+      }
+    });
+
     console.log(data);
     if (inputErrors.length === 0) {
       sendForm(data);
