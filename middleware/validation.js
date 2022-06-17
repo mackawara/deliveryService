@@ -109,12 +109,14 @@ const validate = (req, res, next) => {
 
   //const result = validationResult(req).formatWith(errorFormatter);
   if (!result.isEmpty()) {
-    console.log(result);
-    //mapped only returns the first error
-    return res.json({ errors: result.mapped() });
+    res.status(422).send(errors.mapped());
+
+    console.log(errors.mapped());
+  } else {
+    console.log("Validation passed");
+
+    return next();
   }
-  console.log("Validation passed");
-  return next();
 };
 module.exports = { validationRules, validate };
 // validation still needs to be consolidated
