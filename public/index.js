@@ -166,28 +166,17 @@ window.addEventListener("DOMContentLoaded", async () => {
           const confirmation = document.querySelector("#confrimation");
           confirmation.classList.add("error");
           confirmation.innerText = `${data}`;
-        } else if (response.status == "422") {
-          console.log("Error");
-          document.getElementById(
-            "registrationConfirmation"
-          ).innerText = ` Your submission contains errors!!`;
-          for (const any in data) {
-            result.classList.add("error");
-            const p = document.createElement("p");
-            const personalDetails = ` ${data[any].properties.message}`;
-            p.innerText = personalDetails;
-            document
-              .getElementById(`${any}`)
-              .parentElement.classList.remove("success");
-            document
-              .getElementById(`${any}`)
-              .parentElement.classList.add("error");
-
-            console.log(`${any}`);
-            result.appendChild(p);
-          }
         }
-      })
+        else if (response.status == "422") {
+          /* status 422 sent if data submitted fails the DB schema validation */
+          /* status 422 sent if data submitted fails the DB schema validation */
+          for (const any in data) {
+            console.log(`${any}`);
+            const errorField = document.getElementById(`${any}`).parentElement;
+            errorField.classList = "input-group error";
+            errorField.querySelector("small").innerText = `${data[any].message}`;
+          }
+      }})
     );
   };
 });
