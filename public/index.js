@@ -135,6 +135,62 @@ window.addEventListener("DOMContentLoaded", async () => {
     }
   }
   const sendForm = (object) => {
-    fetch("./booking", JSON.stringify(object));
+    const options = {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      mode: "cors",
+      redirect: "follow",
+      body: JSON.stringify(object),
+    };
+    fetch("/booking", options).then((response) =>
+      response.json().then((data) => {
+        const result = document.getElementById("results");
+        result.style.display = "block";
+
+        if (response.status == "200") {
+          form.remove();
+          document.getElementById(
+            "registrationConfirmation"
+          ).innerText = ` Thank you ${data.Name} for your booking.Our team will be in touch soon`;
+          console.log("SUCCESS");
+          for (const any in data) {
+            const p = document.createElement("p");
+            const personalDetails = `${any}: ${data[any]}`;
+            p.innerText = personalDetails;
+            result.appendChild(p);
+            result.classList.remove("error");
+          }
+        } else if (response.status == "500") {
+          console.log("Error");
+          const regConfirmation = document.getElementById(
+            "registrationConfirmation"
+          );
+          regConfirmation.innerText = data.response;
+          regConfirmation.parentElement.classList.add("success");
+        } else if (response.status == "422") {
+          console.log("Error");
+          document.getElementById(
+            "registrationConfirmation"
+          ).innerText = ` Your submission contains errors!!`;
+          for (const any in data) {
+            result.classList.add("error");
+            const p = document.createElement("p");
+            const personalDetails = ` ${data[any].properties.message}`;
+            p.innerText = personalDetails;
+            document
+              .getElementById(`${any}`)
+              .parentElement.classList.remove("success");
+            document
+              .getElementById(`${any}`)
+              .parentElement.classList.add("error");
+
+            console.log(`${any}`);
+            result.appendChild(p);
+          }
+        }
+      })
+    );
   };
 });
