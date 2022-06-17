@@ -162,13 +162,11 @@ window.addEventListener("DOMContentLoaded", async () => {
             result.appendChild(p);
             result.classList.remove("error");
           }
-        } 
-        else if (response.status == "500") {
-          const confirmation=document.querySelector("#confrimation")
+        } else if (response.status == "500") {
+          const confirmation = document.querySelector("#confrimation");
           confirmation.classList.add("error");
-          confirmation.innerText = `${data}`;}
-          
-           else if (response.status == "422") {
+          confirmation.innerText = `${data}`;
+        } else if (response.status == "422") {
           console.log("Error");
           document.getElementById(
             "registrationConfirmation"
