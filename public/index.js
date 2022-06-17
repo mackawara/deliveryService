@@ -162,14 +162,13 @@ window.addEventListener("DOMContentLoaded", async () => {
             result.appendChild(p);
             result.classList.remove("error");
           }
-        } else if (response.status == "500") {
-          console.log("Error");
-          const regConfirmation = document.getElementById(
-            "registrationConfirmation"
-          );
-          regConfirmation.innerText = data.response;
-          regConfirmation.parentElement.classList.add("success");
-        } else if (response.status == "422") {
+        } 
+        else if (response.status == "500") {
+          const confirmation=document.querySelector("#confrimation")
+          confirmation.classList.add("error");
+          confirmation.innerText = `${data}`;}
+          
+           else if (response.status == "422") {
           console.log("Error");
           document.getElementById(
             "registrationConfirmation"
