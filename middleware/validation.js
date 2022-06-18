@@ -47,16 +47,6 @@ const validationRules = () => {
       .withMessage("Please enter a valid Zimbabwean mobile number")
       .trim()
       .escape(),
-
-    body("deliverySlot", "You have made an invalid selection")
-      .not()
-      .matches(/SELECT ONE/g)
-      .withMessage("Please make a valid selection")
-      .matches(/\b(1000-1130hrs|1400-1530hrs|1700-1830hrs)\b/)
-      .withMessage("Please make a valid selection")
-      .notEmpty()
-      .trim()
-      .escape(),
     body("pickUpSlot", "You have made an invalid selection")
       .not()
       .matches(/SELECT ONE/g)
