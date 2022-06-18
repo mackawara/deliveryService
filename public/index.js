@@ -184,10 +184,8 @@ window.addEventListener("DOMContentLoaded", async () => {
           for (const any in data) {
             console.log(`${any}`);
             const errorField = document.getElementById(`${any}`).parentElement;
-            errorField.classList = "input-group error";
-            errorField.querySelector(
-              "small"
-            ).innerText = `${data[any].message}`;
+            errorField.classList = "input-grp error";
+            errorField.querySelector("small").innerText = `${any.message}`;
           }
         }
       })
