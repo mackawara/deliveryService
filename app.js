@@ -58,8 +58,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 const { validationRules, validate } = require("./middleware/validation");
 const saveToDb=require("./middleware/saveToDb")
 app.use(bodyParser.json());
-app.post("/booking", validationRules(), validate, (req, res) => {
-  console.log(req.body);
+app.post("/booking", validationRules(), validate, saveToDb,(req, res) => {
+  console.log("booking successfully saved");
   res.send(req.body);
 });
 })
