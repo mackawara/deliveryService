@@ -90,30 +90,8 @@ let saveBookingToDataBase = async (req, res, next) => {
     email: email,
   });
   /* query booking queries the database to see if this is not a duplicate of existing entry */
-  const querybooking = async function (response) {
-    /* prevents duplicate from being recorded on db */
-    console.log(`query booking is working`);
-
-    const data = await bookingModel
-      .exists({ senderName: senderName, email: email }) // check i there is any dat with the emeil
-      .then((data) => {
-        if (data) {
-          console.log("entry is alredy found");
-          console.log(data._id);
-          res.status(409).send({
-            message: `${senderName} is already entered thank you participation`,
-          });
-        } else if (!data) {
-          /* if there is no existing entry the entry can be saved */
-          savebooking();
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  async function savebooking() {
+ saveBooking()
+  async function saveBooking() {
     console.log(` now saving to DB `);
     await booking.save((err, booking) => {
       if (err) {
