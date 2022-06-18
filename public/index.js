@@ -130,7 +130,8 @@ window.addEventListener("DOMContentLoaded", async () => {
     });
 
     console.log(data);
-    if (inputErrors.length === 0) {
+    console.log(inputErrors);
+    if (inputErrors.length == 0) {
       sendForm(data);
     }
   }
