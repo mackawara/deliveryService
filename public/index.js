@@ -165,7 +165,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           form.remove();
           document.getElementById(
             "confirmation"
-          ).innerText = ` Thank you ${data.Name} for your booking.Our team will be in touch soon`;
+          ).innerText = ` Thank you ${data.senderName} for your booking.Your booking has been captured as follows.Our team will be in touch soon`;
           console.log("SUCCESS");
           for (const any in data) {
             const p = document.createElement("p");
