@@ -60,6 +60,7 @@ const validationRules = () => {
       .not()
       .matches(/SELECT ONE/g)
       .withMessage("please make a valid selection")
+      .matches(/\b(Box|Hardware|Cash|Groceries|Other|Envelope\/Document)\b/g)
       .notEmpty()
       .trim()
       .escape(),
