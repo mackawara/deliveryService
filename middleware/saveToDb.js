@@ -11,7 +11,7 @@ const bookingSchema = new mongoose.Schema(
       maxlength: [45, `please enter a valid name`],
       //match: [/^[a-z ,.'-]+$/ , " Name contains Invalid characters"],
     },
-    recieverName: {
+    receiverName: {
       type: String,
       required: true,
       minlength: [2, `please enter a valid name`],
@@ -70,12 +70,12 @@ let saveToDb = async (req, res, next) => {
   const senderName = req.body.senderName;
   const senderNumber = body.senderNumber;
   const typeOfParcel = req.body.typeOfParcel;
-  const pickUpSlot = body.pickUpSlot;
-  const departureLocation = body.departureLocation;
+  const pickUpSlot = req.body.pickUpSlot;
+  const departureLocation = req.body.departureLocation;
   const email = req.body.email;
-  const receiverName = body.receiverName;
+  const receiverName = req.body.receiverName;
   const receiverNumber = req.body.receiverNumber;
-  const destinationOfParcel = body.destinationOfParcel;
+  const destinationOfParcel = req.body.destinationOfParcel;
 
   /* takes the valid */
   const booking = new bookingModel({
@@ -93,16 +93,24 @@ let saveToDb = async (req, res, next) => {
   saveBooking();
   async function saveBooking() {
     console.log(` now saving to DB `);
-    await booking.save((err, booking) => {
-      if (err) {
+    await booking
+      .save()
+      .then(() => {
+        console.log(" successfuly saved");
+        next();
+      })
+      .catch((err) => {
         const errors = err.errors;
         res.status(422).send(errors);
-        return;
-      } else {
         next();
+      });
+    /*   booking.save((err, booking) => {
+      if (err) {
+      } else {
         console.log("saving did not fail");
+        next();
       }
-    })
+    }) */
   }
 }; //module.exports(booking)=booking
 module.exports = saveToDb;
