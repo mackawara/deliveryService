@@ -64,7 +64,7 @@ const bookingSchema = new mongoose.Schema(
 
 const bookingModel = mongoose.model("booking", bookingSchema);
 
-let saveBookingToDataBase = async (req, res, next) => {
+let saveToDb = async (req, res, next) => {
   console.log("attempting to save to database");
   const body = req.body;
   const senderName = req.body.senderName;
@@ -90,7 +90,7 @@ let saveBookingToDataBase = async (req, res, next) => {
     email: email,
   });
   /* query booking queries the database to see if this is not a duplicate of existing entry */
- saveBooking()
+  saveBooking();
   async function saveBooking() {
     console.log(` now saving to DB `);
     await booking.save((err, booking) => {
@@ -103,4 +103,4 @@ let saveBookingToDataBase = async (req, res, next) => {
   }
   querybooking();
 }; //module.exports(booking)=booking
-module.exports = saveToDB;
+module.exports = saveToDb;
