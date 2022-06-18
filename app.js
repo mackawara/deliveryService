@@ -60,15 +60,8 @@ database.once("open", async function () {
   const saveToDb = require("./middleware/saveToDb");
   const mailer = require("./middleware/mailer");
   app.use(bodyParser.json());
-  app.post(
-    "/booking",
-    validationRules(),
-    validate,
-    mailer,
-    saveToDb,
-    (req, res) => {
-      console.log("booking successfully saved");
-      res.send(req.body);
-    }
-  );
+  app.post("/booking", validationRules(), validate, saveToDb, (req, res) => {
+    console.log("booking successfully saved");
+    res.send(req.body);
+  });
 });
