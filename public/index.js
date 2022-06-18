@@ -166,17 +166,19 @@ window.addEventListener("DOMContentLoaded", async () => {
           const confirmation = document.querySelector("#confrimation");
           confirmation.classList.add("error");
           confirmation.innerText = `${data}`;
-        }
-        else if (response.status == "422") {
+        } else if (response.status == "422") {
           /* status 422 sent if data submitted fails the DB schema validation */
           /* status 422 sent if data submitted fails the DB schema validation */
           for (const any in data) {
             console.log(`${any}`);
             const errorField = document.getElementById(`${any}`).parentElement;
             errorField.classList = "input-group error";
-            errorField.querySelector("small").innerText = `${data[any].message}`;
+            errorField.querySelector(
+              "small"
+            ).innerText = `${data[any].message}`;
           }
-      }})
+        }
+      })
     );
   };
 });
