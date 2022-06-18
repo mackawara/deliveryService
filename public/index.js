@@ -3,13 +3,22 @@ window.addEventListener("DOMContentLoaded", async () => {
 
   const typeOfParcel = document.getElementById("typeOfParcel");
   const dimensionFields = document.querySelector(".dimensions");
+  dimensionFields.style.display = "none";
   typeOfParcel.addEventListener("change", (e) => {
-    console.log(dimensionFields);
-    if (typeOfParcel.value === "Hardware" || typeOfParcel.value === "Box") {
+    if (
+      typeOfParcel.value === "Hardware" ||
+      typeOfParcel.value === "Box" ||
+      typeOfParcel.value === "Other"
+    ) {
       dimensionFields.style.display = "flex";
-    } else {
+    } else if (
+      typeOfParcel.value === "Cash" ||
+      typeOfParcel.value === "Envelope" ||
+      typeOfParcel.value == "Groceries"
+    ) {
       dimensionFields.style.display = "none";
     }
+    console.log(dimensionFields);
   });
 
   let data = {};
@@ -25,7 +34,7 @@ window.addEventListener("DOMContentLoaded", async () => {
   async function formValidator() {
     console.log("validotor running");
     const selects = form.querySelectorAll("select");
-    const inputs = form.querySelectorAll("input");
+    const inputs = form.querySelectorAll(".inputs");
 
     function inputValidator(inputsField) {
       this.inputsField = inputsField;
@@ -123,11 +132,12 @@ window.addEventListener("DOMContentLoaded", async () => {
 
     inputs.forEach((input) => {
       const inputField = new inputValidator(input);
-      if (input.value === "") {
-        console.log("input empty");
-        inputField.setError();
-        inputField.empty();
-      }
+
+      input.value === ""
+        ? inputField.empty()
+        : input.style.display == "none"
+        ? inputField.setSuccess()
+        : console.log(input);
     });
 
     console.log(data);
