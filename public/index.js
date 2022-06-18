@@ -13,9 +13,12 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   let data = {};
+  let inputErrors = [];
+  console.log(inputErrors);
   var form = document.getElementById("myForm");
   form.addEventListener("submit", function (e) {
     e.preventDefault();
+    inputErrors = [];
     formValidator();
   });
 
@@ -23,8 +26,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     console.log("validotor running");
     const selects = form.querySelectorAll("select");
     const inputs = form.querySelectorAll("input");
-
-    let inputErrors = [];
 
     function inputValidator(inputsField) {
       this.inputsField = inputsField;
