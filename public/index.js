@@ -164,7 +164,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         if (response.status == "200") {
           form.remove();
           document.getElementById(
-            "registrationConfirmation"
+            "confirmation"
           ).innerText = ` Thank you ${data.Name} for your booking.Our team will be in touch soon`;
           console.log("SUCCESS");
           for (const any in data) {
@@ -185,7 +185,7 @@ window.addEventListener("DOMContentLoaded", async () => {
             console.log(`${any}`);
             const errorField = document.getElementById(`${any}`).parentElement;
             errorField.classList = "input-grp error";
-            errorField.querySelector("small").innerText = `${any.message}`;
+            errorField.querySelector("small").innerText = `${data[any].msg}`;
           }
         }
       })
