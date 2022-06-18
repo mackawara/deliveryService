@@ -30,37 +30,45 @@ let connection = mongoose.connect(uri || process.env.DB_URI, options);
 
 const database = mongoose.connection;
 database.on("error", console.error.bind(console, "connection error:"));
-database.once("open", function () { //wait for db to connect before running server
+database.once("open", async function () {
+  //wait for db to connect before running server
   console.log(`DAtabase connection established  and checking`);
 
-app.listen(PORT, () => {
-  console.log("server listening");
-});
-app.get("/", (req, res) => {
-  console.log(__dirname + "/public/deliveryhome.html");
-  res.sendFile(__dirname + "/public/deliveryhome.html");
-});
+  app.listen(PORT, () => {
+    console.log("server listening");
+  });
+  app.get("/", (req, res) => {
+    console.log(__dirname + "/public/deliveryhome.html");
+    res.sendFile(__dirname + "/public/deliveryhome.html");
+  });
 
-app.get("/home", (req, res) => {
-  console.log(__dirname + "/public/index.html");
-  res.sendFile(__dirname + "/public/index.html");
-});
-app.get("/signup", (req, res) => {
-  console.log(__dirname + "/public/signup.html");
-  res.sendFile(__dirname + "/public/signup.html");
-});
-app.use(express.static("public"));
-app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
+  app.get("/home", (req, res) => {
+    console.log(__dirname + "/public/index.html");
+    res.sendFile(__dirname + "/public/index.html");
+  });
+  app.get("/signup", (req, res) => {
+    console.log(__dirname + "/public/signup.html");
+    res.sendFile(__dirname + "/public/signup.html");
+  });
+  app.use(express.static("public"));
+  app.use(express.json());
+  app.use(bodyParser.urlencoded({ extended: false }));
 
-// parse application/json
-//validation
-const { validationRules, validate } = require("./middleware/validation");
-const saveToDb=require("./middleware/saveToDb")
-const mailer=require("./middleware/mailer")
-app.use(bodyParser.json());
-app.post("/booking", validationRules(), validate, mailer,(req, res) => {
-  console.log("booking successfully saved");
-  res.send(req.body);
+  // parse application/json
+  //validation
+  const { validationRules, validate } = require("./middleware/validation");
+  const saveToDb = require("./middleware/saveToDb");
+  const mailer = require("./middleware/mailer");
+  app.use(bodyParser.json());
+  app.post(
+    "/booking",
+    validationRules(),
+    validate,
+    mailer,
+    saveToDb,
+    (req, res) => {
+      console.log("booking successfully saved");
+      res.send(req.body);
+    }
+  );
 });
-})
