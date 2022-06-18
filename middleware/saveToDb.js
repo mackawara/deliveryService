@@ -89,7 +89,7 @@ let saveToDb = async (req, res, next) => {
     departureLocation: departureLocation,
     email: email,
   });
-  /* query booking queries the database to see if this is not a duplicate of existing entry */
+
   saveBooking();
   async function saveBooking() {
     console.log(` now saving to DB `);
@@ -98,9 +98,11 @@ let saveToDb = async (req, res, next) => {
         const errors = err.errors;
         res.status(422).send(errors);
         return;
-      } else next();
-    });
+      } else {
+        next();
+        console.log("saving did not fail");
+      }
+    })
   }
-  querybooking();
 }; //module.exports(booking)=booking
 module.exports = saveToDb;
