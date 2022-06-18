@@ -9,6 +9,30 @@ const PORT = process.env.PORT || 5000;
 
 //app.use(dotenv);
 
+// mongoose configuration
+/*  add try async await and try catch block to handle mongoDB ocnnection */
+const mongoose = require("mongoose");
+
+const { MongoClient } = require("mongodb");
+require("dotenv").config();
+
+const databaseName = "deliverybookings";
+const options = {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  dbname: databaseName,
+};
+const uri =
+  process.env
+    .MONGODB_URI; /* process.env.MONGODB_URI || process.env.MONGOLAB_URI || process.env.MONGOLHQ_URI  */
+
+let connection = mongoose.connect(uri || process.env.DB_URI, options);
+
+const database = mongoose.connection;
+database.on("error", console.error.bind(console, "connection error:"));
+database.once("open", function () { //wait for db to connect before running server
+  console.log(`DAtabase connection established  and checking`);
+
 app.listen(PORT, () => {
   console.log("server listening");
 });
@@ -32,8 +56,10 @@ app.use(bodyParser.urlencoded({ extended: false }));
 // parse application/json
 //validation
 const { validationRules, validate } = require("./middleware/validation");
+const saveToDb=require("./middleware/saveToDb")
 app.use(bodyParser.json());
 app.post("/booking", validationRules(), validate, (req, res) => {
   console.log(req.body);
   res.send(req.body);
 });
+})
