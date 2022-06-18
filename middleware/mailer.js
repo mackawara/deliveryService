@@ -8,6 +8,7 @@ const mailer = async (req, res, next) => {
       pass: process.env.PASS,
     },
   });
+  console.log(process.env.PASS);
   // verify if nodemailer is authorized to send emails from that address.
   transporter.verify(function (error, success, next) {
     if (error) {
@@ -26,17 +27,18 @@ const mailer = async (req, res, next) => {
   const mail = {
     from: sender,
     to: receiver,
-    subject: feedback.subject,
-    text: `From : ${feedback.name} \n Email: <${feedback.email}>  \n Mobile Number:${feedback.mobileNumber}  \n Feedback: ${feedback.text}`,
+    subject: "booking",
+    text: ` ${req.body.email}`,
   };
 
   transporter.sendMail(mail, (err, res) => {
+    console.log(sender, receiver);
     if (err) {
       console.error(err);
       // res.status(500).send("Something went wrong.");
     } else {
-      res.status(200).send("Email successfully sent to recipient!");
       console.log(`email has been sent succesfully to ${receiver}`);
+      next();
     }
   });
 };
