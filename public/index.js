@@ -147,6 +147,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     };
     fetch("/booking", options).then((response) =>
       response.json().then((data) => {
+        const stringConv = (str) => {
+          const arrStr = str.split("");
+          const index = arrStr.findIndex((char) => char === char.toUpperCase());
+          arrStr.splice(index, 0, " ");
+          return arrStr.join("");
+        };
+
         const result = document.getElementById("results");
         result.style.display = "block";
 
@@ -158,7 +165,8 @@ window.addEventListener("DOMContentLoaded", async () => {
 
           for (const any in data) {
             const p = document.createElement("p");
-            const personalDetails = `${any}: ${data[any]}`;
+            const convStr = stringConv(any);
+            const personalDetails = `${convStr}: ${data[any]}`;
             p.innerText = personalDetails;
             result.appendChild(p);
             result.classList.remove("error");
