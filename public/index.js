@@ -1,6 +1,4 @@
 window.addEventListener("DOMContentLoaded", async () => {
-  console.log("dom content loaded");
-
   const typeOfParcel = document.getElementById("typeOfParcel");
   const dimensionFields = document.querySelector(".dimensions");
   dimensionFields.style.display = "none";
@@ -18,12 +16,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     ) {
       dimensionFields.style.display = "none";
     }
-    console.log(dimensionFields);
   });
 
   let data = {};
   let inputErrors = [];
-  console.log(inputErrors);
+
   var form = document.getElementById("myForm");
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -32,7 +29,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   async function formValidator() {
-    console.log("validotor running");
     const selects = form.querySelectorAll("select");
     const inputs = form.querySelectorAll(".inputs");
 
@@ -67,7 +63,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       };
       /* input the errors message into the small tag */
       this.invalid = function () {
-        console.log("invalid");
         small.innerText = `Invalid input `;
 
         inputErrors.push(`${inputsField.name}`);
@@ -93,11 +88,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (number.value.length > 13 || number.value.length < 10) {
         numberfield.invalid();
         numberfield.setError();
-        console.log(numbers);
       } else if (!/((\+263|0)7[7-8|1|3][0-9]{7}$)/.test(number.value)) {
         numberfield.invalid();
         numberfield.setError();
-        console.log("number regex not match");
       } else numberfield.setSuccess();
     });
 
@@ -117,7 +110,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       } else if (name.value.match(/[0-9]/g)) {
         namefield.invalid();
         namefield.setError();
-        console.log("regex not match");
       } else namefield.setSuccess();
     });
     // VALIDATE INDIVIDUAL OR GRUP OF FIELDS
@@ -126,7 +118,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (select.value == "SELECT ONE") {
         selectFields.setError();
         selectFields.invalid();
-        console.log("please make selection");
       } else selectFields.setSuccess();
     });
 
@@ -140,8 +131,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         : console.log(input);
     });
 
-    console.log(data);
-    console.log(inputErrors);
     if (inputErrors.length == 0) {
       sendForm(data);
     }
@@ -166,7 +155,7 @@ window.addEventListener("DOMContentLoaded", async () => {
           document.getElementById(
             "confirmation"
           ).innerText = ` Thank you ${data.senderName} for your booking.Your booking has been captured as follows.Our team will be in touch soon`;
-          console.log("SUCCESS");
+
           for (const any in data) {
             const p = document.createElement("p");
             const personalDetails = `${any}: ${data[any]}`;
@@ -182,7 +171,6 @@ window.addEventListener("DOMContentLoaded", async () => {
           /* status 422 sent if data submitted fails the DB schema validation */
           /* status 422 sent if data submitted fails the DB schema validation */
           for (const any in data) {
-            console.log(`${any}`);
             const errorField = document.getElementById(`${any}`).parentElement;
             errorField.classList = "input-grp error";
             errorField.querySelector("small").innerText = `${data[any].msg}`;
