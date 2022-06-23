@@ -61,7 +61,8 @@ database.once("open", async function () {
   const mailer = require("./middleware/mailer");
   app.use(bodyParser.json());
   app.post("/booking", validationRules(), validate, saveToDb, (req, res) => {
-    console.log("booking successfully saved");
+    
+    
     res.send(req.body);
   });
 });
