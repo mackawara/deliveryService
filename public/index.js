@@ -1,18 +1,18 @@
 window.addEventListener("DOMContentLoaded", async () => {
-  const typeOfParcel = document.getElementById("typeOfParcel");
+  const parcel = document.getElementById("parcel");
   const dimensionFields = document.querySelector(".dimensions");
   dimensionFields.style.display = "none";
-  typeOfParcel.addEventListener("change", (e) => {
+  parcel.addEventListener("change", (e) => {
     if (
-      typeOfParcel.value === "Hardware" ||
-      typeOfParcel.value === "Box" ||
-      typeOfParcel.value === "Other"
+      parcel.value === "Hardware" ||
+      parcel.value === "Box" ||
+      parcel.value === "Other"
     ) {
       dimensionFields.style.display = "flex";
     } else if (
-      typeOfParcel.value === "Cash" ||
-      typeOfParcel.value === "Envelope" ||
-      typeOfParcel.value == "Groceries"
+      parcel.value === "Cash" ||
+      parcel.value === "Envelope" ||
+      parcel.value == "Groceries"
     ) {
       dimensionFields.style.display = "none";
     }
