@@ -6,11 +6,9 @@
 2. On submission the form is sent to the server for valudation and processing.
 3. The bookings manager is notified through email and whatsapp of the details of the booking.
 4. The bookking is saved on the database and the user gets confrimation with the booking ID
+5. if there are errors the user gets notified and the booking is not saved
 
-Admins get an email notification and/or whatsapp message notification
-This is a simple delivery booking site. 
-
-Tech Stack
+# Tech Stack
 The frontend is built on HTML ,CSS and Vanilla JS.
 The server is run on node js and express with a mongoDB database.
 # deliveryBooking
