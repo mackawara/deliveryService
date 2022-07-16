@@ -9,6 +9,3 @@
 5. if there are errors the user gets notified and the booking is not saved
 
 # Tech Stack
-The frontend is built on HTML ,CSS and Vanilla JS.
-The server is run on node js and express with a mongoDB database.
-# deliveryBooking
