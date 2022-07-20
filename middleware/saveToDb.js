@@ -19,7 +19,7 @@ const bookingSchema = new mongoose.Schema(
       //match: [/^[a-z ,.'-]+$/ , " Name contains Invalid characters"],
     },
 
-    typeOfParcel: {
+    parcel: {
       type: String,
       required: true,
       trim: true,
@@ -69,7 +69,7 @@ let saveToDb = async (req, res, next) => {
   const body = req.body;
   const senderName = req.body.senderName;
   const senderNumber = body.senderNumber;
-  const typeOfParcel = req.body.typeOfParcel;
+  const parcel = req.body.parcel;
   const pickUpSlot = req.body.pickUpSlot;
   const departureLocation = req.body.departureLocation;
   const email = req.body.email;
@@ -81,7 +81,7 @@ let saveToDb = async (req, res, next) => {
   const booking = new bookingModel({
     senderName: senderName,
     senderNumber: senderNumber,
-    typeOfParcel: typeOfParcel,
+    parcel: parcel,
     pickUpSlot: pickUpSlot,
     receiverNumber: receiverNumber,
     receiverName: receiverName,

@@ -56,7 +56,7 @@ const validationRules = () => {
       .notEmpty()
       .trim()
       .escape(),
-    body("typeOfParcel", "You have made an invalid selection")
+    body("parcel", "You have made an invalid selection")
       .not()
       .matches(/SELECT ONE/g)
       .withMessage("please make a valid selection")

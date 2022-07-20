@@ -1,29 +1,26 @@
 window.addEventListener("DOMContentLoaded", async () => {
-  console.log("dom content loaded");
-
-  const typeOfParcel = document.getElementById("typeOfParcel");
+  const parcel = document.getElementById("parcel");
   const dimensionFields = document.querySelector(".dimensions");
   dimensionFields.style.display = "none";
-  typeOfParcel.addEventListener("change", (e) => {
+  parcel.addEventListener("change", (e) => {
     if (
-      typeOfParcel.value === "Hardware" ||
-      typeOfParcel.value === "Box" ||
-      typeOfParcel.value === "Other"
+      parcel.value === "Hardware" ||
+      parcel.value === "Box" ||
+      parcel.value === "Other"
     ) {
       dimensionFields.style.display = "flex";
     } else if (
-      typeOfParcel.value === "Cash" ||
-      typeOfParcel.value === "Envelope" ||
-      typeOfParcel.value == "Groceries"
+      parcel.value === "Cash" ||
+      parcel.value === "Envelope" ||
+      parcel.value == "Groceries"
     ) {
       dimensionFields.style.display = "none";
     }
-    console.log(dimensionFields);
   });
 
   let data = {};
   let inputErrors = [];
-  console.log(inputErrors);
+
   var form = document.getElementById("myForm");
   form.addEventListener("submit", function (e) {
     e.preventDefault();
@@ -32,7 +29,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   });
 
   async function formValidator() {
-    console.log("validotor running");
     const selects = form.querySelectorAll("select");
     const inputs = form.querySelectorAll(".inputs");
 
@@ -67,7 +63,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       };
       /* input the errors message into the small tag */
       this.invalid = function () {
-        console.log("invalid");
         small.innerText = `Invalid input `;
 
         inputErrors.push(`${inputsField.name}`);
@@ -93,11 +88,9 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (number.value.length > 13 || number.value.length < 10) {
         numberfield.invalid();
         numberfield.setError();
-        console.log(numbers);
       } else if (!/((\+263|0)7[7-8|1|3][0-9]{7}$)/.test(number.value)) {
         numberfield.invalid();
         numberfield.setError();
-        console.log("number regex not match");
       } else numberfield.setSuccess();
     });
 
@@ -117,7 +110,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       } else if (name.value.match(/[0-9]/g)) {
         namefield.invalid();
         namefield.setError();
-        console.log("regex not match");
       } else namefield.setSuccess();
     });
     // VALIDATE INDIVIDUAL OR GRUP OF FIELDS
@@ -126,7 +118,6 @@ window.addEventListener("DOMContentLoaded", async () => {
       if (select.value == "SELECT ONE") {
         selectFields.setError();
         selectFields.invalid();
-        console.log("please make selection");
       } else selectFields.setSuccess();
     });
 
@@ -140,8 +131,6 @@ window.addEventListener("DOMContentLoaded", async () => {
         : console.log(input);
     });
 
-    console.log(data);
-    console.log(inputErrors);
     if (inputErrors.length == 0) {
       sendForm(data);
     }
@@ -158,6 +147,13 @@ window.addEventListener("DOMContentLoaded", async () => {
     };
     fetch("/booking", options).then((response) =>
       response.json().then((data) => {
+        const stringConv = (str) => {
+          const arrStr = str.split("");
+          const index = arrStr.findIndex((char) => char === char.toUpperCase());
+          arrStr.splice(index, 0, " ");
+          return arrStr.join("");
+        };
+
         const result = document.getElementById("results");
         result.style.display = "block";
 
@@ -166,10 +162,11 @@ window.addEventListener("DOMContentLoaded", async () => {
           document.getElementById(
             "confirmation"
           ).innerText = ` Thank you ${data.senderName} for your booking.Your booking has been captured as follows.Our team will be in touch soon`;
-          console.log("SUCCESS");
+
           for (const any in data) {
             const p = document.createElement("p");
-            const personalDetails = `${any}: ${data[any]}`;
+            const convStr = stringConv(any);
+            const personalDetails = `${convStr}: ${data[any]}`;
             p.innerText = personalDetails;
             result.appendChild(p);
             result.classList.remove("error");
@@ -182,7 +179,6 @@ window.addEventListener("DOMContentLoaded", async () => {
           /* status 422 sent if data submitted fails the DB schema validation */
           /* status 422 sent if data submitted fails the DB schema validation */
           for (const any in data) {
-            console.log(`${any}`);
             const errorField = document.getElementById(`${any}`).parentElement;
             errorField.classList = "input-grp error";
             errorField.querySelector("small").innerText = `${data[any].msg}`;
