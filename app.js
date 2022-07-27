@@ -75,7 +75,7 @@ Pickup Location : *${body.departureLocation} * \n
 To receiver :*${body.receiverName}*, cell: ${body.receiverNumber} \n
 To Destination : ${body.destinationOfParcel} \n
 Type of Parcel: *${body.parcel}* \n
-Parcel should be picked up between : ${body.pickUpSlot}
+Parcel should be picked up between : ${body.pickUpSlot} dep
      `;
   console.log(wAmsg);
   sendWatsp(wAmsg, admin);
@@ -94,7 +94,7 @@ const sendWatsp = async (booking, number) => {
       token,
     data: {
       messaging_product: "whatsapp",
-      to: `263773888384`,
+      to: number,
       text: { body: booking },
     },
     headers: { "Content-Type": "application/json" },
