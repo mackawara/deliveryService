@@ -61,8 +61,41 @@ database.once("open", async function () {
   const mailer = require("./middleware/mailer");
   app.use(bodyParser.json());
   app.post("/booking", validationRules(), validate, saveToDb, (req, res) => {
+    const body=req.body
+    const wAmsg=`Delivery Booking alert \n
+     From sender : *${body.senderName}*, cell: ${body.senderNumber} \n
+     Pickup Location : *${body.departureLocation} *
+     to receiver :*${body.receiverName}*, cell: ${body.receiverNumber} \n
+     to Destination : ${body.destinationOfParcel} \n
+     Type of Parcel: *${body.typeOfParcel}* \n
+     Parcel should be picked up between : ${body.pickUpSLot}
+     `
     
-    
-    res.send(req.body);
+    send(wAmsg)
   });
+
+const send = async (booking) => {
+  axios({
+    method: "POST", // Required, HTTP method, a string, e.g. POST, GET
+    url:
+      "https://graph.facebook.com/v13.0/" +
+      phoneID +
+      "/messages?access_token=" +
+      token,
+    data: {
+      messaging_product: "whatsapp",
+      to: "263775231426",
+      text: { body: booking },
+    },
+    headers: { "Content-Type": "application/json" },
+  })
+    .then((data) => {
+      console.log("message sent successfuly");
+      console.log(data.headers);
+    })
+    .catch((err) => {
+      console.log(err.response);
+    });
+};
+
 });
