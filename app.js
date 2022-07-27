@@ -78,7 +78,7 @@ Type of Parcel: *${body.parcel}* \n
 Parcel should be picked up between : ${body.pickUpSlot}
      `;
   console.log(wAmsg);
-  sendWatsp(wAmsg, courage);
+  sendWatsp(wAmsg, admin);
   //console.log(response);
   res.send(JSON.stringify({ Booking: wAmsg }));
 });
@@ -94,7 +94,7 @@ const sendWatsp = async (booking, number) => {
       token,
     data: {
       messaging_product: "whatsapp",
-      to: number,
+      to: `263773888384`,
       text: { body: booking },
     },
     headers: { "Content-Type": "application/json" },
@@ -107,3 +107,29 @@ const sendWatsp = async (booking, number) => {
       return `There was an error on the server please try again `;
     });
 };
+
+app.get("/webhook", (req, res) => {
+  console.log(req.body);
+  /**
+   * UPDATE YOUR VERIFY TOKEN
+   *This will be the Verify Token value when you set up webhook
+   **/
+  const verify_token = process.env.VERIFY_TOKEN;
+
+  // Parse params from the webhook verification request
+  let mode = req.query["hub.mode"];
+  let hookToken = req.query["hub.verify_token"];
+  let challenge = req.query["hub.challenge"];
+
+  // Check if a token and mode were sent
+  if (mode && hookToken) {
+    // Check the mode and token sent are correct
+    if (mode === "subscribe" && hookToken === verify_token) {
+      // Respond with 200 OK and challenge token from the request
+      console.log("WEBHOOK_VERIFIED");
+      res.status(200).send(challenge);
+    } else {
+      res.sendStatus(403);
+    }
+  }
+});
