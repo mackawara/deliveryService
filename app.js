@@ -8,7 +8,7 @@ const axios = require("axios").default;
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-//app.use(dotenv);
+//app.use(gidotenv);
 
 // mongoose configuration
 /*  add try async await and try catch block to handle mongoDB ocnnection */
