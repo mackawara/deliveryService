@@ -33,7 +33,7 @@ database.on("error", console.error.bind(console, "connection error:"));
 database.once("open", async function () {
   //wait for db to connect before running server
   console.log(`DAtabase connection established  and checking`);
-
+})
   app.listen(PORT, () => {
     console.log("server listening");
   });
@@ -64,7 +64,7 @@ database.once("open", async function () {
   //Contact Number for Whatsapp
   const admin=process.env.ADMIN_NUMBER
   const driver=process.env.DRIVER_NUMBER
-  app.post("/booking", validationRules(), validate, saveToDb, async(req, res) => {
+  app.post("/booking", validationRules(), validate, async(req, res) => {
     const body=req.body
     const wAmsg=`Delivery Booking alert \n
      From sender : *${body.senderName}*, cell: ${body.senderNumber} \n
@@ -95,12 +95,12 @@ const sendWatsp = async (booking,number) => {
     headers: { "Content-Type": "application/json" },
   })
     .then((data) => {
-      return ("Booking was saved , confirmation was also sent to your email");
       console.log(data.headers);
+      return ("Booking was saved , confirmation was also sent to your email");
     })
     .catch((err) => {
      return `There was an error on the server please try again `
     });
 };
 
-});
+
