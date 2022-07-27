@@ -60,7 +60,11 @@ database.once("open", async function () {
   const saveToDb = require("./middleware/saveToDb");
   const mailer = require("./middleware/mailer");
   app.use(bodyParser.json());
-  app.post("/booking", validationRules(), validate, saveToDb, (req, res) => {
+
+  //Contact Number for Whatsapp
+  const admin=process.env.ADMIN_NUMBER
+  const driver=process.env.DRIVER_NUMBER
+  app.post("/booking", validationRules(), validate, saveToDb, async(req, res) => {
     const body=req.body
     const wAmsg=`Delivery Booking alert \n
      From sender : *${body.senderName}*, cell: ${body.senderNumber} \n
@@ -71,10 +75,11 @@ database.once("open", async function () {
      Parcel should be picked up between : ${body.pickUpSLot}
      `
     
-    send(wAmsg)
+      const response=await sendWatsp(wAmsg,`263775231426`)
+      res.send(response)
   });
 
-const send = async (booking) => {
+const sendWatsp = async (booking,number) => {
   axios({
     method: "POST", // Required, HTTP method, a string, e.g. POST, GET
     url:
@@ -84,17 +89,17 @@ const send = async (booking) => {
       token,
     data: {
       messaging_product: "whatsapp",
-      to: "263775231426",
+      to: number,
       text: { body: booking },
     },
     headers: { "Content-Type": "application/json" },
   })
     .then((data) => {
-      console.log("message sent successfuly");
+      return ("Booking was saved , confirmation was also sent to your email");
       console.log(data.headers);
     })
     .catch((err) => {
-      console.log(err.response);
+     return `There was an error on the server please try again `
     });
 };
 
