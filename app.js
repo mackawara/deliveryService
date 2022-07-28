@@ -67,6 +67,7 @@ const driver = process.env.DRIVER_NUMBER;
 const token = process.env.TOKEN;
 const phoneID = process.env.PHONE_ID;
 const courage = process.env.COURAGE;
+console.log(admin);
 app.post("/booking", validationRules(), validate, async (req, res) => {
   const body = req.body;
   const wAmsg = `*Delivery Booking alert* \n
@@ -75,7 +76,7 @@ Pickup Location : *${body.departureLocation} * \n
 To receiver :*${body.receiverName}*, cell: ${body.receiverNumber} \n
 To Destination : ${body.destinationOfParcel} \n
 Type of Parcel: *${body.parcel}* \n
-Parcel should be picked up between : ${body.pickUpSlot} dep
+Parcel should be picked up between : ${body.pickUpSlot} ${token} ${token}
      `;
   console.log(wAmsg);
   sendWatsp(wAmsg, admin);
