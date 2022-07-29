@@ -108,15 +108,15 @@ const sendWatsp = async (booking, number) => {
       return `There was an error on the server please try again `;
     });
 };
-
-app.post("/webhook", (req, res) => {
+// ACCEPT MESSAGES FROM WHATSAPP
+app.post("/webhook",async (req, res) => {
   let body = req.body;
 
   // Check the Incoming webhook message
   console.log(JSON.stringify(req.body, null, 2));
 
   // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
-  if (req.body.object) {
+  /* if (req.body.object) {
     if (
       req.body.entry &&
       req.body.entry[0].changes &&
@@ -125,8 +125,7 @@ app.post("/webhook", (req, res) => {
       req.body.entry[0].changes[0].value.messages[0]
     ) {
       console.log(req.body.object);
-      let phoneID =
-        req.body.entry[0].changes[0].value.metadata.phone_number_id;
+      let phoneID = req.body.entry[0].changes[0].value.metadata.phone_number_id;
       let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
       let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
       axios({
@@ -148,6 +147,10 @@ app.post("/webhook", (req, res) => {
   } else {
     // Return a '404 Not Found' if event is not from a WhatsApp API
     res.sendStatus(404);
+  }
+   */if (body.message == "Booking") {
+    console.log(body.message)
+    witQUery(body.message);
   }
 });
 app.get("/webhook", (req, res) => {
@@ -175,3 +178,38 @@ app.get("/webhook", (req, res) => {
     }
   }
 });
+/// WIT AI INTERFACE
+const serverToken = process.env.WIT_SERVER_TOKEN;
+const witQUery = (req) => {
+  console.log(req);
+  //const message = req.body.message;
+  const encodedChat = encodeURIComponent(req);
+  const uri = "https://api.wit.ai/message?v=20220707&q=" + encodedChat;
+  const auth = "Bearer " + serverToken;
+
+  const send = async () => {
+    axios(uri, {
+      method: "GET", // Required, HTTP method, a string, e.g. POST, GET
+      headers: { Authorization: auth },
+    })
+      .then(async (witResp) => {
+        console.log("message sent successfuly");
+        // console.log(toString(data.data.intents.map((element)=>element.name)));
+        const intents = witResp.data.intents; // extract intents array
+        console.log(intents);
+        //  const intent=intents.forEach((element)=> {return element.name});
+        const entities = witResp.data.entities; // extract entities object
+        const traits = witResp.data.traits;
+        //const message = await chatBot(intents, entities);
+        // res.send(JSON.stringify({ message: witResp }));
+      })
+      .catch((err) => {
+        console.log("there was an error");
+        console.log(err);
+        res.send(err);
+      });
+  };
+  send();
+
+  //res.status(200).send(chat);
+};
