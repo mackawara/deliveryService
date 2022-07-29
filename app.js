@@ -148,9 +148,10 @@ app.post("/webhook",async (req, res) => {
     // Return a '404 Not Found' if event is not from a WhatsApp API
     res.sendStatus(404);
   }
-   */if (body.message == "Booking") {
+  */
+ queryWit(body.message);
+ if (body.message == "Booking") {
     console.log(body.message)
-    witQUery(body.message);
   }
 });
 app.get("/webhook", (req, res) => {
@@ -181,10 +182,13 @@ app.get("/webhook", (req, res) => {
 /// WIT AI INTERFACE
 const serverToken = process.env.WIT_SERVER_TOKEN;
 const {Wit, log} = require('node-wit');
-const client = new Wit({accessToken: serverToken});
-client
-  .message('How much is sendng a parcel', {})
-  .then(witRes => {
-    console.log('Yay, got Wit.ai response: ' + JSON.stringify(witRes));
-  })
-  .catch(console.error);
+const queryWit=async(message)=>{
+  const client = new Wit({accessToken: serverToken});
+  client
+    .message(message, {})
+    .then(witRes => {
+      console.log('Yay, got Wit.ai response: ' + JSON.stringify(witRes));
+    })
+    .catch(console.error);
+}
+
