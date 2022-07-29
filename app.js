@@ -180,36 +180,11 @@ app.get("/webhook", (req, res) => {
 });
 /// WIT AI INTERFACE
 const serverToken = process.env.WIT_SERVER_TOKEN;
-const witQUery = (req) => {
-  console.log(req);
-  //const message = req.body.message;
-  const encodedChat = encodeURIComponent(req);
-  const uri = "https://api.wit.ai/message?v=20220707&q=" + encodedChat;
-  const auth = "Bearer " + serverToken;
-
-  const send = async () => {
-    axios(uri, {
-      method: "GET", // Required, HTTP method, a string, e.g. POST, GET
-      headers: { Authorization: auth },
-    })
-      .then(async (witResp) => {
-        console.log("message sent successfuly");
-        // console.log(toString(data.data.intents.map((element)=>element.name)));
-        const intents = witResp.data.intents; // extract intents array
-        console.log(intents);
-        //  const intent=intents.forEach((element)=> {return element.name});
-        const entities = witResp.data.entities; // extract entities object
-        const traits = witResp.data.traits;
-        //const message = await chatBot(intents, entities);
-        // res.send(JSON.stringify({ message: witResp }));
-      })
-      .catch((err) => {
-        console.log("there was an error");
-        console.log(err);
-        res.send(err);
-      });
-  };
-  send();
-
-  //res.status(200).send(chat);
-};
+const {Wit, log} = require('node-wit');
+const client = new Wit({accessToken: serverToken});
+client
+  .message('How much is sendng a parcel', {})
+  .then(witRes => {
+    console.log('Yay, got Wit.ai response: ' + JSON.stringify(witRes));
+  })
+  .catch(console.error);
