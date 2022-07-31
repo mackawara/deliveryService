@@ -108,48 +108,16 @@ const sendWatsp = async (booking, number) => {
       return `There was an error on the server please try again `;
     });
 };
+const queryWit=require("./chatBotAssets/witQuery")
 // ACCEPT MESSAGES FROM WHATSAPP
 app.post("/webhook",async (req, res) => {
   let body = req.body;
 
   // Check the Incoming webhook message
-  console.log(JSON.stringify(req.body, null, 2));
+  //console.log(JSON.stringify(req.body, null, 2));
 
-  // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
-  /* if (req.body.object) {
-    if (
-      req.body.entry &&
-      req.body.entry[0].changes &&
-      req.body.entry[0].changes[0] &&
-      req.body.entry[0].changes[0].value.messages &&
-      req.body.entry[0].changes[0].value.messages[0]
-    ) {
-      console.log(req.body.object);
-      let phoneID = req.body.entry[0].changes[0].value.metadata.phone_number_id;
-      let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
-      let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
-      axios({
-        method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-        url:
-          "https://graph.facebook.com/v13.0/" +
-          phoneID +
-          "/messages?access_token=" +
-          token,
-        data: {
-          messaging_product: "whatsapp",
-          to: from,
-          text: { body: "Ack: " + msg_body },
-        },
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    res.sendStatus(200);
-  } else {
-    // Return a '404 Not Found' if event is not from a WhatsApp API
-    res.sendStatus(404);
-  }
-  */
- queryWit(body.message);
+ const resp= await queryWit(body.message)
+ res.send({res:resp})
  if (body.message == "Booking") {
     console.log(body.message)
   }
@@ -182,13 +150,5 @@ app.get("/webhook", (req, res) => {
 /// WIT AI INTERFACE
 const serverToken = process.env.WIT_SERVER_TOKEN;
 const {Wit, log} = require('node-wit');
-const queryWit=async(message)=>{
-  const client = new Wit({accessToken: serverToken});
-  client
-    .message(message, {})
-    .then(witRes => {
-      console.log('Yay, got Wit.ai response: ' + JSON.stringify(witRes));
-    })
-    .catch(console.error);
-}
+
 
