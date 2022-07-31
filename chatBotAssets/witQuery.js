@@ -13,8 +13,18 @@ const { Wit, log } = require("node-wit");
   }
   return val;
 }; */
+//contains all the entiites on which the bo t has been trained
+const entityArr = [
+  "price_enquiry",
+  "departureLocation",
+  "destination",
+  "booking",
+  "wit/location",
+  "query",
+  "complaint",
+];
 const firstEntityResolvedValue = (entities, entity) => {
-  console.log(entities, entity);
+  //console.log(entities, entity);
   const val =
     entities &&
     entities[entity] &&
@@ -33,10 +43,18 @@ const firstEntityResolvedValue = (entities, entity) => {
 
 const intentExcrator = (intents) => {
   const intObj = intents[0];
-
   return intObj.name;
 };
-
+const entityExctractor = (entities) => {
+  let extracted = {};
+  for (const any in entities) {
+    const entity = entities[any];
+    const entityName = entity[0][`name`];
+    const entityValue = entity[0][`value`];
+    extracted[entityName] = entityValue;
+  }
+  return extracted;
+};
 let entities, traits, intents;
 
 const queryWit = async (message) => {
@@ -45,31 +63,40 @@ const queryWit = async (message) => {
     .message(message)
     .then((witResp) => {
       const resp = witResp;
-      console.log(resp);
+      console.log(witResp);
+      // console.log(resp.entities["booking:booking"][0][`name`]);
       intents = intentExcrator(resp.intents);
-      console.log(`This is the extracted intent ` + intents);
-      entities = witResp.entities;
+      console.log(intents);
+      // console.log(`This is the extracted intent ` + intents);
+      entitiesRaw = witResp.entities;
+      const entities = entityExctractor(entitiesRaw);
       const priceEnquiry = firstEntityResolvedValue(intents, "price_enquiry");
-      console.log(priceEnquiry);
+      //console.log(priceEnquiry);
       traits = witResp.traits;
-      console.log(
+      /*  console.log(
         `these are the entities ` + entities[`price_enquiry:price_enquiry`]
-      );
+      ); */
       //console.log(`these are the intents `+intents[0].name)
-      handleMessage(intents, entities, traits);
+      handleMessage(intents, entities);
     })
     .catch(console.error);
 };
-const handleMessage = ({ intents, entities, traits }) => {
-  console.log(`handle message entities: ` + entities);
-  const priceEnquiry = firstEntityResolvedValue(
-    entities,
-    "price_enquiry:price_enquiry"
-  );
+const handleMessage = (intent, entities) => {
+  const time = new Date();
+  console.log(entities);
+  console.log(intent);
+  if (intent == "Delivery_Booking") {
+    console.log(
+      `Booking from ${entities.departureLocation} to ${entities.destination} \n
+      Bookind Date: ${time.toLocaleDateString()} \n
+      Booking time ${time.toLocaleTimeString()} \n
+      Booking Expected by  `
+    );
+  }
   /* const dBooking = firstValue(intents, "delivery_booking");
   const sentiment = firstValue(traits, "wit$sentiment");
   const pEnq = firstValue(entities, `price_enquiry`);
-   */ console.log(priceEnquiry);
+   */
   /*  if (getJoke) {
       if (category) {
         const jokes = allJokes[category];
