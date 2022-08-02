@@ -23,28 +23,12 @@ const entityArr = [
   "query",
   "complaint",
 ];
-const firstEntityResolvedValue = (entities, entity) => {
-  //console.log(entities, entity);
-  const val =
-    entities &&
-    entities[entity] &&
-    Array.isArray(entities[entity]) &&
-    entities[entity].length > 0 &&
-    entities[entity][0].resolved &&
-    entities[entity][0].resolved.values &&
-    Array.isArray(entities[entity][0].resolved.values) &&
-    entities[entity][0].resolved.values.length > 0 &&
-    entities[entity][0].resolved.values[0];
-  if (!val) {
-    return null;
-  }
-  return val;
-};
-
+//exctracts the intent from the  wit response object
 const intentExcrator = (intents) => {
   const intObj = intents[0];
   return intObj.name;
 };
+//exctracts the entities from the wit resp object and returns the entity and the resolved value
 const entityExctractor = (entities) => {
   let extracted = {};
   for (const any in entities) {
@@ -61,17 +45,13 @@ const queryWit = async (message) => {
   const client = new Wit({ accessToken: serverToken });
   client
     .message(message)
-    .then((witResp) => {
-      const resp = witResp;
-      console.log(witResp);
-      // console.log(resp.entities["booking:booking"][0][`name`]);
+    .then((resp) => {
+      console.log(resp);
       intents = intentExcrator(resp.intents);
       console.log(intents);
-      // console.log(`This is the extracted intent ` + intents);
       entitiesRaw = witResp.entities;
       const entities = entityExctractor(entitiesRaw);
-      const priceEnquiry = firstEntityResolvedValue(intents, "price_enquiry");
-      //console.log(priceEnquiry);
+
       traits = witResp.traits;
       /*  console.log(
         `these are the entities ` + entities[`price_enquiry:price_enquiry`]
@@ -85,7 +65,7 @@ const handleMessage = (intent, entities) => {
   const time = new Date();
   console.log(entities);
   console.log(intent);
-  if (intent == "Delivery_Booking") {
+  if (intent == "Delivery_Booking") { //attempt to create a string from the extracted 
     console.log(
       `Booking from ${entities.departureLocation} to ${entities.destination} \n
       Bookind Date: ${time.toLocaleDateString()} \n
@@ -93,25 +73,6 @@ const handleMessage = (intent, entities) => {
       Booking Expected by  `
     );
   }
-  /* const dBooking = firstValue(intents, "delivery_booking");
-  const sentiment = firstValue(traits, "wit$sentiment");
-  const pEnq = firstValue(entities, `price_enquiry`);
-   */
-  /*  if (getJoke) {
-      if (category) {
-        const jokes = allJokes[category];
-        console.log(jokes[Math.floor(Math.random() * jokes.length)]);
-      } else {
-        console.log(allJokes['default'][0]);
-      }
-    } else if (sentiment) {
-      const reply = sentiment === 'positive' ? 'Glad you liked it.' : 'Hmm.';
-      console.log(reply);
-    } else if (greetings) {
-      console.log("hey this is joke bot :)");
-    } else {
-      console.log("I can tell jokes! Say 'tell me a joke about tech'!");
-    } */
 };
 
 module.exports = queryWit;
