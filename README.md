@@ -23,6 +23,7 @@ Pickup address
 delivery address
 Name of receiver
 Phone of receiver
+type of parcel
 Ref f any
 #Validation
 Check for maliscious entries, escape, Check if all required details are there
