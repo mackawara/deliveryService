@@ -6,9 +6,8 @@ const axios = require("axios").default;
 
 // server config
 const app = express();
-console.log(app)
-app.lsi
-const PORT = process.env.PORT || 8000;
+
+const PORT = process.env.PORT || 4400;
 
 //app.use(gidotenv);
 
@@ -41,11 +40,12 @@ database.once("open", async function () {
   console.log("server listening");
 });
 app.get("/", (req, res) => {
+  console.log("/ was a request");
   res.sendFile(__dirname + "/public/deliveryhome.html");
 });
 
 app.get("/home", (req, res) => {
-  console.log(__dirname + "/public/index.html");
+  console.log("home was requested");
   res.sendFile(__dirname + "/public/index.html");
 });
 app.get("/signup", (req, res) => {
@@ -112,7 +112,7 @@ const sendWatsp = async (booking, number) => {
 };
 const queryWit = require("./chatBotAssets/witQuery");
 // ACCEPT MESSAGES FROM WHATSAPP
-app.post("/webhook", async (req, res) => {
+/* app.post("/webhook", async (req, res) => {
   let body = req.body;
 
   // Check the Incoming webhook message
@@ -123,7 +123,7 @@ app.post("/webhook", async (req, res) => {
   if (body.message == "Booking") {
     console.log(body.message);
   }
-});
+}); */
 app.get("/webhook", (req, res) => {
   console.log(req.body);
   /**
@@ -149,6 +149,67 @@ app.get("/webhook", (req, res) => {
     }
   }
 });
+const msgParams = ["Booking", "Query", "complaint", "Tracking"];
+app.post("/webhook", (req, res) => {
+  let body = req.body,
+    msgTag = req.body.message.split(" ")[0],
+    bookingRegex = new RegExp("booking", "i");
+
+  msgParams.forEach((param) => {
+    const paraRegex = new RegExp(param, "i");
+    if (bookingRegex.test(msgTag)) {
+      console.log("loud and clear");
+      sendWatsp(`263775231426`, "Thank you for your booking");
+      
+    }  else if (msgTag == "query") {
+      console.log(" message is a query");
+      //queryWit();
+    } else if (msgTag == "complaint") {
+      console.log(" message is a complaint");
+      //queryWit();
+    }
+  });
+
+  // Check the Incoming webhook message
+  console.log(JSON.stringify(req.body, null, 2));
+  
+  // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
+  if (req.body.object) {
+    if (
+      req.body.entry &&
+      req.body.entry[0].changes &&
+      req.body.entry[0].changes[0] &&
+      req.body.entry[0].changes[0].value.messages &&
+      req.body.entry[0].changes[0].value.messages[0]
+    ) {
+      console.log(req.body.object);
+      let phone_number_id =
+        req.body.entry[0].changes[0].value.metadata.phone_number_id;
+      let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
+      let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
+
+      axios({
+        method: "POST", // Required, HTTP method, a string, e.g. POST, GET
+        url:
+          "https://graph.facebook.com/v13.0/" +
+          phoneID +
+          "/messages?access_token=" +
+          token,
+        data: {
+          messaging_product: "whatsapp",
+          to: from,
+          text: { body: "Thank you for sending this  " + msg_body },
+        },
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    res.sendStatus(200);
+  } else {
+    // Return a '404 Not Found' if event is not from a WhatsApp API
+    res.sendStatus(404);
+  }
+});
 /// WIT AI INTERFACE
 const serverToken = process.env.WIT_SERVER_TOKEN;
 const { Wit, log } = require("node-wit");
+//0778414028
