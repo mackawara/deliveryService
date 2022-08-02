@@ -1,18 +1,6 @@
 const serverToken = process.env.WIT_SERVER_TOKEN;
 const { Wit, log } = require("node-wit");
-/* const firstValue = (obj, key) => {
-  // this fucntion extracts the first value
-  const val =
-    obj &&
-    obj[key] &&
-    Array.isArray(obj[key]) &&
-    obj[key].length > 0 &&
-    obj[key][0].value;
-  if (!val) {
-    return null;
-  }
-  return val;
-}; */
+
 //contains all the entiites on which the bo t has been trained
 const entityArr = [
   "price_enquiry",
@@ -67,7 +55,8 @@ const handleMessage = (intent, entities) => {
   console.log(intent);
   if (intent == "Delivery_Booking") { //attempt to create a string from the extracted 
     console.log(
-      `Booking from ${entities.departureLocation} to ${entities.destination} \n
+      `Please confirm if the following details are correct
+      Booking from ${entities.departureLocation} to ${entities.destination} \n
       Bookind Date: ${time.toLocaleDateString()} \n
       Booking time ${time.toLocaleTimeString()} \n
       Booking Expected by  `
@@ -76,3 +65,18 @@ const handleMessage = (intent, entities) => {
 };
 
 module.exports = queryWit;
+
+//Use the intent to judge what the use wants
+/* 
+use the entities and the resolved values to deetermine the exact details
+MVP
+Take a delivery booking via whatsapp mmessage/facebook page/mesenger platform
+Option 1
+use stepped process eg Telone Chommie
+Option 2 
+use NLP processing to extract data from free form messsage
+Option 3 
+use guided message e.g use regex to check if all properties are therre
+key messages
+
+*/
