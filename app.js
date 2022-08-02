@@ -6,6 +6,8 @@ const axios = require("axios").default;
 
 // server config
 const app = express();
+console.log(app)
+app.lsi
 const PORT = process.env.PORT || 8000;
 
 //app.use(gidotenv);
@@ -76,7 +78,7 @@ Pickup Location : *${body.departureLocation} * \n
 To receiver :*${body.receiverName}*, cell: ${body.receiverNumber} \n
 To Destination : ${body.destinationOfParcel} \n
 Type of Parcel: *${body.parcel}* \n
-Parcel should be picked up between : ${body.pickUpSlot} ${token} ${token}
+Parcel should be picked up between : ${body.pickUpSlot}
      `;
   console.log(wAmsg);
   sendWatsp(wAmsg, admin);
@@ -108,18 +110,18 @@ const sendWatsp = async (booking, number) => {
       return `There was an error on the server please try again `;
     });
 };
-const queryWit=require("./chatBotAssets/witQuery")
+const queryWit = require("./chatBotAssets/witQuery");
 // ACCEPT MESSAGES FROM WHATSAPP
-app.post("/webhook",async (req, res) => {
+app.post("/webhook", async (req, res) => {
   let body = req.body;
 
   // Check the Incoming webhook message
   //console.log(JSON.stringify(req.body, null, 2));
 
- const resp= await queryWit(body.message)
- res.send({res:resp})
- if (body.message == "Booking") {
-    console.log(body.message)
+  const resp = await queryWit(body.message);
+  res.send({ res: resp });
+  if (body.message == "Booking") {
+    console.log(body.message);
   }
 });
 app.get("/webhook", (req, res) => {
@@ -149,6 +151,4 @@ app.get("/webhook", (req, res) => {
 });
 /// WIT AI INTERFACE
 const serverToken = process.env.WIT_SERVER_TOKEN;
-const {Wit, log} = require('node-wit');
-
-
+const { Wit, log } = require("node-wit");
