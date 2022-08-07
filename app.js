@@ -204,7 +204,7 @@ const dialogflow = require("@google-cloud/dialogflow");
 
 // Instantiates a session client
 const sessionClient = new dialogflow.SessionsClient();
-const projectId = `delivery-scheduler-onei`;
+const projectId = process.env.PROJECT_ID;
 const sessionId = `123456`;
 const languageCode = "en";
 const queries = [
