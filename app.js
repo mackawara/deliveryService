@@ -87,43 +87,34 @@ Parcel should be picked up between : ${body.pickUpSlot}
 });
 
 const sendWatsp = async (booking, number) => {
-  console.log(booking, number, token, phoneID);
-  axios({
-    method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-    url:
-      "https://graph.facebook.com/v13.0/" +
-      phoneID +
-      "/messages?access_token=" +
-      token,
-    data: {
-      messaging_product: "whatsapp",
-      to: number,
-      text: { body: booking },
-    },
-    headers: { "Content-Type": "application/json" },
-  })
-    .then((data) => {
+  // console.log(booking, number, token, phoneID);
+  try {
+    axios({
+      method: "POST", // Required, HTTP method, a string, e.g. POST, GET
+      url:
+        "https://graph.facebook.com/v13.0/" +
+        phoneID +
+        "/messages?access_token=" +
+        token,
+      data: {
+        messaging_product: "whatsapp",
+        to: number,
+        text: { body: booking },
+      },
+      headers: { "Content-Type": "application/json" },
+    }).then((data) => {
       console.log("success");
       return "Booking was saved , confirmation was also sent to your email";
-    })
-    .catch((err) => {
-      return `There was an error on the server please try again `;
     });
+  } catch (error) {
+    console.log(`There was an error on the server please try again `);
+  }
 };
 const queryWit = require("./chatBotAssets/witQuery");
-// ACCEPT MESSAGES FROM WHATSAPP
-/* app.post("/webhook", async (req, res) => {
-  let body = req.body;
 
-  // Check the Incoming webhook message
-  //console.log(JSON.stringify(req.body, null, 2));
-
-  const resp = await queryWit(body.message);
-  res.send({ res: resp });
-  if (body.message == "Booking") {
-    console.log(body.message);
-  }
-}); */
+app.post("chatbot", async (req, res) => {
+  console.log(req.body);
+});
 app.get("/webhook", (req, res) => {
   console.log(req.body);
   /**
@@ -149,6 +140,21 @@ app.get("/webhook", (req, res) => {
     }
   }
 });
+//Dialogflow 
+const {WebhookClient} = require('dialogflow-fulfillment')
+app.post('/dialg', (req, res) => {
+  console.log(req.body.queryResult.fulfillmentText)
+  console.log("req received")
+  // get agent from request
+  let agent = new WebhookClient({request: req, response: res})
+  // create intentMap for handle intent
+  let intentMap = new Map();
+  // add intent map 2nd parameter pass function
+  intentMap.set('delivery_booking',handleWebHookIntent)
+  // now agent is handle request and pass intent map
+  agent.handleRequest(intentMap)
+})
+
 const msgParams = ["Booking", "Query", "complaint", "Tracking"];
 app.post("/webhook", (req, res) => {
   let body = req.body,
@@ -156,25 +162,24 @@ app.post("/webhook", (req, res) => {
     bookingRegex = new RegExp("booking", "i");
 
   msgParams.forEach((param) => {
-    const paraRegex = new RegExp(param, "i");
-    if (bookingRegex.test(msgTag)) {
+    const paramRegex = new RegExp(param, "i");
+    if (paramRegex.test(msgTag)) {
+      console.log(`Your ${param} is being looked into`);
       console.log("loud and clear");
-      sendWatsp(`263775231426`, "Thank you for your booking");
-      
-    }  else if (msgTag == "query") {
-      console.log(" message is a query");
-      //queryWit();
-    } else if (msgTag == "complaint") {
-      console.log(" message is a complaint");
-      //queryWit();
+      sendWatsp("Thank you for your booking", `263775231426`);
+    } else {
+      console.log(
+        ` Your message was not understood , please begin with ${msgParams}`
+      );
     }
+    //queryWit();
   });
 
   // Check the Incoming webhook message
-  console.log(JSON.stringify(req.body, null, 2));
-  
+  //console.log(JSON.stringify(req.body, null, 2));
+
   // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
-  if (req.body.object) {
+  /* if (req.body.object) {
     if (
       req.body.entry &&
       req.body.entry[0].changes &&
@@ -204,10 +209,10 @@ app.post("/webhook", (req, res) => {
       });
     }
     res.sendStatus(200);
-  } else {
+   } else {
     // Return a '404 Not Found' if event is not from a WhatsApp API
     res.sendStatus(404);
-  }
+  }*/
 });
 /// WIT AI INTERFACE
 const serverToken = process.env.WIT_SERVER_TOKEN;
