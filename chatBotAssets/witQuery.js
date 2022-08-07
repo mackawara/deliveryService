@@ -37,10 +37,10 @@ const queryWit = async (message) => {
       console.log(resp);
       intents = intentExcrator(resp.intents);
       console.log(intents);
-      entitiesRaw = witResp.entities;
+      entitiesRaw = resp.entities;
       const entities = entityExctractor(entitiesRaw);
 
-      traits = witResp.traits;
+      traits = resp.traits;
       /*  console.log(
         `these are the entities ` + entities[`price_enquiry:price_enquiry`]
       ); */
