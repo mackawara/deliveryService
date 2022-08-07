@@ -86,13 +86,13 @@ Parcel should be picked up between : ${body.pickUpSlot}
   res.send(JSON.stringify({ Booking: wAmsg }));
 });
 
-const sendWatsp = async (booking, number) => {
-  // console.log(booking, number, token, phoneID);
+const sendWatsp = async (number, booking) => {
+  console.log(booking, number);
   try {
     axios({
       method: "POST", // Required, HTTP method, a string, e.g. POST, GET
       url:
-        "https://graph.facebook.com/v13.0/" +
+        "https://graph.facebook.com/v14.0/" +
         phoneID +
         "/messages?access_token=" +
         token,
@@ -103,19 +103,18 @@ const sendWatsp = async (booking, number) => {
       },
       headers: { "Content-Type": "application/json" },
     }).then((data) => {
-      console.log("success");
+      console.log(data);
       return "Booking was saved , confirmation was also sent to your email";
     });
   } catch (error) {
-    console.log(`There was an error on the server please try again `);
+    console.log(`Thre was an error on the server please try again `);
   }
 };
-const queryWit = require("./chatBotAssets/witQuery");
-
+sendWatsp(`263775231426`, `TEST`);
 app.post("chatbot", async (req, res) => {
   console.log(req.body);
 });
-app.get("/webhook", (req, res) => {
+app.get("/watsapp", (req, res) => {
   console.log(req.body);
   /**
    * UPDATE YOUR VERIFY TOKEN
@@ -140,30 +139,13 @@ app.get("/webhook", (req, res) => {
     }
   }
 });
-//Dialogflow 
-const {WebhookClient} = require('dialogflow-fulfillment')
-app.post('/dialg', (req, res) => {
-  console.log(req.body.queryResult.fulfillmentText)
-  console.log("req received")
-  // get agent from request
-  let agent = new WebhookClient({request: req, response: res})
-  // create intentMap for handle intent
-  let intentMap = new Map();
-  // add intent map 2nd parameter pass function
-  intentMap.set('delivery_booking',handleWebHookIntent)
-  // now agent is handle request and pass intent map
-  agent.handleRequest(intentMap)
-})
 
-const msgParams = ["Booking", "Query", "complaint", "Tracking"];
-app.post("/webhook", (req, res) => {
-  
-
+app.post("/watsapp", (req, res) => {
   // Check the Incoming webhook message
   //console.log(JSON.stringify(req.body, null, 2));
 
   // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
-   if (req.body.object) {
+  if (req.body.object) {
     if (
       req.body.entry &&
       req.body.entry[0].changes &&
@@ -176,6 +158,7 @@ app.post("/webhook", (req, res) => {
         req.body.entry[0].changes[0].value.metadata.phone_number_id;
       let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
       let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
+      executeQueries(projectId, sessionId, msg_body, languageCode);
 
       axios({
         method: "POST", // Required, HTTP method, a string, e.g. POST, GET
@@ -193,7 +176,7 @@ app.post("/webhook", (req, res) => {
       });
     }
     res.sendStatus(200);
-   } else {
+  } else {
     // Return a '404 Not Found' if event is not from a WhatsApp API
     res.sendStatus(404);
   }
@@ -217,18 +200,18 @@ app.post("/webhook", (req, res) => {
 // const languageCode = 'en';
 
 // Imports the Dialogflow library
-const dialogflow = require('@google-cloud/dialogflow');
+const dialogflow = require("@google-cloud/dialogflow");
 
 // Instantiates a session client
 const sessionClient = new dialogflow.SessionsClient();
-const projectId=`delivery-scheduler-onei`
-const sessionId=`123456`
-const languageCode = 'en'
-const queries=[
-  'I am Macdonald Kawara, I would like for my small box to be picked up form 24 Masasas park. My phone number is 0752314343',
+const projectId = `delivery-scheduler-onei`;
+const sessionId = `123456`;
+const languageCode = "en";
+const queries = [
+  /*'I am Macdonald Kawara, I would like for my small box to be picked up form 24 Masasas park. My phone number is 0752314343',
   /* `My name is kaitani Tembo , I have a small bos at 14 ingagula hwange that I beed to be picked up`,
-  `local booking` */
-]
+  */ `local booking`,
+];
 
 async function detectIntent(
   projectId,
@@ -253,8 +236,9 @@ async function detectIntent(
       },
     },
   };
-
+  //added constext if they exist
   if (contexts && contexts.length > 0) {
+    console.log(contexts);
     request.queryParams = {
       contexts: contexts,
     };
@@ -266,7 +250,7 @@ async function detectIntent(
 
 async function executeQueries(projectId, sessionId, queries, languageCode) {
   // Keeping the context across queries let's us simulate an ongoing conversation with the bot
-  console.log(projectId,sessionId)
+  console.log(projectId, sessionId);
   let context;
   let intentResponse;
   for (const query of queries) {
@@ -279,11 +263,11 @@ async function executeQueries(projectId, sessionId, queries, languageCode) {
         context,
         languageCode
       );
-      console.log('Detected intent');
+      console.log("Detected intent");
       console.log(
         `Fulfillment Text: ${intentResponse.queryResult.fulfillmentText}`
       );
-      prompt("")
+
       // Use the context from this response for next queries
       context = intentResponse.queryResult.outputContexts;
     } catch (error) {
@@ -291,4 +275,4 @@ async function executeQueries(projectId, sessionId, queries, languageCode) {
     }
   }
 }
-executeQueries(projectId, sessionId, queries, languageCode);
+//executeQueries(projectId, sessionId, queries, languageCode);
