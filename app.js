@@ -157,29 +157,13 @@ app.post('/dialg', (req, res) => {
 
 const msgParams = ["Booking", "Query", "complaint", "Tracking"];
 app.post("/webhook", (req, res) => {
-  let body = req.body,
-    msgTag = req.body.message.split(" ")[0],
-    bookingRegex = new RegExp("booking", "i");
-
-  msgParams.forEach((param) => {
-    const paramRegex = new RegExp(param, "i");
-    if (paramRegex.test(msgTag)) {
-      console.log(`Your ${param} is being looked into`);
-      console.log("loud and clear");
-      sendWatsp("Thank you for your booking", `263775231426`);
-    } else {
-      console.log(
-        ` Your message was not understood , please begin with ${msgParams}`
-      );
-    }
-    //queryWit();
-  });
+  
 
   // Check the Incoming webhook message
   //console.log(JSON.stringify(req.body, null, 2));
 
   // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
-  /* if (req.body.object) {
+   if (req.body.object) {
     if (
       req.body.entry &&
       req.body.entry[0].changes &&
@@ -212,9 +196,99 @@ app.post("/webhook", (req, res) => {
    } else {
     // Return a '404 Not Found' if event is not from a WhatsApp API
     res.sendStatus(404);
-  }*/
+  }
 });
-/// WIT AI INTERFACE
-const serverToken = process.env.WIT_SERVER_TOKEN;
-const { Wit, log } = require("node-wit");
-//0778414028
+/// DIALGFLOW INTERFACE
+
+/**
+ * TODO(developer): UPDATE these variables before running the sample.
+ */
+// projectId: ID of the GCP project where Dialogflow agent is deployed
+// const projectId = 'PROJECT_ID';
+// sessionId: String representing a random number or hashed user identifier
+// const sessionId = '123456';
+// queries: A set of sequential queries to be send to Dialogflow agent for Intent Detection
+// const queries = [
+//   'Reserve a meeting room in Toronto office, there will be 5 of us',
+//   'Next monday at 3pm for 1 hour, please', // Tell the bot when the meeting is taking place
+//   'B'  // Rooms are defined on the Dialogflow agent, default options are A, B, or C
+// ]
+// languageCode: Indicates the language Dialogflow agent should use to detect intents
+// const languageCode = 'en';
+
+// Imports the Dialogflow library
+const dialogflow = require('@google-cloud/dialogflow');
+
+// Instantiates a session client
+const sessionClient = new dialogflow.SessionsClient();
+const projectId=`delivery-scheduler-onei`
+const sessionId=`123456`
+const languageCode = 'en'
+const queries=[
+  'I am Macdonald Kawara, I would like for my small box to be picked up form 24 Masasas park. My phone number is 0752314343',
+  /* `My name is kaitani Tembo , I have a small bos at 14 ingagula hwange that I beed to be picked up`,
+  `local booking` */
+]
+
+async function detectIntent(
+  projectId,
+  sessionId,
+  query,
+  contexts,
+  languageCode
+) {
+  // The path to identify the agent that owns the created intent.
+  const sessionPath = sessionClient.projectAgentSessionPath(
+    projectId,
+    sessionId
+  );
+
+  // The text query request.
+  const request = {
+    session: sessionPath,
+    queryInput: {
+      text: {
+        text: query,
+        languageCode: languageCode,
+      },
+    },
+  };
+
+  if (contexts && contexts.length > 0) {
+    request.queryParams = {
+      contexts: contexts,
+    };
+  }
+
+  const responses = await sessionClient.detectIntent(request);
+  return responses[0];
+}
+
+async function executeQueries(projectId, sessionId, queries, languageCode) {
+  // Keeping the context across queries let's us simulate an ongoing conversation with the bot
+  console.log(projectId,sessionId)
+  let context;
+  let intentResponse;
+  for (const query of queries) {
+    try {
+      console.log(`Sending Query: ${query}`);
+      intentResponse = await detectIntent(
+        projectId,
+        sessionId,
+        query,
+        context,
+        languageCode
+      );
+      console.log('Detected intent');
+      console.log(
+        `Fulfillment Text: ${intentResponse.queryResult.fulfillmentText}`
+      );
+      prompt("")
+      // Use the context from this response for next queries
+      context = intentResponse.queryResult.outputContexts;
+    } catch (error) {
+      console.log(error);
+    }
+  }
+}
+executeQueries(projectId, sessionId, queries, languageCode);
