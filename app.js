@@ -160,7 +160,9 @@ app.post("/watsapp", async (req, res) => {
      const reply= await executeQueries(projectId, sessionId, msg_body, languageCode); //take message and send to dialogflow
 // test whethre webhook is receiving mesages
      sendWatsp(from,reply)
+     sendWatsp(from,"testing webhook")
     }
+    
     res.sendStatus(200);
   } else {
     // Return a '404 Not Found' if event is not from a WhatsApp API
