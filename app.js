@@ -110,7 +110,6 @@ const sendWatsp = async (number, booking) => {
     console.log(`Thre was an error on the server please try again `);
   }
 };
-sendWatsp(`263775231426`, `TEST from heroku`);
 app.post("chatbot", async (req, res) => {
   console.log(req.body);
 });
@@ -223,7 +222,7 @@ async function detectIntent(
       },
     },
   };
-  //added constext if they exist
+  //added contexts if they exist
   if (contexts && contexts.length > 0) {
     console.log(contexts);
     request.queryParams = {
