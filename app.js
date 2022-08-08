@@ -159,21 +159,8 @@ app.post("/watsapp", (req, res) => {
       let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
       let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
       executeQueries(projectId, sessionId, msg_body, languageCode);
-
-      axios({
-        method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-        url:
-          "https://graph.facebook.com/v13.0/" +
-          phoneID +
-          "/messages?access_token=" +
-          token,
-        data: {
-          messaging_product: "whatsapp",
-          to: from,
-          text: { body: "Thank you for sending this  " + msg_body },
-        },
-        headers: { "Content-Type": "application/json" },
-      });
+// test whethre webhook is receiving mesages
+     sendWatsp(from,"this is a tes message in response to : \n"+msg_body)
     }
     res.sendStatus(200);
   } else {
