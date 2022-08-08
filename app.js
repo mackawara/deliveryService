@@ -114,7 +114,7 @@ app.post("chatbot", async (req, res) => {
   console.log(req.body);
 });
 app.get("/watsapp", (req, res) => {
-  console.log(req.body);
+  console.log(req);
   /**
    * UPDATE YOUR VERIFY TOKEN
    *This will be the Verify Token value when you set up webhook
@@ -138,54 +138,6 @@ app.get("/watsapp", (req, res) => {
     }
   }
 });
-
-app.post("/watsapp", async (req, res) => {
-  // Check the Incoming webhook message
-  //console.log(JSON.stringify(req.body, null, 2));
-
-  // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
-  if (req.body.object) {
-    if (
-      req.body.entry &&
-      req.body.entry[0].changes &&
-      req.body.entry[0].changes[0] &&
-      req.body.entry[0].changes[0].value.messages &&
-      req.body.entry[0].changes[0].value.messages[0]
-    ) {
-      console.log(req.body.object);
-      let phone_number_id =
-        req.body.entry[0].changes[0].value.metadata.phone_number_id;
-      let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
-      let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
-     const reply= await executeQueries(projectId, sessionId, msg_body, languageCode); //take message and send to dialogflow
-// test whethre webhook is receiving mesages
-     sendWatsp(from,reply)
-     sendWatsp(from,"testing webhook")
-    }
-    
-    res.sendStatus(200);
-  } else {
-    // Return a '404 Not Found' if event is not from a WhatsApp API
-    res.sendStatus(404);
-  }
-});
-/// DIALGFLOW INTERFACE
-
-/**
- * TODO(developer): UPDATE these variables before running the sample.
- */
-// projectId: ID of the GCP project where Dialogflow agent is deployed
-// const projectId = 'PROJECT_ID';
-// sessionId: String representing a random number or hashed user identifier
-// const sessionId = '123456';
-// queries: A set of sequential queries to be send to Dialogflow agent for Intent Detection
-// const queries = [
-//   'Reserve a meeting room in Toronto office, there will be 5 of us',
-//   'Next monday at 3pm for 1 hour, please', // Tell the bot when the meeting is taking place
-//   'B'  // Rooms are defined on the Dialogflow agent, default options are A, B, or C
-// ]
-// languageCode: Indicates the language Dialogflow agent should use to detect intents
-// const languageCode = 'en';
 
 // Imports the Dialogflow library
 const dialogflow = require("@google-cloud/dialogflow");
@@ -263,5 +215,56 @@ async function executeQueries(projectId, sessionId, query, languageCode) {
     }
     return intentResponse
   }
+
+
+app.post("/watsapp", async (req, res) => {
+  // Check the Incoming webhook message
+  //console.log(JSON.stringify(req.body, null, 2));
+
+  // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
+  if (req.body.object) {
+    if (
+      req.body.entry &&
+      req.body.entry[0].changes &&
+      req.body.entry[0].changes[0] &&
+      req.body.entry[0].changes[0].value.messages &&
+      req.body.entry[0].changes[0].value.messages[0]
+    ) {
+      console.log(req.body.object);
+      let phone_number_id =
+        req.body.entry[0].changes[0].value.metadata.phone_number_id;
+      let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
+      let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
+     const reply= await executeQueries(projectId, sessionId, msg_body, languageCode); //take message and send to dialogflow
+// test whethre webhook is receiving mesages
+     sendWatsp(from,reply)
+     sendWatsp(from,"testing webhook")
+    }
+
+    res.sendStatus(200);
+  } else {
+    // Return a '404 Not Found' if event is not from a WhatsApp API
+    res.sendStatus(404);
+  }
+});
+const reply= executeQueries(projectId, sessionId, `Booking`, languageCode)
+console.log(reply)
+/// DIALGFLOW INTERFACE
+
+/**
+ * TODO(developer): UPDATE these variables before running the sample.
+ */
+// projectId: ID of the GCP project where Dialogflow agent is deployed
+// const projectId = 'PROJECT_ID';
+// sessionId: String representing a random number or hashed user identifier
+// const sessionId = '123456';
+// queries: A set of sequential queries to be send to Dialogflow agent for Intent Detection
+// const queries = [
+//   'Reserve a meeting room in Toronto office, there will be 5 of us',
+//   'Next monday at 3pm for 1 hour, please', // Tell the bot when the meeting is taking place
+//   'B'  // Rooms are defined on the Dialogflow agent, default options are A, B, or C
+// ]
+// languageCode: Indicates the language Dialogflow agent should use to detect intents
+// const languageCode = 'en';
 
 //executeQueries(projectId, sessionId, query, languageCode);
