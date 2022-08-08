@@ -139,7 +139,7 @@ app.get("/watsapp", (req, res) => {
   }
 });
 
-app.post("/watsapp", (req, res) => {
+app.post("/watsapp", async (req, res) => {
   // Check the Incoming webhook message
   //console.log(JSON.stringify(req.body, null, 2));
 
@@ -157,9 +157,9 @@ app.post("/watsapp", (req, res) => {
         req.body.entry[0].changes[0].value.metadata.phone_number_id;
       let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
       let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
-      executeQueries(projectId, sessionId, msg_body, languageCode);
+     const reply= await executeQueries(projectId, sessionId, msg_body, languageCode); //take message and send to dialogflow
 // test whethre webhook is receiving mesages
-     sendWatsp(from,"this is a tes message in response to : \n"+msg_body)
+     sendWatsp(from,reply)
     }
     res.sendStatus(200);
   } else {
@@ -234,12 +234,12 @@ async function detectIntent(
   return responses[0];
 }
 
-async function executeQueries(projectId, sessionId, queries, languageCode) {
+async function executeQueries(projectId, sessionId, query, languageCode) {
   // Keeping the context across queries let's us simulate an ongoing conversation with the bot
   console.log(projectId, sessionId);
   let context;
   let intentResponse;
-  for (const query of queries) {
+  
     try {
       console.log(`Sending Query: ${query}`);
       intentResponse = await detectIntent(
@@ -259,6 +259,7 @@ async function executeQueries(projectId, sessionId, queries, languageCode) {
     } catch (error) {
       console.log(error);
     }
+    return intentResponse
   }
-}
-//executeQueries(projectId, sessionId, queries, languageCode);
+
+//executeQueries(projectId, sessionId, query, languageCode);
