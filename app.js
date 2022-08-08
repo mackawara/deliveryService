@@ -6,7 +6,8 @@ const axios = require("axios").default;
 
 // server config
 const app = express();
-const PORT = process.env.PORT || 8000;
+
+const PORT = process.env.PORT || 4400;
 
 //app.use(gidotenv);
 
@@ -39,11 +40,12 @@ database.once("open", async function () {
   console.log("server listening");
 });
 app.get("/", (req, res) => {
+  console.log("/ was a request");
   res.sendFile(__dirname + "/public/deliveryhome.html");
 });
 
 app.get("/home", (req, res) => {
-  console.log(__dirname + "/public/index.html");
+  console.log("home was requested");
   res.sendFile(__dirname + "/public/index.html");
 });
 app.get("/signup", (req, res) => {
@@ -76,7 +78,7 @@ Pickup Location : *${body.departureLocation} * \n
 To receiver :*${body.receiverName}*, cell: ${body.receiverNumber} \n
 To Destination : ${body.destinationOfParcel} \n
 Type of Parcel: *${body.parcel}* \n
-Parcel should be picked up between : ${body.pickUpSlot} ${token} ${token}
+Parcel should be picked up between : ${body.pickUpSlot}
      `;
   console.log(wAmsg);
   sendWatsp(wAmsg, admin);
@@ -84,77 +86,35 @@ Parcel should be picked up between : ${body.pickUpSlot} ${token} ${token}
   res.send(JSON.stringify({ Booking: wAmsg }));
 });
 
-const sendWatsp = async (booking, number) => {
-  console.log(booking, number, token, phoneID);
-  axios({
-    method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-    url:
-      "https://graph.facebook.com/v13.0/" +
-      phoneID +
-      "/messages?access_token=" +
-      token,
-    data: {
-      messaging_product: "whatsapp",
-      to: number,
-      text: { body: booking },
-    },
-    headers: { "Content-Type": "application/json" },
-  })
-    .then((data) => {
-      console.log("success");
+const sendWatsp = async (number, booking) => {
+  console.log(booking, number);
+  try {
+    axios({
+      method: "POST", // Required, HTTP method, a string, e.g. POST, GET
+      url:
+        "https://graph.facebook.com/v14.0/" +
+        phoneID +
+        "/messages?access_token=" +
+        token,
+      data: {
+        messaging_product: "whatsapp",
+        to: number,
+        text: { body: booking },
+      },
+      headers: { "Content-Type": "application/json" },
+    }).then((data) => {
+      console.log(data);
       return "Booking was saved , confirmation was also sent to your email";
-    })
-    .catch((err) => {
-      return `There was an error on the server please try again `;
     });
+  } catch (error) {
+    console.log(`Thre was an error on the server please try again `);
+  }
 };
-// ACCEPT MESSAGES FROM WHATSAPP
-app.post("/webhook",async (req, res) => {
-  let body = req.body;
-
-  // Check the Incoming webhook message
-  console.log(JSON.stringify(req.body, null, 2));
-
-  // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
-  /* if (req.body.object) {
-    if (
-      req.body.entry &&
-      req.body.entry[0].changes &&
-      req.body.entry[0].changes[0] &&
-      req.body.entry[0].changes[0].value.messages &&
-      req.body.entry[0].changes[0].value.messages[0]
-    ) {
-      console.log(req.body.object);
-      let phoneID = req.body.entry[0].changes[0].value.metadata.phone_number_id;
-      let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
-      let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
-      axios({
-        method: "POST", // Required, HTTP method, a string, e.g. POST, GET
-        url:
-          "https://graph.facebook.com/v13.0/" +
-          phoneID +
-          "/messages?access_token=" +
-          token,
-        data: {
-          messaging_product: "whatsapp",
-          to: from,
-          text: { body: "Ack: " + msg_body },
-        },
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-    res.sendStatus(200);
-  } else {
-    // Return a '404 Not Found' if event is not from a WhatsApp API
-    res.sendStatus(404);
-  }
-   */if (body.message == "Booking") {
-    console.log(body.message)
-    witQUery(body.message);
-  }
+app.post("chatbot", async (req, res) => {
+  console.log(req.body);
 });
 app.get("/webhook", (req, res) => {
-  console.log(req.body);
+  console.log(req);
   /**
    * UPDATE YOUR VERIFY TOKEN
    *This will be the Verify Token value when you set up webhook
@@ -178,38 +138,133 @@ app.get("/webhook", (req, res) => {
     }
   }
 });
-/// WIT AI INTERFACE
-const serverToken = process.env.WIT_SERVER_TOKEN;
-const witQUery = (req) => {
-  console.log(req);
-  //const message = req.body.message;
-  const encodedChat = encodeURIComponent(req);
-  const uri = "https://api.wit.ai/message?v=20220707&q=" + encodedChat;
-  const auth = "Bearer " + serverToken;
 
-  const send = async () => {
-    axios(uri, {
-      method: "GET", // Required, HTTP method, a string, e.g. POST, GET
-      headers: { Authorization: auth },
-    })
-      .then(async (witResp) => {
-        console.log("message sent successfuly");
-        // console.log(toString(data.data.intents.map((element)=>element.name)));
-        const intents = witResp.data.intents; // extract intents array
-        console.log(intents);
-        //  const intent=intents.forEach((element)=> {return element.name});
-        const entities = witResp.data.entities; // extract entities object
-        const traits = witResp.data.traits;
-        //const message = await chatBot(intents, entities);
-        // res.send(JSON.stringify({ message: witResp }));
-      })
-      .catch((err) => {
-        console.log("there was an error");
-        console.log(err);
-        res.send(err);
-      });
+// Imports the Dialogflow library
+const dialogflow = require("@google-cloud/dialogflow");
+
+// Instantiates a session client
+const sessionClient = new dialogflow.SessionsClient();
+const projectId = process.env.PROJECT_ID;
+const sessionId = `123456`;
+const languageCode = "en";
+const queries = [
+  /*'I am Macdonald Kawara, I would like for my small box to be picked up form 24 Masasas park. My phone number is 0752314343',
+  /* `My name is kaitani Tembo , I have a small bos at 14 ingagula hwange that I beed to be picked up`,
+  */ `local booking`,
+];
+
+async function detectIntent(
+  projectId,
+  sessionId,
+  query,
+  contexts,
+  languageCode
+) {
+  // The path to identify the agent that owns the created intent.
+  const sessionPath = sessionClient.projectAgentSessionPath(
+    projectId,
+    sessionId
+  );
+
+  // The text query request.
+  const request = {
+    session: sessionPath,
+    queryInput: {
+      text: {
+        text: query,
+        languageCode: languageCode,
+      },
+    },
   };
-  send();
+  //added contexts if they exist
+  if (contexts && contexts.length > 0) {
+    console.log(contexts);
+    request.queryParams = {
+      contexts: contexts,
+    };
+  }
 
-  //res.status(200).send(chat);
-};
+  const responses = await sessionClient.detectIntent(request);
+  return responses[0];
+}
+
+async function executeQueries(projectId, sessionId, query, languageCode) {
+  // Keeping the context across queries let's us simulate an ongoing conversation with the bot
+  console.log(projectId, sessionId);
+  let context;
+  let intentResponse;
+  
+    try {
+      console.log(`Sending Query: ${query}`);
+      intentResponse = await detectIntent(
+        projectId,
+        sessionId,
+        query,
+        context,
+        languageCode
+      );
+      console.log("Detected intent");
+      console.log(
+        `Fulfillment Text: ${intentResponse.queryResult.fulfillmentText}`
+      );
+
+      // Use the context from this response for next queries
+      context = intentResponse.queryResult.outputContexts;
+    } catch (error) {
+      console.log(error);
+    }
+    return intentResponse
+  }
+
+
+app.post("/watsapp", async (req, res) => {
+  // Check the Incoming webhook message
+  //console.log(JSON.stringify(req.body, null, 2));
+
+  // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
+  if (req.body.object) {
+    if (
+      req.body.entry &&
+      req.body.entry[0].changes &&
+      req.body.entry[0].changes[0] &&
+      req.body.entry[0].changes[0].value.messages &&
+      req.body.entry[0].changes[0].value.messages[0]
+    ) {
+      console.log(req.body.object);
+      let phone_number_id =
+        req.body.entry[0].changes[0].value.metadata.phone_number_id;
+      let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
+      let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
+     const reply= await executeQueries(projectId, sessionId, msg_body, languageCode); //take message and send to dialogflow
+// test whethre webhook is receiving mesages
+     sendWatsp(from,reply)
+     sendWatsp(from,"testing webhook")
+    }
+
+    res.sendStatus(200);
+  } else {
+    // Return a '404 Not Found' if event is not from a WhatsApp API
+    res.sendStatus(404);
+  }
+});
+const reply= executeQueries(projectId, sessionId, `Booking`, languageCode)
+console.log(reply)
+/// DIALGFLOW INTERFACE
+
+/**
+ * TODO(developer): UPDATE these variables before running the sample.
+ */
+// projectId: ID of the GCP project where Dialogflow agent is deployed
+// const projectId = 'PROJECT_ID';
+// sessionId: String representing a random number or hashed user identifier
+// const sessionId = '123456';
+// queries: A set of sequential queries to be send to Dialogflow agent for Intent Detection
+// const queries = [
+//   'Reserve a meeting room in Toronto office, there will be 5 of us',
+//   'Next monday at 3pm for 1 hour, please', // Tell the bot when the meeting is taking place
+//   'B'  // Rooms are defined on the Dialogflow agent, default options are A, B, or C
+// ]
+// languageCode: Indicates the language Dialogflow agent should use to detect intents
+// const languageCode = 'en';
+
+//executeQueries(projectId, sessionId, query, languageCode);
