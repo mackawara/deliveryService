@@ -110,7 +110,7 @@ const sendWatsp = async (number, booking) => {
     console.log(`Thre was an error on the server please try again `);
   }
 };
-sendWatsp(`263775231426`, `TEST`);
+sendWatsp(`263775231426`, `TEST from heroku`);
 app.post("chatbot", async (req, res) => {
   console.log(req.body);
 });
