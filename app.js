@@ -114,7 +114,7 @@ app.post("chatbot", async (req, res) => {
   console.log(req.body);
 });
 app.get("/webhook", (req, res) => {
-  console.log(req);
+  console.log(req.query);
   /**
    * UPDATE YOUR VERIFY TOKEN
    *This will be the Verify Token value when you set up webhook
