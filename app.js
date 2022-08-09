@@ -114,7 +114,7 @@ app.post("chatbot", async (req, res) => {
   console.log(req.body);
 });
 app.get("/watsapp", (req, res) => {
-  console.log(req);
+  
   /**
    * UPDATE YOUR VERIFY TOKEN
    *This will be the Verify Token value when you set up webhook
@@ -204,16 +204,16 @@ async function executeQueries(projectId, sessionId, query, languageCode) {
         languageCode
       );
       console.log("Detected intent");
-      console.log(
-        `Fulfillment Text: ${intentResponse.queryResult.fulfillmentText}`
-      );
+      context = intentResponse.queryResult.outputContexts;
+      return  intentResponse.queryResult.fulfillmentText
+      
 
       // Use the context from this response for next queries
-      context = intentResponse.queryResult.outputContexts;
     } catch (error) {
-      console.log(error);
+      console.log(error)
+      return `There was an error on the server , please try again`
     }
-    return intentResponse
+   // return intentResponse
   }
 
 
@@ -235,10 +235,11 @@ app.post("/watsapp", async (req, res) => {
         req.body.entry[0].changes[0].value.metadata.phone_number_id;
       let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
       let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
-     const reply= await executeQueries(projectId, sessionId, msg_body, languageCode); //take message and send to dialogflow
+     const reply= await executeQueries(projectId, from+`ID`, msg_body, languageCode); //take message and send to dialogflow
 // test whethre webhook is receiving mesages
+console.log(`this the the reply: ${reply}`)
      sendWatsp(from,reply)
-     sendWatsp(from,"testing webhook")
+    // sendWatsp(from,"testing webhook")
     }
 
     res.sendStatus(200);
@@ -247,8 +248,6 @@ app.post("/watsapp", async (req, res) => {
     res.sendStatus(404);
   }
 });
-const reply= executeQueries(projectId, sessionId, `Booking`, languageCode)
-console.log(reply)
 /// DIALGFLOW INTERFACE
 
 /**
