@@ -144,7 +144,7 @@ const dialogflow = require("@google-cloud/dialogflow");
 // Instantiates a session client
 const sessionClient = new dialogflow.SessionsClient();
 const projectId = process.env.PROJECT_ID;
-const sessionId = `123456`;
+const sessionId = `1234567`;
 const languageCode = "en";
 const queries = [
   /*'I am Macdonald Kawara, I would like for my small box to be picked up form 24 Masasas park. My phone number is 0752314343',
