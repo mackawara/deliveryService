@@ -114,7 +114,6 @@ app.post("chatbot", async (req, res) => {
   console.log(req.body);
 });
 app.get("/watsapp", (req, res) => {
-  
   /**
    * UPDATE YOUR VERIFY TOKEN
    *This will be the Verify Token value when you set up webhook
@@ -193,32 +192,30 @@ async function executeQueries(projectId, sessionId, query, languageCode) {
   console.log(projectId, sessionId);
   let context;
   let intentResponse;
-  
-    try {
-      console.log(`Sending Query: ${query}`);
-      intentResponse = await detectIntent(
-        projectId,
-        sessionId,
-        query,
-        context,
-        languageCode
-      );
-      console.log("Detected intent");
-      context = intentResponse.queryResult.outputContexts;
-      return  intentResponse.queryResult.fulfillmentText
-      
 
-      // Use the context from this response for next queries
-    } catch (error) {
-      console.log(error)
-      return `There was an error on the server , please try again`
-    }
-   // return intentResponse
+  try {
+    console.log(`Sending Query: ${query}`);
+    intentResponse = await detectIntent(
+      projectId,
+      sessionId,
+      query,
+      context,
+      languageCode
+    );
+    console.log("Detected intent");
+    context = intentResponse.queryResult.outputContexts;
+    return intentResponse.queryResult.fulfillmentText;
+
+    // Use the context from this response for next queries
+  } catch (error) {
+    console.log(error);
+    return `There was an error on the server , please try again`;
   }
-
+  // return intentResponse
+}
 
 app.post("/watsapp", async (req, res) => {
-  // Check the Incoming webhook message
+  // Check the Incoming webhook messag
   //console.log(JSON.stringify(req.body, null, 2));
 
   // info on WhatsApp text message payload: https://developers.facebook.com/docs/whatsapp/cloud-api/webhooks/payload-examples#text-messages
@@ -235,11 +232,16 @@ app.post("/watsapp", async (req, res) => {
         req.body.entry[0].changes[0].value.metadata.phone_number_id;
       let from = req.body.entry[0].changes[0].value.messages[0].from; // extract the phone number from the webhook payload
       let msg_body = req.body.entry[0].changes[0].value.messages[0].text.body; // extract the message text from the webhook payload
-     const reply= await executeQueries(projectId, from+`ID`, msg_body, languageCode); //take message and send to dialogflow
-// test whethre webhook is receiving mesages
-console.log(`this the the reply: ${reply}`)
-     sendWatsp(from,reply)
-    // sendWatsp(from,"testing webhook")
+      const reply = await executeQueries(
+        projectId,
+        from + `ID`,
+        msg_body,
+        languageCode
+      ); //take message and send to dialogflow
+      // test whethre webhook is receiving mesages
+      console.log(`this the the reply: ${reply}`);
+      sendWatsp(from, reply);
+      // sendWatsp(from,"testing webhook")
     }
 
     res.sendStatus(200);
