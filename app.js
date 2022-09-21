@@ -26,18 +26,8 @@ const options = {
 };
 const uri =
   process.env
-    .MONGODB_URI; /* process.env.MONGODB_URI || process.env.MONGOLAB_URI || process.env.MONGOLHQ_URI  */
-/*
-let connection = mongoose.connect(uri || process.env.DB_URI, options);
- 
-const database = mongoose.connection;
-database.on("error", console.error.bind(console, "connection error:"));
-database.once("open", async function () {
-  //wait for db to connect before running server
-  console.log(`DAtabase connection established  and checking`);
-})
- */ app.listen(PORT, () => {
-  console.log("server listening");
+    .MONGODB_URI;  app.listen(PORT, () => {
+  console.log("server listening on port "+PORT);
 });
 app.get("/", (req, res) => {
   console.log("/ was a request");
@@ -138,27 +128,6 @@ app.get("/watsapp", (req, res) => {
   }
 });
 /* Google authentication */
-
-const {auth} = require('google-auth-library');
-
-// load the environment variable with our keys
-const keysEnvVar = process.env['GOOGLE_CREDENTIALS'];
-if (!keysEnvVar) {
-  throw new Error('The $CREDS environment variable was not found!');
-}
-const keys = JSON.parse(keysEnvVar);
-
-async function main() {
-  // load the JWT or UserRefreshClient from the keys
-  const client = auth.fromJSON(keys);
-  client.scopes = ['https://www.googleapis.com/auth/cloud-platform'];
-  const url = `https://dns.googleapis.com/dns/v1/projects/${keys.project_id}`;
-  const res = await client.request({url});
-  console.log(res.data);
-}
-
-main().catch(console.error);
-
 
 // Imports the Dialogflow library
 const dialogflow = require("@google-cloud/dialogflow");
