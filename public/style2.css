@@ -19,7 +19,7 @@ body {
   /* width: 100%;*/
   font-family: "Poppins", sans-serif;
   color: var(--dark-jungle-green);
-  font-size: 16px;
+  font-size: 12px;
   background-color: --emerald;
 }
 header {
@@ -220,11 +220,18 @@ hr.light-100 {
   flex-wrap: wrap;
   align-content: center;
   justify-content: center;
+  background-color: #f5f5f5;
   
   /* background-image: url(images/masked_deliveryhwange-delivery-service_hand2hand-4.jpg); */
   background-blend-mode: difference;
   background-attachment: fixed;
   background-position: center;
+}
+.minor-header{
+  font-size: 1.32rem;
+  width: 100%;
+  font-family: "Poppins","sans-seriff";
+ 
 }
 .section-wrapper {
 
