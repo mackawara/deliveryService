@@ -95,7 +95,15 @@ header p{
   border-radius: none;
   width: 100%;
   background-color: var(--emerald);
-  font-family: "Tangerine", serif;
+  font-family: '', sans-serif;
+}
+.jumbotron article{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-around;
+  height: 4rem;
+  color: var(--floral-white);
 }
 .welcome {
   max-width: 100%;
