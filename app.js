@@ -137,6 +137,28 @@ app.get("/watsapp", (req, res) => {
     }
   }
 });
+/* Google authentication */
+
+const {auth} = require('google-auth-library');
+
+// load the environment variable with our keys
+const keysEnvVar = process.env['GOOGLE_CREDENTIALS'];
+if (!keysEnvVar) {
+  throw new Error('The $CREDS environment variable was not found!');
+}
+const keys = JSON.parse(keysEnvVar);
+
+async function main() {
+  // load the JWT or UserRefreshClient from the keys
+  const client = auth.fromJSON(keys);
+  client.scopes = ['https://www.googleapis.com/auth/cloud-platform'];
+  const url = `https://dns.googleapis.com/dns/v1/projects/${keys.project_id}`;
+  const res = await client.request({url});
+  console.log(res.data);
+}
+
+main().catch(console.error);
+
 
 // Imports the Dialogflow library
 const dialogflow = require("@google-cloud/dialogflow");
@@ -250,22 +272,3 @@ app.post("/watsapp", async (req, res) => {
     res.sendStatus(404);
   }
 });
-/// DIALGFLOW INTERFACE
-
-/**
- * TODO(developer): UPDATE these variables before running the sample.
- */
-// projectId: ID of the GCP project where Dialogflow agent is deployed
-// const projectId = 'PROJECT_ID';
-// sessionId: String representing a random number or hashed user identifier
-// const sessionId = '123456';
-// queries: A set of sequential queries to be send to Dialogflow agent for Intent Detection
-// const queries = [
-//   'Reserve a meeting room in Toronto office, there will be 5 of us',
-//   'Next monday at 3pm for 1 hour, please', // Tell the bot when the meeting is taking place
-//   'B'  // Rooms are defined on the Dialogflow agent, default options are A, B, or C
-// ]
-// languageCode: Indicates the language Dialogflow agent should use to detect intents
-// const languageCode = 'en';
-
-//executeQueries(projectId, sessionId, query, languageCode);
