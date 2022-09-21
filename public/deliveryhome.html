@@ -71,35 +71,14 @@
           <h3 class="dispaly-6 text-center">Pick-up</h3>
 
           <div class="input-grp">
-            <label for="pickupslot">Pick up Slot</label>
-            <select name="pickUpSlot" id="pickUpSlot" class="selectFields">
-              <option selected disabled>SELECT ONE</option>
-              <option  class="" value="1000-1130hrs">
-                Between 1000 and 1130hrs
-              </option>
-              <option  class="" value="1400-1530hrs">
-                Between 1400 and 1530hrs
-              </option>
-              <option  class="" value="1700-1830hrs">
-                Between 1700 and 1830hrs
-              </option>
-            </select>
+<label for="date"> Date of Collection</label>
+            <input type="date" name="date" id="senderNumber" min="" class=""
+              placeholder="" />
+            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-exclamation-circle"></i>
             <small></small>
           </div>
-
-          <div class="input-grp">
-            <label for="parcel">Type of Parcel</label>
-            <select name="parcel" id="parcel" class="selectFields">
-              <option selected disabled>SELECT ONE</option>
-              <option value="Hardware" class="">Hardware</option>
-              <option value="Box" class="">Box</option>
-              <option value="Envelope/Document" class="">Envelope/Document</option>
-              <option value="Cash" class="">Cash</option>
-              <option value="Groceries" class="">Groceries</option>
-              <option value="Other" class="">Other</option>
-            </select>
-            <small></small>
-          </div>
+        
 
          <!--  <label class="text-centre">Dimensions and Weight of the Parcel</label> -->
           <div class="dimensions">
@@ -165,6 +144,8 @@
             <i class="fas fa-exclamation-circle"></i>
             <small></small>
           </div>
+
+          
           <div class="input-grp">
             <label>Select the pickup zone from the list below</label>
             <select name="departureLocation" id="departureLocation" class="selectFields">
@@ -199,14 +180,24 @@
 
          
         </section>
-
+<!-- Receiver details -->
 
         <section class="delivery border border-light p-1">
           <h3 class="dispaly-6 text-center">Destination</h3>
+          <div class="receiver">
+            <div class="input-grp ">
+
+              <input type="address" name="deliveryAd" id="deliveryAd" class="inputs names"
+                placeholder="Delivery Address" />
+
+              <i class="fas fa-check-circle"></i>
+              <i class="fas fa-exclamation-circle"></i>
+              <small></small>
+            </div>
          
           <div class="input-grp">
             <label for="destination">Select the delivery zone from the list below</label>
-            <select name="destinationOfParcel" id="destinationOfParcel" onchange="" class="selectFields" required>
+             <select name="destinationOfParcel" id="destinationOfParcel" onchange="" class="selectFields" required>
               <option selected disabled value="SELECT ONE">
                 SELECT ONE
               </option>
@@ -236,10 +227,10 @@
                 No1 North (Cindrella)
               </option>
             </select>
+            
             <small></small>
           </div>
 
-          <!-- Receiver details -->
           <div class="receiver">
             <div class="input-grp ">
 
@@ -272,7 +263,7 @@
               </button>
             </div>
           </div>
-          Kindly note that our driver will not call the reciver, therefore
+          Kindly note that our driver will not normally call the reciver, therefore
           please ensure that the reciever is there at the presrcibed delivery
           slot times
         </section>
