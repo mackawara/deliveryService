@@ -95,7 +95,7 @@ header p{
   border-radius: none;
   width: 100%;
   background-color: var(--emerald);
-  font-family: '', sans-serif;
+  font-family: 'Poppins', sans-serif;
 }
 .jumbotron article{
   display: flex;
