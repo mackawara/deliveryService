@@ -81,7 +81,7 @@ header p{
 }
 .btn-primary {
   background-color: var(--emerald);
-  color: var(--dark-jungle-green);
+  color: var(--floral-white);
   border: 1px solid var(--floral-white);
 }
 .btn-primary:hover {
@@ -246,6 +246,7 @@ hr.light-100 {
   border-radius: 1rem;
   margin: 5rem 0;
   background-color: var(--floral-white);
+  color:#7d7c83;
   
 }
 
@@ -295,14 +296,13 @@ input {
   align-content: center;
   justify-content: center;
   flex-wrap: wrap;
-  color: var(--dark-jungle-green);
+  
 }
 
 .input-grp label {
   display: block;
   width: 100%;
-  border-color: var(--malachite);
-  color: var(--dark-jungle-green);
+  padding:0 1rem 1rem 0.5rem
 }
 
 .input-grp input {
@@ -313,6 +313,7 @@ input {
   font-family: inherit;
   font-size: 1rem;
   width: 100%;
+  color:#7d7c83;
   /* background-color: var(--malachite); */
 }
 
@@ -323,8 +324,9 @@ input {
 
 .input-grp select {
   width: 100%;
-  background-color: var(--emerald);
-  border: none;
+   background-color: inherit; 
+  border: 1px solid var(--emerald);
+  color:#7d7c83;
 }
 
 
