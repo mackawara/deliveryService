@@ -28,19 +28,14 @@
 </head>
 
 <body>
-  <header>
-    <p>
-      InBert
-    </p>
-    <p id="date"></p>
-  </header>
+  
   <nav class="navbar navbar-expand-md " id="navbar">
     <ul class="navbar-nav mr-auto">
       <li class="p-2 nav-item">
         <a href="index.html" class="nav-link disabled" disabled aria-disabled="true">Home</a>
       </li>
       <li class="p-2 nav-item">
-        <a href="" class="nav-link">About Us</a>
+        <a href="" class="nav-link disabled">About Us</a>
       </li>
       <li class="p-2 nav-item">
         <a href="" class="nav-link disabled">Contact us</a>
@@ -65,6 +60,7 @@
   </div>
 
   <section class="wrapper">
+    <p class="display-6">Book Your delivery online and receive 5% off</p>
   <div class="formContainer container form-group row" id="mainContainer">
 
     <form name="myForm" id="myForm" action="./booking" method="post">
@@ -156,12 +152,19 @@
 
           <div class="input-grp">
             <!-- <label for="userEmail">Email</label> -->
-            <input type="email" name="email" id="email" class="inputs" placeholder="Email *optional*" />
+            <input type="address" name="streetAd" id="streetAd" class="inputs" placeholder="Street Address" />
             <i class="fas fa-check-circle"></i>
             <i class="fas fa-exclamation-circle"></i>
             <small></small>
           </div>
 
+          <div class="input-grp">
+            <!-- <label for="userEmail">Email</label> -->
+            <input type="collectionDet" name="collectionDet" id="CollectionDet" class="inputs" placeholder="Collection Details (eg order number)" />
+            <i class="fas fa-check-circle"></i>
+            <i class="fas fa-exclamation-circle"></i>
+            <small></small>
+          </div>
           <div class="input-grp">
             <label>Select the pickup zone from the list below</label>
             <select name="departureLocation" id="departureLocation" class="selectFields">
@@ -194,6 +197,7 @@
             <small></small>
           </div>
 
+         
         </section>
 
 
