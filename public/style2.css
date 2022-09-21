@@ -95,6 +95,7 @@ header p{
   border-radius: none;
   width: 100%;
   background-color: var(--emerald);
+  font-family: "Tangerine", serif;
 }
 .welcome {
   max-width: 100%;
@@ -219,13 +220,14 @@ hr.light-100 {
   flex-wrap: wrap;
   align-content: center;
   justify-content: center;
-  background-color: var(--emerald);
+  
   /* background-image: url(images/masked_deliveryhwange-delivery-service_hand2hand-4.jpg); */
   background-blend-mode: difference;
   background-attachment: fixed;
   background-position: center;
 }
 .section-wrapper {
+
   position: relative;
   display: flex;
   flex-wrap: wrap;
@@ -240,7 +242,7 @@ hr.light-100 {
 }
 
 .formContainer {
-  width: 80%;
+  width: 68%;
   min-width: 500px;
   box-shadow: 10px var(--floral-white);
   border-radius: 1rem;
