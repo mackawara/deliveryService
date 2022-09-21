@@ -13,6 +13,11 @@ window.addEventListener("DOMContentLoaded", async () => {
     formValidator();
   });
 
+  const dateControl = document.querySelector('input[type="date"]');
+  const today=new Date().toLocaleDateString().slice(0,10)
+dateControl.value =today ;
+console.log(today)
+
   async function formValidator() {
     const selects = form.querySelectorAll("select");
     const inputs = form.querySelectorAll(".inputs");
