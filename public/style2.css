@@ -307,7 +307,8 @@ input {
 
 .input-grp input {
   border: none;
-  border-bottom: 1px solid var(--dark-jungle-green);
+  border-bottom: 1px solid var(--emerald);
+  background-color: inherit;
   display: flex;
   font-family: inherit;
   font-size: 1rem;
@@ -323,7 +324,7 @@ input {
 .input-grp select {
   width: 100%;
   background-color: var(--emerald);
-  border: 1px solid var(--darmouth-green)
+  border: none;
 }
 
 
