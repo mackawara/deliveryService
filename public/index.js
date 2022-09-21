@@ -2,21 +2,6 @@ window.addEventListener("DOMContentLoaded", async () => {
   const parcel = document.getElementById("parcel");
   const dimensionFields = document.querySelector(".dimensions");
   dimensionFields.style.display = "none";
-  parcel.addEventListener("change", (e) => {
-    if (
-      parcel.value === "Hardware" ||
-      parcel.value === "Box" ||
-      parcel.value === "Other"
-    ) {
-      dimensionFields.style.display = "flex";
-    } else if (
-      parcel.value === "Cash" ||
-      parcel.value === "Envelope" ||
-      parcel.value == "Groceries"
-    ) {
-      dimensionFields.style.display = "none";
-    }
-  });
 
   let data = {};
   let inputErrors = [];
