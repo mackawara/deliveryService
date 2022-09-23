@@ -19,7 +19,7 @@ body {
   /* width: 100%;*/
   font-family: "Poppins", sans-serif;
   color: var(--dark-jungle-green);
-  font-size: 14px;
+  font-size: 15px;
   background-color: --emerald;
 }
 header {
@@ -57,6 +57,12 @@ header p{
 .nav-link {
   font-size: 1.1em !important;
 }
+.carousel-inner{
+  background-image: url(images/delivery_manhwange-delivery-service_hand2hand-7\ copy.jpg);
+  background-size: cover;
+  background-position: center;
+  
+}
 
 .carousel-inner img {
   width: 100%;
@@ -71,7 +77,8 @@ header p{
 .carousel-caption h1 {
   font-size: 500%;
   text-transform: uppercase;
-  text-shadow: 1px 1px 1px red;
+  text-shadow: 2px 2px 2px var(--emerald);
+  color: var(--floral-white);
 }
 .carousel-caption h3 {
   font-size: 200%;
