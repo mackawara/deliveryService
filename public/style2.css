@@ -22,6 +22,9 @@ body {
   font-size: 15px;
   background-color: --emerald;
 }
+.section-margin{
+  margin: 4rem 0;
+}
 header {
   height: 5rem;
   display: flex;
@@ -87,11 +90,11 @@ header p{
   text-shadow: 1px 1px 10px var(--dart-jungle-green);
   padding-bottom: 1rem;
 }
-.carousel-inner button{
+.carousel-inner button,.jumbotron button{
   background-color: var(--floral-white);
   color:var(--darmouth-green);
 }
-.carousel-inner button:hover{
+.carousel-inner button:hover,.jumbotron button:hover{
   background-color: var(--floral-white);
   color:var(--emerald);
 }
@@ -122,7 +125,6 @@ header p{
 .jumbotron {
   border-radius: none;
   width: 100%;
-  background-color: var(--emerald);
   font-family: 'Poppins', sans-serif;
 }
 .jumbotron article{
