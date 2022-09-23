@@ -61,7 +61,7 @@ header p{
   background-image: url(images/delivery_manhwange-delivery-service_hand2hand-7\ copy.jpg);
   background-size: cover;
   background-position: center;
-  
+
 }
 
 .carousel-inner img {
@@ -76,25 +76,46 @@ header p{
 }
 .carousel-caption h1 {
   font-size: 500%;
-  text-transform: uppercase;
-  text-shadow: 2px 2px 2px var(--emerald);
+  text-shadow: 2px 2px 2px var(--dark-jungle-green);
   color: var(--floral-white);
+  font-family: "Poppins",sans-serif;
+  font-weight: 00;
 }
 .carousel-caption h3 {
   font-size: 200%;
   font-weight: 500;
-  text-shadow: 1px 1px 10px #000;
+  text-shadow: 1px 1px 10px var(--dart-jungle-green);
   padding-bottom: 1rem;
 }
+.carousel-inner button{
+  background-color: var(--floral-white);
+  color:var(--darmouth-green);
+}
+.carousel-inner button:hover{
+  background-color: var(--floral-white);
+  color:var(--emerald);
+}
+
+.carousel-inner .secondary{
+  background-color: var(--darmouth-green);
+  color:var(--floral-white);
+}
+.carousel-inner .secondary:hover{
+  background-color: var(--emerald);
+  color:var(--floral-white);
+}
+
 .btn-primary {
   background-color: var(--emerald);
   color: var(--floral-white);
   border: 1px solid var(--floral-white);
-}
+}/* 
 .btn-primary:hover {
   background-color: var(--malachite);
   color: var(--floral-white);
-}
+} */
+
+
 .border-radius {
   border-radius: 1rem;
 }
