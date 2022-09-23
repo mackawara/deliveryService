@@ -90,11 +90,11 @@ header p{
   text-shadow: 1px 1px 10px var(--dart-jungle-green);
   padding-bottom: 1rem;
 }
-.carousel-inner button,.jumbotron button{
+.carousel-inner button,.jumbotron button,.gen-btn{
   background-color: var(--floral-white);
   color:var(--darmouth-green);
 }
-.carousel-inner button:hover,.jumbotron button:hover{
+.carousel-inner button:hover,.jumbotron button:hover,.gen-btn{
   background-color: var(--floral-white);
   color:var(--emerald);
 }
@@ -146,6 +146,13 @@ header p{
   margin-top: 0.3rem;
   margin-bottom: 1rem;
 }
+.social{
+  display: flex;
+  flex-wrap: wrap;
+  align-content: center;
+  justify-content:center;
+  text-align: center;
+}
 .padding {
   padding-bottom: 2rem;
 }
@@ -156,8 +163,16 @@ header p{
   height: auto;
 }
 .social a {
-  font-size: 4.5em;
-  padding: 3rem;
+  font-size:1.5rem;
+  margin:0 0.5rem
+}
+.social h4{
+  display: flex;
+  align-content: center;
+  align-self: center;
+  font-size: 1.5rem;
+  text-align: center;
+  background-color: #00aced;
 }
 .fa-facebook {
   color: #3b5998;
@@ -217,24 +232,36 @@ hr.light-100 {
   width: 100%;
   height: 100vh;
 }
-/*--- Fixed Background Image --*/
-/* figure {
+
+.carousel-inner h3{
+  color:var(--dartmouth-green);
+  text-shadow: 1px 1px 1px var(--floral-white);
+}
+
+ figure {
   position: relative;
   width: 100%;
-  height: 60%;
-  margin: 0 !important;
+  height: 60vh;
+  margin: 0 ;
+  top: 0;
+  left: 0;
+  background-image: url("images/businesspeople_shaking_handshwange-delivery-service_hand2hand-6.jpg");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  
+  
 }
 .fixed-wrap {
-  clip: rect(0, auto, auto, 0);
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
-  height: 100vh;
+  height: 100%;
 }
-#fixed {
-  background-image: url("img/selective-closeup-shot-black-globe.jpeg");
-  position: fixed;
+.fixed {
+  background-image: url("images/businesspeople_shaking_handshwange-delivery-service_hand2hand-6.jpg");
+  position: relative;
   display: block;
   top: 0;
   left: 0;
@@ -242,10 +269,10 @@ hr.light-100 {
   height: 100%;
   background-size: cover;
   background-position: center;
+  background-attachment: fixed;
   -webkit-transform: translateZ(0);
   transform: translateZ(0);
-  will-change: transform;
-} */
+}  
 /*--- Bootstrap Padding Fix --*/
 [class*="col-"] {
   padding: 1rem;
@@ -436,10 +463,7 @@ input {
 }
 /*---Media Queries --*/
 @media (max-width: 992px) {
-  .social a {
-    font-size: 4em;
-    padding: 2rem;
-  }
+ 
 }
 @media (max-width: 768px) {
   .signUpForm {
@@ -489,6 +513,10 @@ input {
  
 }
 @media (max-width: 576px) {
+  .social h4{
+    width: 100%;
+
+  }
   .carousel-caption h1 {
     font-size: 250%;
   }
