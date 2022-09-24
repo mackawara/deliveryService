@@ -9,10 +9,6 @@ const app = express();
 
 const PORT = process.env.PORT || 4400;
 
-//app.use(gidotenv);
-
-// mongoose configuration
-/*  add try async await and try catch block to handle mongoDB ocnnection */
 const mongoose = require("mongoose");
 
 const { MongoClient } = require("mongodb");
