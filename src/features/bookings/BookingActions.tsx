@@ -214,6 +214,7 @@ export function BookingActions({ detail, onRefresh }: BookingActionsProps) {
   const [changeGiven, setChangeGiven] = useState('');
   const [receiptEvidence, setReceiptEvidence] = useState('');
   const receipt = useGuardedAction({
+    allowUnconfirmedRetry: true,
     run: (_args: void, idempotencyKey: string) => {
       const received = parseUsdToCents(amountReceived);
       const change =

@@ -91,6 +91,7 @@ export function DispatchPage() {
   );
 
   const offer = useGuardedAction({
+    allowUnconfirmedRetry: true,
     run: (_args: void, idempotencyKey: string) => {
       if (!booking || !selectedCandidate) throw new Error('unreachable: guarded by the dialog');
       return createOffer({

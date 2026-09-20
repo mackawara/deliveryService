@@ -10,6 +10,7 @@ import { useTownScope, ALL_TOWNS } from '@/app/useTownScope';
  */
 export function TownSelector({ onChanged }: { onChanged?: () => void }) {
   const { townId, setTownId, towns, allTowns, isLoading } = useTownScope();
+  const selectedTownMissing = Boolean(townId && !towns.some((town) => town.id === townId));
 
   if (!allTowns && towns.length <= 1) {
     // A single-town account has nothing to choose; the heading still names the town.
@@ -31,6 +32,11 @@ export function TownSelector({ onChanged }: { onChanged?: () => void }) {
       sx={{ minWidth: 200 }}
     >
       {allTowns ? <MenuItem value={ALL_TOWNS}>All towns in my scope</MenuItem> : null}
+      {selectedTownMissing && townId ? (
+        <MenuItem value={townId} disabled>
+          Loading selected town…
+        </MenuItem>
+      ) : null}
       {towns.map((town) => (
         <MenuItem key={town.id} value={town.id}>
           {town.name}

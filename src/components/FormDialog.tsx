@@ -9,6 +9,7 @@ import type { FormEvent, ReactNode } from 'react';
 
 import type { NormalizedApiError } from '@/api/errors';
 import { ApiError } from '@/components/ApiError';
+import type { UnconfirmedState } from '@/lib/useGuardedAction';
 
 export interface FormDialogProps {
   open: boolean;
@@ -18,7 +19,7 @@ export interface FormDialogProps {
   pending?: boolean;
   error?: NormalizedApiError;
   /** True after a timeout; the caller offers a retry that reuses the same key. */
-  unconfirmed?: boolean;
+  unconfirmed?: UnconfirmedState;
   onRetryUnconfirmed?: () => void;
   disabled?: boolean;
   onClose: () => void;
@@ -71,10 +72,11 @@ export function FormDialog({
               <Stack spacing={1}>
                 <Typography variant="body2" color="warning.main">
                   Outcome not confirmed. The latest record has been refetched — review it before
-                  sending again. Retrying re-sends the identical request with the same operation
-                  key.
+                  sending again.{unconfirmed === 'retryable'
+                    ? ' Retrying re-sends the identical request with the same operation key.'
+                    : ' Close this dialog and inspect the latest record before starting another action.'}
                 </Typography>
-                {onRetryUnconfirmed ? (
+                {unconfirmed === 'retryable' && onRetryUnconfirmed ? (
                   <Button onClick={onRetryUnconfirmed} variant="outlined" disabled={pending}>
                     Retry the same request
                   </Button>
@@ -87,7 +89,7 @@ export function FormDialog({
           <Button onClick={onClose} disabled={pending}>
             Cancel
           </Button>
-          <Button type="submit" variant="contained" disabled={pending || disabled}>
+          <Button type="submit" variant="contained" disabled={pending || unconfirmed !== false || disabled}>
             {pending ? 'Working…' : submitLabel}
           </Button>
         </DialogActions>

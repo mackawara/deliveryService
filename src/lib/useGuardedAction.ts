@@ -12,7 +12,11 @@ export interface GuardedActionOptions<TArgs, TResult> {
   refresh?: () => void;
   successMessage?: string | ((result: TResult) => string);
   onSuccess?: (result: TResult) => void;
+  /** Enable only after the route's server-side replay semantics have been verified. */
+  allowUnconfirmedRetry?: boolean;
 }
+
+export type UnconfirmedState = false | 'review' | 'retryable';
 
 export interface GuardedAction<TArgs> {
   /** Starts a deliberate new action with a fresh idempotency key. */
@@ -22,7 +26,7 @@ export interface GuardedAction<TArgs> {
   pending: boolean;
   error: NormalizedApiError | undefined;
   /** True after a timeout: the command may or may not have been applied. */
-  unconfirmed: boolean;
+  unconfirmed: UnconfirmedState;
   reset: () => void;
 }
 
@@ -36,19 +40,25 @@ export interface GuardedAction<TArgs> {
 export function useGuardedAction<TArgs, TResult>(
   options: GuardedActionOptions<TArgs, TResult>,
 ): GuardedAction<TArgs> {
+  type Run = (args: TArgs, idempotencyKey: string) => Promise<TResult>;
   const dispatch = useAppDispatch();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<NormalizedApiError | undefined>(undefined);
-  const [unconfirmed, setUnconfirmed] = useState(false);
+  const [unconfirmed, setUnconfirmed] = useState<UnconfirmedState>(false);
   const actionKey = useRef(new ActionKey());
   const lastArgs = useRef<TArgs>(undefined as TArgs);
+  const lastRun = useRef<Run>(options.run);
 
   const execute = useCallback(
-    async (args: TArgs, key: string): Promise<boolean> => {
+    async (
+      args: TArgs,
+      key: string,
+      run: Run,
+    ): Promise<boolean> => {
       setPending(true);
       setError(undefined);
       try {
-        const result = await options.run(args, key);
+        const result = await run(args, key);
         setUnconfirmed(false);
         actionKey.current.reset();
         if (options.successMessage) {
@@ -70,7 +80,7 @@ export function useGuardedAction<TArgs, TResult>(
         if (normalized.kind === 'timeout' || normalized.kind === 'offline') {
           // The command may already have been applied; read the record back rather than
           // sending it again on the user's behalf.
-          setUnconfirmed(true);
+          setUnconfirmed(options.allowUnconfirmedRetry ? 'retryable' : 'review');
           options.refresh?.();
         }
         return false;
@@ -84,23 +94,28 @@ export function useGuardedAction<TArgs, TResult>(
   const submit = useCallback(
     async (args?: TArgs) => {
       lastArgs.current = (args ?? (undefined as TArgs)) as TArgs;
+      // Keep the submit-time closure as part of the request snapshot. Callers often
+      // build a body from form state inside `run`; a later render must not change it.
+      lastRun.current = options.run;
       // A deliberate new action always gets a new key.
-      return execute(lastArgs.current, actionKey.current.next());
+      return execute(lastArgs.current, actionKey.current.next(), lastRun.current);
     },
-    [execute],
+    [execute, options.run],
   );
 
   const retryUnconfirmed = useCallback(async () => {
+    if (!options.allowUnconfirmedRetry) return false;
     // The same payload with the same key: safe for routes with idempotent semantics.
-    return execute(lastArgs.current, actionKey.current.current());
-  }, [execute]);
+    return execute(lastArgs.current, actionKey.current.current(), lastRun.current);
+  }, [execute, options.allowUnconfirmedRetry]);
 
   const reset = useCallback(() => {
     setError(undefined);
     setUnconfirmed(false);
     actionKey.current.reset();
     lastArgs.current = undefined as TArgs;
-  }, []);
+    lastRun.current = options.run;
+  }, [options.run]);
 
   return { submit, retryUnconfirmed, pending, error, unconfirmed, reset };
 }

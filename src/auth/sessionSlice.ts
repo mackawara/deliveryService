@@ -15,6 +15,8 @@ export interface SessionState {
   returnPath: string | null;
   /** True while a deliberate sign-out is in progress. */
   signingOut: boolean;
+  /** Prevents `/me` from restoring a session after local sign-out. */
+  locallySignedOut: boolean;
 }
 
 const initialState: SessionState = {
@@ -22,6 +24,7 @@ const initialState: SessionState = {
   transitionHandled: false,
   returnPath: null,
   signingOut: false,
+  locallySignedOut: false,
 };
 
 const sessionSlice = createSlice({
@@ -42,12 +45,24 @@ const sessionSlice = createSlice({
     signOutStarted(state) {
       state.signingOut = true;
     },
+    signOutCompleted(state) {
+      state.signingOut = false;
+      state.locallySignedOut = true;
+      state.expired = false;
+      state.transitionHandled = false;
+      state.returnPath = null;
+    },
     sessionCleared() {
       return { ...initialState };
     },
   },
 });
 
-export const { sessionExpired, sessionTransitionHandled, signOutStarted, sessionCleared } =
-  sessionSlice.actions;
+export const {
+  sessionExpired,
+  sessionTransitionHandled,
+  signOutStarted,
+  signOutCompleted,
+  sessionCleared,
+} = sessionSlice.actions;
 export const sessionReducer = sessionSlice.reducer;

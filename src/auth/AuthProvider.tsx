@@ -8,7 +8,12 @@ import type { NormalizedApiError } from '@/api/errors';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { uiCleared } from '@/app/uiSlice';
 import { loginUrlFor } from '@/auth/returnPath';
-import { sessionCleared, sessionTransitionHandled, signOutStarted } from '@/auth/sessionSlice';
+import {
+  sessionCleared,
+  sessionTransitionHandled,
+  signOutCompleted,
+  signOutStarted,
+} from '@/auth/sessionSlice';
 import type { StaffSession } from '@/lib/permissions';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
@@ -38,20 +43,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
   const expired = useAppSelector((state) => state.session.expired);
   const transitionHandled = useAppSelector((state) => state.session.transitionHandled);
+  const signingOut = useAppSelector((state) => state.session.signingOut);
+  const locallySignedOut = useAppSelector((state) => state.session.locallySignedOut);
 
   // The pre-login CSRF context is needed before any state-changing request, including
   // the OTP endpoints themselves.
   useGetCsrfQuery();
 
-  const meQuery = useGetMeQuery();
-  const [logout, logoutState] = useLogoutMutation();
+  const meQuery = useGetMeQuery(undefined, { skip: expired || signingOut || locallySignedOut });
+  const [logout] = useLogoutMutation();
 
   const error = meQuery.error as NormalizedApiError | undefined;
-  const status: AuthStatus = meQuery.data
-    ? 'authenticated'
-    : meQuery.isLoading || meQuery.isUninitialized
-      ? 'loading'
-      : 'anonymous';
+  const status: AuthStatus = expired
+    ? 'anonymous'
+    : locallySignedOut
+      ? location.pathname === '/signed-out'
+        ? 'anonymous'
+        : 'loading'
+    : meQuery.data
+      ? 'authenticated'
+      : meQuery.isLoading || meQuery.isUninitialized
+        ? 'loading'
+        : 'anonymous';
 
   // One transition for concurrent unauthenticated failures: stop protected polling by
   // clearing the cache, then return to the login page.
@@ -64,9 +77,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate(target, { replace: true });
   }, [expired, transitionHandled, dispatch, navigate, location.pathname, location.search]);
 
+  // Reset only after protected route consumers have unmounted. Resetting while they
+  // are mounted lets their active subscriptions immediately repopulate the cache.
+  useEffect(() => {
+    if (!locallySignedOut || location.pathname !== '/signed-out') return;
+    dispatch(baseApi.util.resetApiState());
+  }, [locallySignedOut, location.pathname, dispatch]);
+
   const refresh = useCallback(() => {
+    if (expired || locallySignedOut || meQuery.isUninitialized) {
+      dispatch(sessionCleared());
+      return;
+    }
     void meQuery.refetch();
-  }, [meQuery]);
+  }, [dispatch, expired, locallySignedOut, meQuery]);
 
   const signOut = useCallback(async () => {
     dispatch(signOutStarted());
@@ -78,7 +102,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Local identity state is cleared straight away.
     clearCsrfToken();
     dispatch(uiCleared());
-    dispatch(sessionCleared());
 
     // Wait briefly for the server to confirm the revocation — bounded, so a hanging
     // server never traps the user on this screen. Resetting the query cache or
@@ -90,11 +113,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }),
     ]);
 
-    dispatch(baseApi.util.resetApiState());
     navigate(outcome === 'revoked' ? '/signed-out' : '/signed-out?remote=unconfirmed', { replace: true });
-    // Screens that were still mounted when the cache was cleared re-subscribe for one
-    // tick, so the protected cache is dropped again once they have unmounted.
-    window.setTimeout(() => dispatch(baseApi.util.resetApiState()), 0);
+    dispatch(signOutCompleted());
   }, [dispatch, logout, navigate]);
 
   const value = useMemo<AuthContextValue>(
@@ -104,9 +124,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       error,
       refresh,
       signOut,
-      signingOut: logoutState.isLoading,
+      signingOut,
     }),
-    [status, meQuery.data, error, refresh, signOut, logoutState.isLoading],
+    [status, meQuery.data, error, refresh, signOut, signingOut],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
