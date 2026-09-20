@@ -78,7 +78,9 @@ export function BookingsPage() {
     return map;
   }, [driversQuery.data]);
 
-  const loaded = query.data?.items ?? [];
+  // `currentData` belongs to the current town/filter arguments. `data` can retain the
+  // previous argument's rows while a newly selected town is loading.
+  const loaded = query.currentData?.items ?? [];
   const rows = activeOnly ? loaded.filter(isActiveBooking) : loaded;
   const hiddenCount = loaded.length - rows.length;
 
@@ -316,7 +318,7 @@ export function BookingsPage() {
           page={{
             limit: PAGE_SIZE,
             skip,
-            hasProbableNextPage: query.data?.hasProbableNextPage ?? false,
+            hasProbableNextPage: query.currentData?.hasProbableNextPage ?? false,
             onSkipChange: setSkip,
           }}
         />

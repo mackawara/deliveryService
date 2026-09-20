@@ -26,6 +26,7 @@ import { useState } from 'react';
 import { Link as RouterLink, Outlet, useLocation } from 'react-router-dom';
 
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
+import { ALL_TOWNS, useTownScope } from '@/app/useTownScope';
 import {
   NAV_GROUP_LABELS,
   NAV_ITEMS,
@@ -227,6 +228,7 @@ export function AppShell() {
   const theme = useTheme();
   const dispatch = useAppDispatch();
   const { session } = useAuth();
+  const { townId } = useTownScope();
   const navigationOpen = useAppSelector((state) => state.ui.navigationOpen);
   const expanded = useMediaQuery(theme.breakpoints.up('lg'));
 
@@ -331,7 +333,8 @@ export function AppShell() {
       >
         <SessionExpiryNotice />
         <Stack spacing={0}>
-          <Outlet />
+          {/* Town changes discard the previous town's forms, selections and query hook state. */}
+          <Outlet key={townId ?? ALL_TOWNS} />
         </Stack>
       </Box>
 

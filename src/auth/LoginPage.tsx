@@ -163,6 +163,7 @@ export function LoginPage() {
         // The response may have been lost after the session was created; `/me` can
         // recover it. A consumed code is never accepted a second time.
         setFormError('The reply did not arrive. Checking whether the sign-in completed…');
+        dispatch(sessionCleared());
         refresh();
         return;
       }

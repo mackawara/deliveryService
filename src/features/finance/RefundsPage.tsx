@@ -29,9 +29,9 @@ import { describeStatus, refundStatusMeta } from '@/components/statusMeta';
 import { formatDateTime } from '@/lib/datetime';
 import { parseUsdToCents } from '@/lib/money';
 import { useGuardedAction } from '@/lib/useGuardedAction';
-import { useNumberQueryParam, useQueryParam } from '@/lib/useUrlState';
+import { useQueryParam } from '@/lib/useUrlState';
 
-const PAGE_SIZE = 25;
+const RECENT_RESULT_LIMIT = 100;
 
 /**
  * Refund workflow (specification section 4.6).
@@ -41,7 +41,6 @@ const PAGE_SIZE = 25;
  */
 export function RefundsPage() {
   const [status, setStatus] = useQueryParam('status');
-  const [skip, setSkip] = useNumberQueryParam('skip', 0);
   const [requestOpen, setRequestOpen] = useState(false);
   const [approveTarget, setApproveTarget] = useState<Refund | null>(null);
   const [settleTarget, setSettleTarget] = useState<Refund | null>(null);
@@ -56,7 +55,7 @@ export function RefundsPage() {
   const [failureReason, setFailureReason] = useState('');
 
   const query = useListRefundsQuery(
-    { status: status as never, limit: PAGE_SIZE, skip },
+    { status: status as never, limit: RECENT_RESULT_LIMIT, skip: 0 },
     polled(POLLING.finance),
   );
   const [requestRefund] = useRequestRefundMutation();
@@ -64,6 +63,7 @@ export function RefundsPage() {
   const [settleRefund] = useSettleRefundMutation();
 
   const request = useGuardedAction({
+    allowUnconfirmedRetry: true,
     run: (_args: void, idempotencyKey: string) => {
       const parsed = parseUsdToCents(amount);
       if (!parsed.ok) throw new Error('unreachable: guarded by the dialog');
@@ -203,7 +203,6 @@ export function RefundsPage() {
           value={status ?? ''}
           onChange={(event) => {
             setStatus(event.target.value || null);
-            setSkip(0);
           }}
           sx={{ minWidth: 220, maxWidth: 260 }}
         >
@@ -217,13 +216,15 @@ export function RefundsPage() {
 
         <Alert severity="info">
           A refund is completed only when the server records it. Nothing on this page marks money as
-          returned before the backend confirms the stage.
+          returned before the backend confirms the stage. The table shows up to the{' '}
+          {RECENT_RESULT_LIMIT} most recent matching refunds until reliable offset pagination is
+          available.
         </Alert>
 
         <ResourceTable
           caption="Refunds"
           columns={columns}
-          rows={query.data?.items ?? []}
+          rows={query.currentData?.items ?? []}
           getRowId={(refund) => refund.id}
           isLoading={query.isLoading}
           isFetching={query.isFetching}
@@ -231,12 +232,6 @@ export function RefundsPage() {
           onRetry={() => void query.refetch()}
           emptyTitle="No refunds"
           emptyDescription="Refunds requested by finance appear here."
-          page={{
-            limit: PAGE_SIZE,
-            skip,
-            hasProbableNextPage: query.data?.hasProbableNextPage ?? false,
-            onSkipChange: setSkip,
-          }}
         />
       </Stack>
 

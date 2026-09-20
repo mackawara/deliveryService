@@ -9,7 +9,6 @@ import { Link as RouterLink } from 'react-router-dom';
 
 import { CASH_STATES } from '@/api/dto/finance';
 import { useListCashLedgerQuery, useRecordCashRemittanceMutation } from '@/api/endpoints/finance';
-import { useListDriversQuery } from '@/api/endpoints/fleet';
 import type { NormalizedApiError } from '@/api/errors';
 import { POLLING, polled } from '@/api/polling';
 import type { CashEntry } from '@/api/types';
@@ -24,9 +23,13 @@ import { cashStateMeta, describeStatus } from '@/components/statusMeta';
 import { formatDateTime } from '@/lib/datetime';
 import { parseUsdToCents, sumCents } from '@/lib/money';
 import { useGuardedAction } from '@/lib/useGuardedAction';
-import { useNumberQueryParam, useQueryParam } from '@/lib/useUrlState';
+import { useQueryParam } from '@/lib/useUrlState';
 
-const PAGE_SIZE = 25;
+const RECENT_RESULT_LIMIT = 100;
+
+function retainedCash(entry: CashEntry): number {
+  return (entry.amountReceivedCents ?? entry.amountDueCents) - (entry.changeGivenCents ?? 0);
+}
 
 /**
  * Cash ledger (specification section 4.6).
@@ -39,7 +42,6 @@ export function CashPage() {
   const { townId } = useTownScope();
   const [state, setState] = useQueryParam('state');
   const [driverId, setDriverId] = useQueryParam('driver');
-  const [skip, setSkip] = useNumberQueryParam('skip', 0);
   const [remitOpen, setRemitOpen] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [amount, setAmount] = useState('');
@@ -47,33 +49,52 @@ export function CashPage() {
   const [notes, setNotes] = useState('');
 
   const query = useListCashLedgerQuery(
-    { state: state as never, driverId, limit: PAGE_SIZE, skip },
+    { state: state as never, limit: RECENT_RESULT_LIMIT, skip: 0 },
     polled(POLLING.finance),
   );
-  const driversQuery = useListDriversQuery({ townId, limit: 100 }, { skip: !townId });
   const [recordRemittance] = useRecordCashRemittanceMutation();
 
+  // The current backend authorizes this ledger for finance and includes driver IDs,
+  // while the driver directory is operator-only. Use the finance-safe references here.
+  const townEntries = useMemo(
+    () =>
+      (query.currentData?.items ?? []).filter((entry) => !townId || entry.townId === townId),
+    [query.currentData, townId],
+  );
+  const driverIds = useMemo(
+    () => Array.from(new Set(townEntries.flatMap((entry) => (entry.driverId ? [entry.driverId] : [])))),
+    [townEntries],
+  );
+  const effectiveDriverId = driverId && driverIds.includes(driverId) ? driverId : null;
+  const visibleEntries = useMemo(
+    () =>
+      effectiveDriverId
+        ? townEntries.filter((entry) => entry.driverId === effectiveDriverId)
+        : townEntries,
+    [effectiveDriverId, townEntries],
+  );
   const collected = useMemo(
-    () => (query.data?.items ?? []).filter((entry) => entry.state === 'COLLECTED_BY_DRIVER'),
-    [query.data],
+    () => visibleEntries.filter((entry) => entry.state === 'COLLECTED_BY_DRIVER'),
+    [visibleEntries],
   );
   const selectedTotal = useMemo(
     () =>
       sumCents(
         collected
           .filter((entry) => selectedIds.includes(entry.id))
-          .map((entry) => entry.amountReceivedCents ?? entry.amountDueCents),
+          .map(retainedCash),
       ),
     [collected, selectedIds],
   );
 
   const remit = useGuardedAction({
+    allowUnconfirmedRetry: true,
     run: (_args: void, idempotencyKey: string) => {
       const parsed = parseUsdToCents(amount);
-      if (!parsed.ok || !driverId) throw new Error('unreachable: guarded by the dialog');
+      if (!parsed.ok || !effectiveDriverId) throw new Error('unreachable: guarded by the dialog');
       return recordRemittance({
-        driverId,
-        ledgerEntryIds: selectedIds,
+        driverId: effectiveDriverId,
+        ledgerEntryIds: [...selectedIds],
         amountCents: parsed.cents,
         receiptReference: receiptReference.trim(),
         notes: notes.trim() || undefined,
@@ -149,7 +170,7 @@ export function CashPage() {
       align: 'right',
       render: (entry) => {
         if (entry.amountReceivedCents === undefined) return <Money cents={null} />;
-        const shortfall = entry.amountDueCents - entry.amountReceivedCents;
+        const shortfall = entry.amountDueCents - retainedCash(entry);
         return shortfall > 0 ? (
           <Typography variant="body2" color="error.main">
             <Money cents={shortfall} />
@@ -193,7 +214,7 @@ export function CashPage() {
         actions={
           <Button
             variant="contained"
-            disabled={selectedIds.length === 0 || !driverId}
+            disabled={selectedIds.length === 0 || !effectiveDriverId}
             onClick={() => {
               setAmount(selectedTotal === null ? '' : (selectedTotal / 100).toFixed(2));
               setRemitOpen(true);
@@ -213,7 +234,6 @@ export function CashPage() {
             value={state ?? ''}
             onChange={(event) => {
               setState(event.target.value || null);
-              setSkip(0);
             }}
             sx={{ minWidth: 220 }}
           >
@@ -228,19 +248,18 @@ export function CashPage() {
             select
             size="small"
             label="Driver"
-            value={driverId ?? ''}
+            value={effectiveDriverId ?? ''}
             onChange={(event) => {
               setDriverId(event.target.value || null);
               setSelectedIds([]);
-              setSkip(0);
             }}
             sx={{ minWidth: 220 }}
             helperText="A remittance is recorded against one driver."
           >
             <MenuItem value="">Any driver</MenuItem>
-            {(driversQuery.data?.items ?? []).map((row) => (
-              <MenuItem key={row.driver.id} value={row.driver.id}>
-                {row.driver.name}
+            {driverIds.map((id) => (
+              <MenuItem key={id} value={id}>
+                Driver …{id.slice(-6)}
               </MenuItem>
             ))}
           </TextField>
@@ -249,12 +268,14 @@ export function CashPage() {
         <Alert severity="info">
           Recording cash collection is an operator action on the booking. Remittance is recorded
           here by finance against specific ledger entries, and it never counts as new revenue.
+          The table shows up to the {RECENT_RESULT_LIMIT} most recent matching entries until the
+          backend supports reliable offset pagination.
         </Alert>
 
         <ResourceTable
           caption="Cash ledger entries"
           columns={columns}
-          rows={query.data?.items ?? []}
+          rows={visibleEntries}
           getRowId={(entry) => entry.id}
           isLoading={query.isLoading}
           isFetching={query.isFetching}
@@ -262,12 +283,6 @@ export function CashPage() {
           onRetry={() => void query.refetch()}
           emptyTitle="No cash entries"
           emptyDescription="Adjust the filters, or choose a driver to see what they are holding."
-          page={{
-            limit: PAGE_SIZE,
-            skip,
-            hasProbableNextPage: query.data?.hasProbableNextPage ?? false,
-            onSkipChange: setSkip,
-          }}
         />
       </Stack>
 
