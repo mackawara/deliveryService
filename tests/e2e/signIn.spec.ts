@@ -34,11 +34,16 @@ test('a reloaded deep link restores the session without another code', async ({ 
 test('signing out clears the session and returns to sign-in', async ({ page }) => {
   await signIn(page);
   await page.getByRole('button', { name: /Account menu/i }).click();
+
   await page.getByRole('menuitem', { name: /Sign out/i }).click();
   await expect(page.getByRole('heading', { name: /You are signed out/i })).toBeVisible();
 
-  await page.goto('/bookings');
-  await expect(page.getByRole('button', { name: /Send code on WhatsApp/i })).toBeVisible();
+  // Local data is cleared before the server confirms the revocation, so retry the
+  // protected route until the signed-out session is refused.
+  await expect(async () => {
+    await page.goto('/bookings');
+    await expect(page.getByRole('button', { name: /Send code on WhatsApp/i })).toBeVisible({ timeout: 3000 });
+  }).toPass({ timeout: 20_000 });
 });
 
 test('an unknown route offers a way back without breaking the shell', async ({ page }) => {

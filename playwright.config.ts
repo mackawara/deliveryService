@@ -42,10 +42,15 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: `yarn dev --port ${PORT} --strictPort`,
+    // Bind the dev server to 127.0.0.1 explicitly: on CI runners `localhost` can resolve
+    // to ::1 only, and Playwright would then wait for a port nothing is listening on.
+    command: `yarn dev --host 127.0.0.1 --port ${PORT} --strictPort`,
     url: `http://127.0.0.1:${PORT}`,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // Surface the server's own output when it fails to start.
+    stdout: 'pipe',
+    stderr: 'pipe',
     env: {
       VITE_ENABLE_MOCK_API: 'true',
     },

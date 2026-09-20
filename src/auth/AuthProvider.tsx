@@ -25,6 +25,9 @@ export interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
+/** How long sign-out waits for the server to confirm before reporting it as unconfirmed. */
+const REVOCATION_WAIT_MS = 2000;
+
 /**
  * Bootstraps the CSRF context and the signed-in identity, and owns the single login
  * transition when a session expires (specification sections 5.3 and 6).
@@ -67,24 +70,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     dispatch(signOutStarted());
-    const revocation = logout().unwrap();
+    const revocation = logout()
+      .unwrap()
+      .then(() => 'revoked' as const)
+      .catch(() => 'failed' as const);
 
-    // Local data is cleared immediately, whether or not the server answers.
+    // Local identity state is cleared straight away.
     clearCsrfToken();
-    dispatch(baseApi.util.resetApiState());
     dispatch(uiCleared());
     dispatch(sessionCleared());
-    navigate('/signed-out', { replace: true });
+
+    // Wait briefly for the server to confirm the revocation — bounded, so a hanging
+    // server never traps the user on this screen. Resetting the query cache or
+    // navigating first would abort the request and leave the session live.
+    const outcome = await Promise.race([
+      revocation,
+      new Promise<'pending'>((resolve) => {
+        window.setTimeout(() => resolve('pending'), REVOCATION_WAIT_MS);
+      }),
+    ]);
+
+    dispatch(baseApi.util.resetApiState());
+    navigate(outcome === 'revoked' ? '/signed-out' : '/signed-out?remote=unconfirmed', { replace: true });
     // Screens that were still mounted when the cache was cleared re-subscribe for one
     // tick, so the protected cache is dropped again once they have unmounted.
     window.setTimeout(() => dispatch(baseApi.util.resetApiState()), 0);
-
-    try {
-      await revocation;
-    } catch {
-      // The session may still be live server-side; say so rather than implying it is gone.
-      navigate('/signed-out?remote=unconfirmed', { replace: true });
-    }
   }, [dispatch, logout, navigate]);
 
   const value = useMemo<AuthContextValue>(
