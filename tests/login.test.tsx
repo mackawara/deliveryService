@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { HttpResponse, http } from 'msw';
 import { describe, expect, it } from 'vitest';
 
+import { clearCsrfToken } from '@/api/csrf';
 import { routes } from '@/app/router';
 import { mockServer } from '@/mocks/server';
 import { resetMockState } from '@/mocks/handlers';
@@ -29,6 +30,39 @@ describe('WhatsApp OTP sign-in', () => {
       ),
     ).toBeInTheDocument();
     expect(screen.getByRole('textbox', { name: /Verification code/i })).toBeInTheDocument();
+  });
+
+  it('fetches the CSRF token again when the first fetch failed, instead of sending without one', async () => {
+    resetMockState({ authenticated: false });
+    clearCsrfToken();
+    let csrfCalls = 0;
+    let sentToken: string | null = null;
+    mockServer.use(
+      // The API was unreachable when the page loaded, then came back.
+      http.get('/api/v1/auth/csrf', () => {
+        csrfCalls += 1;
+        return csrfCalls === 1
+          ? HttpResponse.error()
+          : HttpResponse.json({ csrfToken: 'recovered-token' });
+      }),
+      http.post('/api/v1/auth/otp/request', ({ request }) => {
+        sentToken = request.headers.get('x-csrf-token');
+        const later = (seconds: number) => new Date(Date.now() + seconds * 1000).toISOString();
+        return HttpResponse.json(
+          { challengeId: 'challenge-recovered', expiresAt: later(300), resendAt: later(60) },
+          { status: 202 },
+        );
+      }),
+    );
+    const user = userEvent.setup();
+    renderRoutes({ routes, initialEntries: ['/login'] });
+
+    await screen.findByRole('button', { name: /Send code on WhatsApp/i });
+    await waitFor(() => expect(csrfCalls).toBe(1));
+    await requestCode(user);
+
+    await waitFor(() => expect(sentToken).toBe('recovered-token'));
+    expect(await screen.findByRole('textbox', { name: /Verification code/i })).toBeInTheDocument();
   });
 
   it('rejects a wrong code and then signs in with the right one', async () => {
