@@ -14,6 +14,7 @@ import { useMemo, useState } from 'react';
 
 import type { ZonePairRate } from '@/api/dto/configuration';
 import {
+  useCreateRateCardMutation,
   useListParcelPresetsQuery,
   useListRateCardsQuery,
   useListZonesQuery,
@@ -40,6 +41,11 @@ function rateKey(from: string, to: string, parcelClass: string): string {
   return `${from}|${to}|${parcelClass}`;
 }
 
+/** Seeded and copied drafts start with this prefix until real wording is agreed. */
+function isPlaceholderText(value: string | undefined): boolean {
+  return value !== undefined && /^\s*placeholder\b/i.test(value);
+}
+
 /**
  * Rate cards (specification section 4.8).
  *
@@ -47,17 +53,24 @@ function rateKey(from: string, to: string, parcelClass: string): string {
  * combinations shown. Draft changes are saved before publishing, and publishing
  * confirms the effective date and reports coverage gaps. Accepted bookings keep the
  * quote snapshot they were given.
+ *
+ * Published cards are immutable, so saving changes to one (or to a town with no card
+ * yet) creates a new draft version. Clearing a cell removes that combination; a zero
+ * is a placeholder the server refuses to publish.
  */
 export function RatesPage() {
   const { townId, towns } = useTownScope();
   const cardsQuery = useListRateCardsQuery({ townId: townId ?? '' }, { skip: !townId });
   const zonesQuery = useListZonesQuery({ townId: townId ?? '' }, { skip: !townId });
   const presetsQuery = useListParcelPresetsQuery({ townId: townId ?? '' }, { skip: !townId });
+  const [createRateCard] = useCreateRateCardMutation();
   const [updateRateCard] = useUpdateRateCardMutation();
   const [publishRateCard] = usePublishRateCardMutation();
 
   const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Record<string, string>>({});
+  /** Null while the tax treatment is unchanged. */
+  const [taxDraft, setTaxDraft] = useState<string | null>(null);
   const [parcelClass, setParcelClass] = useState<string>('');
   const [publishOpen, setPublishOpen] = useState(false);
   const [effectiveFrom, setEffectiveFrom] = useState('');
@@ -86,13 +99,24 @@ export function RatesPage() {
     return map;
   }, [card]);
 
-  const dirty = Object.keys(draft).length > 0;
+  const dirty = Object.keys(draft).length > 0 || taxDraft !== null;
+  const editingDraft = card?.status === 'DRAFT';
+  const draftValid = Object.values(draft).every(
+    (value) => value.trim() === '' || parseUsdToCents(value).ok,
+  );
+  const taxTreatment = taxDraft ?? card?.taxTreatment ?? '';
+  const zeroPlaceholders = (card?.zonePairRates ?? []).filter((rate) => rate.priceCents === 0);
 
   const save = useGuardedAction({
     run: () => {
-      if (!card) throw new Error('unreachable: guarded by the dialog');
+      if (!townId) throw new Error('unreachable: guarded by the town selector');
       const merged = new Map(existing);
       for (const [key, value] of Object.entries(draft)) {
+        // A cleared cell removes the combination, sending it to operator review.
+        if (value.trim() === '') {
+          merged.delete(key);
+          continue;
+        }
         const parsed = parseUsdToCents(value);
         if (parsed.ok) merged.set(key, parsed.cents);
       }
@@ -105,11 +129,32 @@ export function RatesPage() {
           priceCents,
         };
       });
-      return updateRateCard({ id: card.id, zonePairRates, expectedVersion: card.version }).unwrap();
+      if (card && editingDraft) {
+        return updateRateCard({
+          id: card.id,
+          zonePairRates,
+          ...(taxDraft !== null ? { taxTreatment: taxDraft.trim() } : {}),
+          expectedVersion: card.version,
+        }).unwrap();
+      }
+      // Published and superseded cards never change: the edits become a new draft.
+      return createRateCard({
+        townId,
+        zonePairRates,
+        extras: card?.extras ?? [],
+        taxTreatment: taxTreatment.trim() || undefined,
+      }).unwrap();
     },
     refresh: () => void cardsQuery.refetch(),
-    successMessage: 'Draft rates saved. They are not charged until the card is published.',
-    onSuccess: () => setDraft({}),
+    successMessage: (saved) =>
+      saved.id === card?.id
+        ? 'Draft rates saved. They are not charged until the card is published.'
+        : `Saved as draft v${saved.version}. It is not charged until it is published.`,
+    onSuccess: (saved) => {
+      setDraft({});
+      setTaxDraft(null);
+      setSelectedCardId(saved.id);
+    },
   });
 
   const publish = useGuardedAction({
@@ -157,10 +202,10 @@ export function RatesPage() {
           <PermissionGate requirement={{ anyRole: ['admin'] }}>
             <Button
               variant="outlined"
-              disabled={!dirty || save.pending}
+              disabled={!dirty || !draftValid || save.pending}
               onClick={() => void save.submit()}
             >
-              Save draft
+              {editingDraft ? 'Save draft' : 'Save as new draft'}
             </Button>
             <Button
               variant="contained"
@@ -179,6 +224,25 @@ export function RatesPage() {
             error={cardsQuery.error as NormalizedApiError}
             onRetry={() => void cardsQuery.refetch()}
           />
+        ) : null}
+
+        <ApiError error={save.error} />
+
+        {card && !editingDraft ? (
+          <Alert severity="info">
+            This card is {card.status === 'PUBLISHED' ? 'published' : 'superseded'} and cannot
+            change. Edits are saved as a new draft version, which is charged only once published.
+          </Alert>
+        ) : null}
+
+        {editingDraft && (zeroPlaceholders.length > 0 || isPlaceholderText(card?.taxTreatment)) ? (
+          <Alert severity="warning">
+            This draft still has placeholders
+            {zeroPlaceholders.length > 0 ? ` — ${zeroPlaceholders.length} price(s) are $0.00` : ''}
+            {isPlaceholderText(card?.taxTreatment) ? ' — the tax treatment is a placeholder' : ''}.
+            It cannot be published until they are replaced. Clear a cell to leave a combination
+            unpriced instead.
+          </Alert>
         ) : null}
 
         {coverageGaps ? (
@@ -249,18 +313,43 @@ export function RatesPage() {
           ) : null}
         </Section>
 
-        {!card ? (
-          <EmptyState
-            title="No rate card for this town"
-            description="An administrator creates the first rate card before quotes can be produced."
-          />
-        ) : zones.length === 0 ? (
+        {zones.length === 0 ? (
           <EmptyState title="No active zones" description="Add zones before pricing zone pairs." />
+        ) : parcelClasses.length === 0 ? (
+          <EmptyState
+            title="No parcel presets"
+            description="Rates are priced per parcel class. Add parcel presets before pricing."
+          />
         ) : (
           <Section
             title={`Pickup zone × drop-off zone — ${activeClass || 'no parcel class'}`}
-            description="Empty cells are combinations the card does not price. They are shown, never assumed."
+            description={
+              card
+                ? 'Empty cells are combinations the card does not price. They are shown, never assumed.'
+                : 'This town has no rate card yet. Enter prices and save to create the first draft.'
+            }
           >
+            <PermissionGate
+              requirement={{ anyRole: ['admin'] }}
+              fallback={
+                card?.taxTreatment ? (
+                  <Typography variant="body2" sx={{ mb: 2 }}>
+                    Tax treatment: {card.taxTreatment}
+                  </Typography>
+                ) : null
+              }
+            >
+              <TextField
+                label="Tax treatment"
+                value={taxTreatment}
+                onChange={(event) => setTaxDraft(event.target.value)}
+                fullWidth
+                size="small"
+                sx={{ mb: 2 }}
+                error={isPlaceholderText(taxTreatment)}
+                helperText="Shown to customers with the price, e.g. whether taxes are included."
+              />
+            </PermissionGate>
             <TableContainer sx={{ overflowX: 'auto' }}>
               <Table size="small" aria-label={`Rates for parcel class ${activeClass}`}>
                 <TableHead>
