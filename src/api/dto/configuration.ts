@@ -45,6 +45,11 @@ export interface TownFeatures {
   independentDriverSignup: boolean;
 }
 
+/** Per-town cash-on-delivery exposure limits; unset means no limit. */
+export interface TownRiskControls {
+  codExposure?: { maxOpenBookings?: number; maxOpenValueCents?: number };
+}
+
 export interface WireTown extends WireDocument, WireVersioned {
   slug: string;
   name: string;
@@ -54,7 +59,7 @@ export interface WireTown extends WireDocument, WireVersioned {
   operatingHours: OperatingHours[];
   policy: TownPolicy;
   features: TownFeatures;
-  riskControls?: { codExposure?: { maxOpenBookings?: number; maxOpenValueCents?: number } };
+  riskControls?: TownRiskControls;
   supportContact?: string;
   status: 'ACTIVE' | 'DISABLED';
 }

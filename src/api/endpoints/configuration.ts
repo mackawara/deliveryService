@@ -6,6 +6,7 @@ import type {
   RateExtra,
   TownFeatures,
   TownPolicy,
+  TownRiskControls,
   WireParcelPreset,
   WirePublishResult,
   WireRateCard,
@@ -69,6 +70,8 @@ export const configurationApi = baseApi.injectEndpoints({
         features?: Partial<TownFeatures>;
         status?: 'ACTIVE' | 'DISABLED';
         supportContact?: string;
+        /** Replaces the limits; an empty `codExposure` means no limit. */
+        riskControls?: TownRiskControls;
         reason?: string;
         expectedVersion?: number;
       }
