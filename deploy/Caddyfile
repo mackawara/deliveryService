@@ -1,0 +1,39 @@
+# Serves the built dashboard inside its production container. TLS terminates at
+# the host Caddy, which also routes /api/v1 to the API on the same origin
+# (deliveryBooking/deploy/Caddyfile.example); this one only speaks plain HTTP
+# on the compose network. Same policy as nginx.conf.example.
+{
+	admin off
+}
+
+:80 {
+	root * /srv
+	encode zstd gzip
+
+	header {
+		# Matches the meta tag in index.html; a header also enforces
+		# frame-ancestors, which a meta tag cannot.
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https:; font-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "same-origin"
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		Permissions-Policy "geolocation=(), camera=(), microphone=()"
+		-Server
+	}
+
+	# Vite emits content-hashed filenames under /assets — cache forever. A
+	# missing asset stays a 404 instead of turning into the app shell.
+	handle /assets/* {
+		header Cache-Control "public, max-age=31536000, immutable"
+		file_server
+	}
+
+	# Everything else is the app shell or a public file. index.html is never
+	# cached, so a deploy is picked up on the next load; browser deep links
+	# fall back to it for React Router.
+	handle {
+		header Cache-Control "no-store"
+		try_files {path} /index.html
+		file_server
+	}
+}
