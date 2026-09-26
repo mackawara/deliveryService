@@ -1,0 +1,123 @@
+name: Deploy Dashboard
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Existing image tag to deploy (e.g. a previous commit SHA). Skips CI and the build — use for rollback.'
+        required: false
+        type: string
+
+# Never run two deploys at once; queue instead of cancelling so a deploy is
+# never killed mid-flight. deploy.sh also locks on the server, which covers the
+# API workflow in deliveryBooking.
+concurrency:
+  group: deploy-delivery-dashboard
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  ci:
+    # A manually supplied tag already passed CI when it was built.
+    if: ${{ !inputs.tag }}
+    uses: ./.github/workflows/ci.yml
+
+  build-and-push:
+    needs: ci
+    if: ${{ !inputs.tag }}
+    # ARM runner: the deploy target is an arm64 server, so the image must be
+    # built for linux/arm64.
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # Public build-time configuration only (repository variables); unset
+      # values fall back to the defaults in src/config.ts. The API is reached
+      # same-origin at /api/v1 through host Caddy.
+      - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: true
+          build-args: |
+            VITE_API_BASE_URL=${{ vars.VITE_API_BASE_URL || '/api/v1' }}
+            VITE_APP_LABEL=${{ vars.VITE_APP_LABEL }}
+            VITE_DEFAULT_THEME=${{ vars.VITE_DEFAULT_THEME }}
+            VITE_DEFAULT_PHONE_COUNTRY=${{ vars.VITE_DEFAULT_PHONE_COUNTRY }}
+            VITE_DEFAULT_TIMEZONE=${{ vars.VITE_DEFAULT_TIMEZONE }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/delivery-dashboard:${{ github.sha }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/delivery-dashboard:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy:
+    needs: build-and-push
+    # After a successful build, or straight away when an existing tag was
+    # supplied. Never when CI failed: that skips the build without a tag.
+    if: ${{ !cancelled() && (needs.build-and-push.result == 'success' || inputs.tag) }}
+    runs-on: ubuntu-latest
+    # deploy.sh may wait up to 15 minutes for an API deploy to finish.
+    timeout-minutes: 25
+    environment: production
+    env:
+      # The compose stack and deploy.sh are owned by deliveryBooking and
+      # synced to this path by its deploy workflow — run the API deploy at
+      # least once before the first dashboard deploy. Never grocery's
+      # /home/ubuntu/repos/saas.
+      DEPLOY_PATH: ${{ vars.DEPLOY_PATH || '/home/ubuntu/repos/delivery' }}
+      IMAGE: ${{ secrets.DOCKERHUB_USERNAME }}/delivery-dashboard
+      TAG: ${{ inputs.tag || github.sha }}
+    steps:
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+          SSH_USER: ${{ secrets.SSH_USER }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "${SSH_KNOWN_HOSTS}" ]; then
+            printf '%s\n' "${SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
+          else
+            echo "::warning::SSH_KNOWN_HOSTS is not set — trusting whatever host key the server presents on this run. Pin it (deliveryBooking deploy/README.md, one-time setup step 5)."
+            ssh-keyscan -H "${SSH_HOST}" >> ~/.ssh/known_hosts
+          fi
+          cat > ~/.ssh/config <<EOF
+          Host deploy-host
+            HostName ${SSH_HOST}
+            User ${SSH_USER}
+            IdentityFile ~/.ssh/deploy_key
+            IdentitiesOnly yes
+            StrictHostKeyChecking yes
+          EOF
+
+      - name: Deploy (health-gated, auto-rollback)
+        run: |
+          if ! [[ "${TAG}" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "::error::Invalid image tag '${TAG}'." >&2
+            exit 1
+          fi
+          # Refuses to run another stack's deploy.sh: grocery's also has a
+          # "dashboard" service, and this image must never replace it.
+          ssh deploy-host bash -s -- "$(printf '%q' "${DEPLOY_PATH}")" "$(printf '%q' "${IMAGE}")" "${TAG}" <<'REMOTE'
+          set -euo pipefail
+          if ! cd "$1" 2>/dev/null || [ "$(cat .stack-name 2>/dev/null)" != delivery ]; then
+            echo "::error::$1 is not the delivery stack — run the deliveryBooking Deploy API workflow first, or check the DEPLOY_PATH variable." >&2
+            exit 1
+          fi
+          exec bash ./deploy.sh dashboard "$2" "$3" </dev/null
+          REMOTE

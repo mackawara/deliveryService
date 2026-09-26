@@ -160,8 +160,11 @@ Environments that already ship a Chromium build can point Playwright at it with
 
 ## Deployment
 
-See `deploy/README.md`. Build static assets, serve them behind HTTPS with `index.html`
-as the deep-link fallback, and keep `/api/v1` same-origin through a reverse proxy.
+Pushes to `main` run CI, build an arm64 Docker image (Caddy serving `dist/`) and deploy
+it next to the API, with automatic rollback if it fails its healthcheck. See
+`deploy/README.md` for the pipeline and its GitHub settings, and for the general rules:
+serve behind HTTPS with `index.html` as the deep-link fallback, and keep `/api/v1`
+same-origin through a reverse proxy.
 
 ## Licence
 
