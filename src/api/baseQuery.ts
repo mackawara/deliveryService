@@ -1,6 +1,6 @@
 import { fetchBaseQuery, type BaseQueryFn, type FetchArgs } from '@reduxjs/toolkit/query/react';
 
-import { getCsrfToken } from '@/api/csrf';
+import { getCsrfToken, setCsrfToken } from '@/api/csrf';
 import { normalizeApiError, type NormalizedApiError } from '@/api/errors';
 import { appConfig } from '@/config';
 
@@ -42,6 +42,32 @@ export function setSessionExpiryListener(listener: SessionExpiryListener): void 
   onSessionExpired = listener;
 }
 
+let csrfInFlight: Promise<void> | null = null;
+
+/**
+ * The CSRF token is fetched when the app loads. If that request failed (the API was
+ * unreachable, for example) or the token was cleared, it is fetched again before the
+ * next state-changing request rather than sending that request without one. Concurrent
+ * callers share one fetch, so they cannot race each other's pre-login cookie.
+ */
+async function ensureCsrfToken(
+  api: Parameters<typeof rawBaseQuery>[1],
+  extraOptions: Parameters<typeof rawBaseQuery>[2],
+): Promise<void> {
+  csrfInFlight ??= (async () => {
+    const result = await rawBaseQuery(
+      { url: '/auth/csrf', headers: { 'Cache-Control': 'no-store' } },
+      api,
+      extraOptions,
+    );
+    const token = (result.data as { csrfToken?: unknown } | undefined)?.csrfToken;
+    if (typeof token === 'string') setCsrfToken(token);
+  })().finally(() => {
+    csrfInFlight = null;
+  });
+  await csrfInFlight;
+}
+
 /**
  * Application base query: normalizes every failure, keeps cookies on the request and
  * reports session expiry once for concurrent 401s.
@@ -51,6 +77,11 @@ export const appBaseQuery: BaseQueryFn<string | FetchArgs, unknown, NormalizedAp
   api,
   extraOptions,
 ) => {
+  // Only a missing token is awaited. With one held, the request starts synchronously and
+  // reads the token at once; sign-out relies on that, since it clears the token straight
+  // after starting the logout request. A failed fetch leaves the token unset, and the
+  // request then fails with the server's own answer, which the caller reports.
+  if (api.type === 'mutation' && !getCsrfToken()) await ensureCsrfToken(api, extraOptions);
   const result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error) {

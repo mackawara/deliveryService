@@ -26,6 +26,22 @@ yarn dev
 The dev server proxies `/api/v1` to `VITE_DEV_API_PROXY_TARGET` (default
 `http://localhost:4400`), so the browser stays same-origin and the session cookie works.
 
+### Running against the backend
+
+Start the [`deliveryBooking`](https://github.com/mackawara/deliveryBooking) service on
+the proxy port with a first administrator:
+
+```bash
+# in deliveryBooking
+BOOTSTRAP_ADMIN_PHONE=0772000001 PORT=4400 yarn dev
+```
+
+Sign in here with that number. Without an approved WhatsApp authentication template
+configured on the server, the code is written to the server log as
+`auth.otp.development_code` (development only). The administrator adds everyone else in
+**Settings → Access & staff**, and sets up the first town from **Towns → Add town**;
+the backend's `docs/first-town-setup.md` lists the steps.
+
 ### Running without a backend
 
 The documented contracts — including the endpoints listed as backend additions — are
@@ -132,18 +148,20 @@ not focused.
 
 ## What still needs backend work
 
+WhatsApp OTP sign-in, cookie sessions with CSRF, `GET /admin/me` and staff provisioning
+(the former P0 row) are implemented in `deliveryBooking`.
+
 These screens are built against the contracts in specification section 11 and say so in
 the interface until the endpoints exist, rather than inventing data:
 
-| Priority | Missing backend capability                                                            | What the dashboard does today                                                            |
-| -------- | ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
-| P0       | WhatsApp OTP endpoints, staff provisioning, `GET /admin/me`, CSRF and cookie sessions | Calls them as specified; the login and staff screens report plainly when they answer 404 |
-| P1       | `GET /admin/overview`                                                                 | Shows links and clearly labelled loaded-page counts, never a town-wide total             |
-| P1       | Waybill and date search, sorting and pagination metadata on `GET /admin/bookings`     | Those controls stay disabled; paging shows the loaded range with Previous/Next           |
-| P1       | Read-by-ID routes for drivers, vehicles, enquiries and configuration                  | Detail pages read the town's list and explain when a deep link cannot resolve            |
-| P1       | Paginated booking history                                                             | Detail histories are labelled as recent records, not an exhaustive audit                 |
-| P1       | `GET /admin/fraud-reports` and a review command                                       | Reports are raised from a booking and shown on the related restriction                   |
-| P1       | Enquiry conversation history and reply delivery status                                | Shows the enquiry record only, and confirms submission rather than delivery              |
+| Priority | Missing backend capability                                                        | What the dashboard does today                                                  |
+| -------- | --------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ |
+| P1       | `GET /admin/overview`                                                             | Shows links and clearly labelled loaded-page counts, never a town-wide total   |
+| P1       | Waybill and date search, sorting and pagination metadata on `GET /admin/bookings` | Those controls stay disabled; paging shows the loaded range with Previous/Next |
+| P1       | Read-by-ID routes for drivers, vehicles, enquiries and configuration              | Detail pages read the town's list and explain when a deep link cannot resolve  |
+| P1       | Paginated booking history                                                         | Detail histories are labelled as recent records, not an exhaustive audit       |
+| P1       | `GET /admin/fraud-reports` and a review command                                   | Reports are raised from a booking and shown on the related restriction         |
+| P1       | Enquiry conversation history and reply delivery status                            | Shows the enquiry record only, and confirms submission rather than delivery    |
 
 ## Testing
 

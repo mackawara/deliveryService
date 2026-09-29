@@ -2,7 +2,26 @@
 import { fileURLToPath, URL } from 'node:url';
 
 import react from '@vitejs/plugin-react';
-import { defineConfig, loadEnv } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
+
+/**
+ * Prints where `/api/v1` is forwarded under the dev server's own URLs, and names that
+ * target when a forwarded request fails, so a port mismatch with the backend is visible
+ * without reading this file.
+ */
+function announceApiProxy(target: string, source: string): Plugin {
+  return {
+    name: 'announce-api-proxy',
+    apply: 'serve',
+    configureServer(server) {
+      const printUrls = server.printUrls.bind(server);
+      server.printUrls = () => {
+        printUrls();
+        server.config.logger.info(`  ➜  API:     /api/v1 → ${target} (${source})`);
+      };
+    },
+  };
+}
 
 /**
  * The deployment baseline is the frontend origin with a reverse-proxied `/api/v1`
@@ -12,9 +31,13 @@ import { defineConfig, loadEnv } from 'vite';
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), 'VITE_');
   const proxyTarget = env.VITE_DEV_API_PROXY_TARGET ?? 'http://localhost:4400';
+  const proxySource = env.VITE_DEV_API_PROXY_TARGET
+    ? 'VITE_DEV_API_PROXY_TARGET'
+    : 'default; set VITE_DEV_API_PROXY_TARGET to change it';
+  let lastProxyHint = 0;
 
   return {
-    plugins: [react()],
+    plugins: [react(), announceApiProxy(proxyTarget, proxySource)],
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -27,6 +50,17 @@ export default defineConfig(({ mode }) => {
           target: proxyTarget,
           changeOrigin: false,
           secure: false,
+          configure: (proxy) => {
+            // Vite logs each failure itself; this adds where it was going, at most every
+            // few seconds so a burst of failed requests prints one hint.
+            proxy.on('error', () => {
+              if (Date.now() - lastProxyHint < 5000) return;
+              lastProxyHint = Date.now();
+              console.warn(
+                `[api proxy] Could not reach ${proxyTarget} (${proxySource}). Is the backend running on that port?`,
+              );
+            });
+          },
         },
       },
     },
