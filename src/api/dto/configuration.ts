@@ -15,6 +15,11 @@ export interface OperatingHours {
   closesAt: string;
 }
 
+export interface TownDefaults {
+  policy: TownPolicy;
+  operatingHours: OperatingHours[];
+}
+
 export interface TownPolicy {
   cancellationPolicy?: string;
   waitingAllowancePolicy?: string;
@@ -26,7 +31,10 @@ export interface TownPolicy {
   taxTreatment?: string;
 }
 
-export const TOWN_POLICY_FIELDS: Array<{ key: keyof TownPolicy; label: string }> = [
+export const TOWN_POLICY_FIELDS: Array<{
+  key: keyof TownPolicy;
+  label: string;
+}> = [
   { key: 'cancellationPolicy', label: 'Cancellation policy' },
   { key: 'waitingAllowancePolicy', label: 'Waiting allowance policy' },
   { key: 'retryAndReturnPolicy', label: 'Retry and return policy' },
@@ -121,8 +129,17 @@ export interface WireParcelPreset extends WireDocument, WireVersioned {
   label: string;
   examples: string[];
   parcelClass: string;
-  maxWeightKg: number;
-  maxDimensionsCm: DimensionsCm;
+  /** Missing mode identifies a legacy preset with fixed upper bounds. */
+  measurementMode?: 'UPPER_BOUND' | 'SUGGESTED';
+  maxWeightKg?: number;
+  maxDimensionsCm?: DimensionsCm;
+  suggestedWeightKg?: number;
+  suggestedDimensionsCm?: DimensionsCm;
+  /** Missing scope identifies figures for one item. */
+  loadScope?: 'ITEM' | 'CONSIGNMENT';
+  requiresOperatorQuote?: boolean;
+  displayOrder?: number;
+  requiredHandling?: HandlingCode[];
   supportedHandling: HandlingCode[];
   status: 'ACTIVE' | 'RETIRED';
 }

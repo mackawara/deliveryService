@@ -33,6 +33,8 @@ export interface AppConfig {
   appLabel: string;
   /** Timezone used to render API timestamps until a town supplies its own. */
   defaultTimeZone: string;
+  /** Browser Maps key, restricted to the dashboard website and Maps JavaScript API. */
+  googleMapsApiKey: string;
   /** Dev/test only: serve API contracts from in-browser mock handlers. */
   enableMockApi: boolean;
 }
@@ -43,5 +45,6 @@ export const appConfig: AppConfig = {
   defaultPresetId: readPresetId(import.meta.env.VITE_DEFAULT_THEME),
   appLabel: readString(import.meta.env.VITE_APP_LABEL, 'Delivery Dashboard'),
   defaultTimeZone: readString(import.meta.env.VITE_DEFAULT_TIMEZONE, 'Africa/Harare'),
+  googleMapsApiKey: readString(import.meta.env.VITE_GOOGLE_MAPS_API_KEY, ''),
   enableMockApi: readBoolean(import.meta.env.VITE_ENABLE_MOCK_API, false) && import.meta.env.DEV,
 };

@@ -17,9 +17,8 @@ export interface CreateTownDialogProps {
 }
 
 /**
- * Creates a town (specification section 4.8). The town starts closed to bookings with no
- * hours or policy: the server never invents them, and the launch checklist on the Towns
- * page names each step that remains.
+ * Creates a town with inherited standard hours and policy. Bookings stay closed
+ * until its local launch configuration is complete.
  */
 export function CreateTownDialog({ open, onClose, onCreated }: CreateTownDialogProps) {
   const [createTown] = useCreateTownMutation();
@@ -69,7 +68,7 @@ export function CreateTownDialog({ open, onClose, onCreated }: CreateTownDialogP
     <FormDialog
       open={open}
       title="Add a town"
-      description="The town starts closed to bookings. Hours, policy, zones, parcel presets, rates and a driver come next."
+      description="Standard hours and policy apply automatically. The town starts closed to bookings; configure zones, parcel presets, rates and a driver before launch."
       submitLabel="Create town"
       pending={create.pending}
       error={create.error}

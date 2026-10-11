@@ -1,3 +1,4 @@
+import standardTownDefaults from './townDefaults.json';
 /**
  * Fixture data for local development and tests.
  *
@@ -1039,3 +1040,6 @@ export const staffMembers: WireStaffMember[] = [
 
 /** Fixed code accepted by the mock OTP endpoints in development and tests. */
 export const MOCK_OTP_CODE = '123456';
+
+/** Snapshot of backend standards, used only by development mocks and tests. */
+export const townDefaults = standardTownDefaults;

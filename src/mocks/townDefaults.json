@@ -1,0 +1,43 @@
+{
+  "policy": {
+    "cancellationPolicy": "Cancellation is free before a driver is assigned. Once a driver is assigned, contact the operator to confirm cancellation. After collection, contact the operator to arrange a return. Finance confirms and processes any applicable refund.",
+    "waitingAllowancePolicy": "Have the goods and recipient ready at the agreed pickup and delivery times. If either stop is delayed, contact the operator to agree the next step. For bulky loads, the customer must arrange people or equipment for both loading and unloading before dispatch.",
+    "retryAndReturnPolicy": "If delivery cannot be completed, the operator will contact the sender to agree a retry or return. Any additional charge must be disclosed and accepted before additional travel. Customers are not charged extra for a failure caused by the delivery service.",
+    "liabilityTerms": "We take reasonable care of goods accepted for transport. Customers must describe the goods accurately and provide suitable packaging. Report loss or damage to the operator with supporting details so the claim can be assessed. These terms do not limit applicable consumer rights.",
+    "prohibitedGoodsPolicy": "Do not send illegal goods, explosives, flammable or hazardous substances, weapons, or goods that cannot be safely transported by the available vehicle. Goods needing specialist handling must be agreed with the operator before acceptance.",
+    "supportHours": "Monday to Friday 08:00–18:00 and Saturday 08:00–13:00, in the town’s local time. Closed on Sunday.",
+    "responseExpectations": "We offer same-day deliveries within each town, subject to available capacity and timing confirmed when the job is accepted. Requests received outside operating hours are processed at the next opening. Contact the operator for bulky loads or special handling before dispatch."
+  },
+  "operatingHours": [
+    {
+      "day": 1,
+      "opensAt": "08:00",
+      "closesAt": "18:00"
+    },
+    {
+      "day": 2,
+      "opensAt": "08:00",
+      "closesAt": "18:00"
+    },
+    {
+      "day": 3,
+      "opensAt": "08:00",
+      "closesAt": "18:00"
+    },
+    {
+      "day": 4,
+      "opensAt": "08:00",
+      "closesAt": "18:00"
+    },
+    {
+      "day": 5,
+      "opensAt": "08:00",
+      "closesAt": "18:00"
+    },
+    {
+      "day": 6,
+      "opensAt": "08:00",
+      "closesAt": "13:00"
+    }
+  ]
+}

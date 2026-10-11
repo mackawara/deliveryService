@@ -16,11 +16,17 @@ import {
   type TownFeatures,
   type TownPolicy,
 } from '@/api/dto/configuration';
-import { useListTownsQuery, useUpdateTownMutation } from '@/api/endpoints/configuration';
+import {
+  useGetTownDefaultsQuery,
+  useListTownsQuery,
+  useUpdateTownMutation,
+} from '@/api/endpoints/configuration';
 import type { NormalizedApiError } from '@/api/errors';
 import type { TownRow } from '@/api/types';
 import { useTownScope } from '@/app/useTownScope';
 import { useStaffSession } from '@/auth/useAuth';
+import { ApiError } from '@/components/ApiError';
+import { policyOverrides, hoursOverrides } from '@/features/configuration/townDefaults';
 import { FormDialog } from '@/components/FormDialog';
 import { PageHeader } from '@/components/PageHeader';
 import { PermissionGate } from '@/components/PermissionGate';
@@ -71,6 +77,7 @@ export function TownsPage() {
   const session = useStaffSession();
   const { setTownId } = useTownScope();
   const query = useListTownsQuery();
+  const defaults = useGetTownDefaultsQuery();
   const [updateTown] = useUpdateTownMutation();
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState<TownRow | null>(null);
@@ -94,6 +101,9 @@ export function TownsPage() {
   const bookingsLimit = parseLimit(maxOpenBookings);
   const valueLimit = parseValueLimit(maxOpenValue);
   const formValid =
+    defaults.data !== undefined &&
+    !defaults.isError &&
+    operatingHours.length > 0 &&
     name.trim().length >= 2 &&
     timezone.trim().length >= 3 &&
     (parsedArea === null || parsedArea.ok) &&
@@ -103,7 +113,7 @@ export function TownsPage() {
 
   const update = useGuardedAction({
     run: () => {
-      if (!editing || !bookingsLimit.ok || !valueLimit.ok) {
+      if (!editing || !defaults.data || defaults.isError || !bookingsLimit.ok || !valueLimit.ok) {
         throw new Error('unreachable: guarded by the dialog');
       }
       return updateTown({
@@ -111,8 +121,8 @@ export function TownsPage() {
         name: name.trim(),
         timezone: timezone.trim(),
         serviceArea: parsedArea?.ok ? parsedArea.area : undefined,
-        operatingHours,
-        policy,
+        operatingHours: hoursOverrides(operatingHours, defaults.data.operatingHours),
+        policy: policyOverrides(policy, defaults.data.policy),
         features,
         status,
         supportContact: supportContact.trim() || undefined,
@@ -186,7 +196,13 @@ export function TownsPage() {
           <StatusChip descriptor={{ label: 'Ready', tone: 'positive', icon: 'confirmed' }} />
         ) : (
           <Stack spacing={0.5}>
-            <StatusChip descriptor={{ label: 'Not ready', tone: 'caution', icon: 'review' }} />
+            <StatusChip
+              descriptor={{
+                label: 'Not ready',
+                tone: 'caution',
+                icon: 'review',
+              }}
+            />
             <Typography variant="caption" color="text.secondary">
               Still needed:
             </Typography>
@@ -305,7 +321,7 @@ export function TownsPage() {
       <FormDialog
         open={editing !== null}
         title={`Edit ${editing?.town.name ?? 'town'}`}
-        description="Policies are free text so the service never invents a charge or a rule it has not agreed."
+        description="Standard policies and hours apply to every town. Administrators can customize them here or restore the standards."
         submitLabel="Save town"
         pending={update.pending}
         error={update.error}
@@ -316,6 +332,13 @@ export function TownsPage() {
         disabled={!formValid}
         maxWidth="md"
       >
+        {defaults.isLoading && <Alert severity="info">Loading standard policies and hours…</Alert>}
+        {defaults.isError && (
+          <ApiError
+            error={defaults.error as NormalizedApiError}
+            onRetry={() => void defaults.refetch()}
+          />
+        )}
         <TextField
           label="Town name"
           value={name}
@@ -350,6 +373,20 @@ export function TownsPage() {
         />
 
         <Typography variant="subtitle2">Operating hours</Typography>
+        <Button
+          onClick={() =>
+            setOperatingHours(defaults.data!.operatingHours.map((window) => ({ ...window })))
+          }
+          disabled={!defaults.data || defaults.isError}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          Use standard hours
+        </Button>
+        {operatingHours.length === 0 && (
+          <Alert severity="info">
+            Select operating days or use standard hours. Turn Booking enabled off to close the town.
+          </Alert>
+        )}
         <OperatingHoursEditor
           value={operatingHours}
           onChange={setOperatingHours}
@@ -365,7 +402,10 @@ export function TownsPage() {
                 <Checkbox
                   checked={features[feature.key] ?? false}
                   onChange={(event) =>
-                    setFeatures((current) => ({ ...current, [feature.key]: event.target.checked }))
+                    setFeatures((current) => ({
+                      ...current,
+                      [feature.key]: event.target.checked,
+                    }))
                   }
                 />
               }
@@ -375,13 +415,27 @@ export function TownsPage() {
         </Stack>
 
         <Typography variant="subtitle2">Operating policy</Typography>
+        <Typography variant="body2" color="text.secondary">
+          Blank policy fields use the standard wording. Fees and tax treatment must be agreed by the
+          business.
+        </Typography>
+        <Button
+          onClick={() => setPolicy({ ...defaults.data!.policy })}
+          disabled={!defaults.data || defaults.isError}
+          sx={{ alignSelf: 'flex-start' }}
+        >
+          Use standard policy
+        </Button>
         {TOWN_POLICY_FIELDS.map((field) => (
           <TextField
             key={field.key}
             label={field.label}
             value={policy[field.key] ?? ''}
             onChange={(event) =>
-              setPolicy((current) => ({ ...current, [field.key]: event.target.value }))
+              setPolicy((current) => ({
+                ...current,
+                [field.key]: event.target.value,
+              }))
             }
             fullWidth
             multiline

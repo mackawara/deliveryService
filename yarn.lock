@@ -551,6 +551,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@googlemaps/js-api-loader@npm:^2.1.3":
+  version: 2.1.3
+  resolution: "@googlemaps/js-api-loader@npm:2.1.3"
+  dependencies:
+    "@types/google.maps": "npm:^3.65.3"
+  checksum: 10/42ceb87e4117140bbe088223924700713b1949ba875e7560cd7b2284e6af9c483328d9521a8a6b0a356238f9cee07380ef96e2dd5739073686b0f06e677fe9eb
+  languageName: node
+  linkType: hard
+
 "@humanfs/core@npm:^0.19.2":
   version: 0.19.2
   resolution: "@humanfs/core@npm:0.19.2"
@@ -1169,6 +1178,76 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@turf/area@npm:^7.4.0":
+  version: 7.4.0
+  resolution: "@turf/area@npm:7.4.0"
+  dependencies:
+    "@turf/helpers": "npm:7.4.0"
+    "@turf/meta": "npm:7.4.0"
+    "@types/geojson": "npm:^7946.0.10"
+    tslib: "npm:^2.8.1"
+  checksum: 10/1db7ceada4da6916247f0867fd187b6f9545da4fd2ad1c696c4d309561c8a261b5f48a0f888b3e5d903381461df604ac473332b5040a19dd3e727eab2e8a515e
+  languageName: node
+  linkType: hard
+
+"@turf/difference@npm:^7.4.0":
+  version: 7.4.0
+  resolution: "@turf/difference@npm:7.4.0"
+  dependencies:
+    "@turf/helpers": "npm:7.4.0"
+    "@turf/meta": "npm:7.4.0"
+    "@types/geojson": "npm:^7946.0.10"
+    polyclip-ts: "npm:^0.16.8"
+    tslib: "npm:^2.8.1"
+  checksum: 10/631b02ce8950ad0c6d493e22a82c6cb6387313db991445ea56f55118e57d9ce3a8039aa5eda4f5f1634ec66c4d77c185c293d9e4c5d1413c9202bc3110abf0f0
+  languageName: node
+  linkType: hard
+
+"@turf/helpers@npm:7.4.0, @turf/helpers@npm:^7.4.0":
+  version: 7.4.0
+  resolution: "@turf/helpers@npm:7.4.0"
+  dependencies:
+    "@types/geojson": "npm:^7946.0.10"
+    tslib: "npm:^2.8.1"
+  checksum: 10/3f4b222f96cae436c1d475127b7193d4b2f21c5f1c65525b112de3a97d10081dccba4a17b35e51d39c6923076981a4cb65e68d9feb4b7797d2d5183cf37634e6
+  languageName: node
+  linkType: hard
+
+"@turf/intersect@npm:^7.4.0":
+  version: 7.4.0
+  resolution: "@turf/intersect@npm:7.4.0"
+  dependencies:
+    "@turf/helpers": "npm:7.4.0"
+    "@turf/meta": "npm:7.4.0"
+    "@types/geojson": "npm:^7946.0.10"
+    polyclip-ts: "npm:^0.16.8"
+    tslib: "npm:^2.8.1"
+  checksum: 10/03914334a5f7529e1fc016c6b617cb03232c57ebc7cfeea6dafe889034d9fa5ae65f106ec1647cae9ab36e4e5744afa1c280e2cf7af6bc2fef32430aca5e4b63
+  languageName: node
+  linkType: hard
+
+"@turf/kinks@npm:^7.4.0":
+  version: 7.4.0
+  resolution: "@turf/kinks@npm:7.4.0"
+  dependencies:
+    "@turf/helpers": "npm:7.4.0"
+    "@types/geojson": "npm:^7946.0.10"
+    tslib: "npm:^2.8.1"
+  checksum: 10/7ddfba15959fead5a56629d0016c1998500bd40eb3bdaab58a8e3b767b088efd864938be56ea54f650f7a2e1fa42bdd3a172f6de8db869d377bfc997f973e1bd
+  languageName: node
+  linkType: hard
+
+"@turf/meta@npm:7.4.0":
+  version: 7.4.0
+  resolution: "@turf/meta@npm:7.4.0"
+  dependencies:
+    "@turf/helpers": "npm:7.4.0"
+    "@types/geojson": "npm:^7946.0.10"
+    tslib: "npm:^2.8.1"
+  checksum: 10/41236081fac0c6ebd197e5c8db62bfcef61a6576a24218973fff79e8829d90abd04c2332006ed9efeee0f15cf27acf6490f027a39a9ccb72e44e20d54a36d0d5
+  languageName: node
+  linkType: hard
+
 "@types/aria-query@npm:^5.0.1":
   version: 5.0.4
   resolution: "@types/aria-query@npm:5.0.4"
@@ -1204,6 +1283,20 @@ __metadata:
   version: 1.0.9
   resolution: "@types/estree@npm:1.0.9"
   checksum: 10/16aabfa703b5bdac83f719b07ce92a11b2d3c9b8628eacc92889d8af46cab2d78fc45c7b5378de383d0500585cea5c2f79125eeddfe5fbc6bd6a27eb0c8ccee5
+  languageName: node
+  linkType: hard
+
+"@types/geojson@npm:^7946.0.10":
+  version: 7946.0.16
+  resolution: "@types/geojson@npm:7946.0.16"
+  checksum: 10/34d07421bdd60e7b99fa265441d17ac6e9aef48e3ce22d04324127d0de1daf7fbaa0bd3be1cece2092eb6995f21da84afa5231e24621a2910ff7340bc98f496f
+  languageName: node
+  linkType: hard
+
+"@types/google.maps@npm:^3.65.3, @types/google.maps@npm:^3.66.6":
+  version: 3.66.6
+  resolution: "@types/google.maps@npm:3.66.6"
+  checksum: 10/ad571f12bc94385353cbcce3d53227f7e6df274f4053f789e6f7acd303efadae0338bbbd18220e3bc1ebfa0082e717cda0b21736574055cd93d17dfc90815790
   languageName: node
   linkType: hard
 
@@ -1638,6 +1731,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"bignumber.js@npm:^9.1.0":
+  version: 9.3.1
+  resolution: "bignumber.js@npm:9.3.1"
+  checksum: 10/1be0372bf0d6d29d0a49b9e6a9cefbd54dad9918232ad21fcd4ec39030260773abf0c76af960c6b3b98d3115a3a71e61c6a111812d1395040a039cfa178e0245
+  languageName: node
+  linkType: hard
+
 "brace-expansion@npm:^5.0.8":
   version: 5.0.12
   resolution: "brace-expansion@npm:5.0.12"
@@ -1856,6 +1956,7 @@ __metadata:
     "@emotion/react": "npm:11.14.0"
     "@emotion/styled": "npm:11.14.1"
     "@eslint/js": "npm:10.0.1"
+    "@googlemaps/js-api-loader": "npm:^2.1.3"
     "@mui/icons-material": "npm:9.4.0"
     "@mui/material": "npm:9.4.0"
     "@playwright/test": "npm:1.63.0"
@@ -1864,6 +1965,12 @@ __metadata:
     "@testing-library/jest-dom": "npm:7.0.1"
     "@testing-library/react": "npm:16.3.3"
     "@testing-library/user-event": "npm:14.6.7"
+    "@turf/area": "npm:^7.4.0"
+    "@turf/difference": "npm:^7.4.0"
+    "@turf/helpers": "npm:^7.4.0"
+    "@turf/intersect": "npm:^7.4.0"
+    "@turf/kinks": "npm:^7.4.0"
+    "@types/google.maps": "npm:^3.66.6"
     "@types/node": "npm:26.6.2"
     "@types/react": "npm:19.3.0"
     "@types/react-dom": "npm:19.3.0"
@@ -3100,6 +3207,16 @@ __metadata:
   languageName: node
   linkType: hard
 
+"polyclip-ts@npm:^0.16.8":
+  version: 0.16.8
+  resolution: "polyclip-ts@npm:0.16.8"
+  dependencies:
+    bignumber.js: "npm:^9.1.0"
+    splaytree-ts: "npm:^1.0.2"
+  checksum: 10/879f1d8a0a869c1bc187be9f3b977d49696bce50bad111b8705badbf90c25a235927a371040720d8393b5fdb303b0d70eeb3dbde1f5bffe6df6e0902e4ffac16
+  languageName: node
+  linkType: hard
+
 "postcss@npm:^8.5.28":
   version: 8.5.28
   resolution: "postcss@npm:8.5.28"
@@ -3512,6 +3629,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"splaytree-ts@npm:^1.0.2":
+  version: 1.0.2
+  resolution: "splaytree-ts@npm:1.0.2"
+  checksum: 10/4fb74236f1d8d7d30904c4c6bf7de69ccf7a60af199aadabe149b51254491b25750bd356cdfe01f0fb60514a7153dd60cea3ff29ea06c70ec328a46d6b19e33d
+  languageName: node
+  linkType: hard
+
 "stackback@npm:0.0.2":
   version: 0.0.2
   resolution: "stackback@npm:0.0.2"
@@ -3676,6 +3800,13 @@ __metadata:
   peerDependencies:
     typescript: ">=4.8.4"
   checksum: 10/d5f1936f5618c6ab6942a97b78802217540ced00e7501862ae1f578d9a3aa189fc06050e64cb8951d21f7088e5fd35f53d2bf0d0370a883861c7b05e993ebc44
+  languageName: node
+  linkType: hard
+
+"tslib@npm:^2.8.1":
+  version: 2.8.1
+  resolution: "tslib@npm:2.8.1"
+  checksum: 10/3e2e043d5c2316461cb54e5c7fe02c30ef6dccb3384717ca22ae5c6b5bc95232a6241df19c622d9c73b809bea33b187f6dbc73030963e29950c2141bc32a79f7
   languageName: node
   linkType: hard
 

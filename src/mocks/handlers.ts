@@ -511,6 +511,11 @@ export const handlers: HttpHandler[] = [
 
   // -- configuration -------------------------------------------------------
   http.get(
+    `${BASE}/admin/town-defaults`,
+    ({ cookies }) => requireSession(cookies) ?? HttpResponse.json(fixtures.townDefaults),
+  ),
+
+  http.get(
     `${BASE}/admin/towns`,
     ({ cookies }) =>
       requireSession(cookies) ??

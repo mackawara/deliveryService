@@ -42,6 +42,54 @@ configured on the server, the code is written to the server log as
 **Settings → Access & staff**, and sets up the first town from **Towns → Add town**;
 the backend's `docs/first-town-setup.md` lists the steps.
 
+Zone boundaries can now be drawn and edited under **Zones → Add zone / Edit**.
+The Google map shows the town service area and neighbouring active zones, with
+street and satellite views. Codes are suggested from the area name; aliases,
+priority and GeoJSON import remain under **Advanced settings**. Crossing boundaries
+and new boundaries outside the town are refused. Intentional overlaps require
+confirmation and different priorities; the lower number wins. Existing zone codes
+and rate-card references are retained. Multipolygons and holes remain editable.
+
+To enable the map:
+
+1. Create a Google Cloud project with billing enabled and enable **Maps JavaScript API**.
+2. Create a browser API key, restricted to the dashboard website URLs (and local
+   development URLs when needed), and restrict its API access to **Maps JavaScript API**.
+3. Set `VITE_GOOGLE_MAPS_API_KEY` in the frontend environment. Restart Vite locally
+   or rebuild the frontend for deployment.
+4. Configure Google quotas and billing alerts. The current Dynamic Maps allowance
+   is 10,000 loads/month; usage above it is billed. Budget alerts do not themselves
+   cap spending. See [Google pricing](https://developers.google.com/maps/billing-and-pricing/pricing)
+   and [key setup](https://developers.google.com/maps/documentation/javascript/get-api-key).
+
+Maps load only when an administrator opens the boundary editor; the zone list,
+bookings and pricing do not load Google Maps. Each editor opening can count as a
+map load. Boundaries are stored as ordinary GeoJSON in the delivery backend. No
+Places, Geocoding or Routes API is needed for drawing. A missing key or map outage
+leaves the Advanced GeoJSON editor available. The integration uses supported
+editable polygons rather than Google's removed DrawingManager library.
+
+Towns inherit policy and hours from backend constants via `GET /admin/town-defaults`.
+**Towns → Edit** shows effective values; admins can customize them or choose
+**Use standard policy** / **Use standard hours** and save. Only policy differences
+are stored; blank policy fields reset to standard wording. Saving the standard
+schedule sends `operatingHours: []` to restore inheritance. The booking switch
+controls whether a town accepts bookings. Defaults must load before edits can save.
+
+To use the agreed starter parcel catalog for an existing town, run these in the
+backend repository, using the database configuration for that deployment:
+
+```bash
+yarn seed:parcel-presets --town hwange --dry-run
+yarn seed:parcel-presets --town hwange --apply
+```
+
+Select **Hwange** on **Administration → Parcel presets** to see the seeded catalog
+in its menu order. Suggested measurements, whole-shipment scope, required handling
+and operator quotes are shown as stored; presets without suggested measurements
+display **Not specified**. Legacy presets still show their fixed upper bounds.
+Reload the dashboard after seeding from the command line to refresh cached data.
+
 ### Running without a backend
 
 The documented contracts — including the endpoints listed as backend additions — are
