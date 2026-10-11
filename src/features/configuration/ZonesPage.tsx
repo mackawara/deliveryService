@@ -1,13 +1,20 @@
+import Accordion from '@mui/material/Accordion';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Alert from '@mui/material/Alert';
+import Checkbox from '@mui/material/Checkbox';
+import FormControlLabel from '@mui/material/FormControlLabel';
+import { lazy, Suspense, useMemo, useState } from 'react';
 import Button from '@mui/material/Button';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
 
 import {
   useCreateZoneMutation,
+  useListTownsQuery,
   useListZonesQuery,
   useUpdateZoneMutation,
 } from '@/api/endpoints/configuration';
@@ -21,14 +28,20 @@ import { PermissionGate } from '@/components/PermissionGate';
 import { ReasonField } from '@/components/ReasonField';
 import { ResourceTable, type Column } from '@/components/ResourceTable';
 import { StatusChip } from '@/components/StatusChip';
+import type { GeoArea } from '@/api/dto/common';
+import { checkZoneBoundary, suggestZoneCode } from '@/features/configuration/zoneBoundary';
 import { parseGeoArea } from '@/features/configuration/geojson';
 import { useGuardedAction } from '@/lib/useGuardedAction';
+
+const ZoneBoundaryMap = lazy(() =>
+  import('./ZoneBoundaryMap').then((module) => ({ default: module.ZoneBoundaryMap })),
+);
 
 /**
  * Zones and boundary data (specification section 4.8).
  *
- * The MVP supports coordinate editing and GeoJSON import with validation and a preview
- * of what was parsed. Overlaps are resolved by priority: the lower number wins.
+ * Administrators draw and edit boundaries on Google Maps. The API still receives
+ * GeoJSON, with an advanced text editor retained for imports and map outages.
  */
 export function ZonesPage() {
   const { townId, towns } = useTownScope();
@@ -36,6 +49,8 @@ export function ZonesPage() {
     { townId: townId ?? '', includeDisabled: true },
     { skip: !townId },
   );
+  const townsQuery = useListTownsQuery();
+  const town = townsQuery.data?.find((row) => row.town.id === townId)?.town;
   const [createZone] = useCreateZoneMutation();
   const [updateZone] = useUpdateZoneMutation();
 
@@ -43,20 +58,66 @@ export function ZonesPage() {
   const [editing, setEditing] = useState<Zone | null>(null);
   const [code, setCode] = useState('');
   const [label, setLabel] = useState('');
+  const [codeEdited, setCodeEdited] = useState(false);
+  const [drawing, setDrawing] = useState(false);
+  const [overlapConfirmed, setOverlapConfirmed] = useState(false);
   const [aliases, setAliases] = useState('');
   const [priority, setPriority] = useState('100');
   const [status, setStatus] = useState<'ACTIVE' | 'DISABLED'>('ACTIVE');
   const [geojson, setGeojson] = useState('');
   const [reason, setReason] = useState('');
 
-  const parsed = geojson.trim() === '' ? null : parseGeoArea(geojson);
+  const parsed = useMemo(() => (geojson.trim() === '' ? null : parseGeoArea(geojson)), [geojson]);
+  const boundary = parsed?.ok ? parsed.area : null;
+  const boundaryChanged =
+    dialog === 'create' ||
+    (editing !== null && JSON.stringify(boundary) !== JSON.stringify(editing.polygon));
+  const checks = useMemo(
+    () =>
+      boundary && town
+        ? checkZoneBoundary(boundary, town.serviceArea, query.data ?? [], editing?.id)
+        : null,
+    [boundary, town, query.data, editing?.id],
+  );
+  const effectiveCode =
+    dialog === 'create' && !codeEdited
+      ? suggestZoneCode(
+          label,
+          (query.data ?? []).map((zone) => zone.code),
+        )
+      : code;
+  const overlapRulesChanged =
+    boundaryChanged ||
+    (editing !== null && (Number(priority) !== editing.priority || status !== editing.status));
+  const priorityValid = /^-?\d+$/.test(priority.trim()) && Number.isSafeInteger(Number(priority));
+  const equalPriorityOverlap =
+    checks?.overlaps.some((zone) => zone.priority === Number(priority)) ?? false;
+  const formValid =
+    label.trim() !== '' &&
+    effectiveCode.trim() !== '' &&
+    parsed?.ok === true &&
+    priorityValid &&
+    !drawing &&
+    town !== undefined &&
+    !townsQuery.isError &&
+    query.data !== undefined &&
+    !query.isError &&
+    (!boundaryChanged || (!checks?.error && !checks?.outsideTown)) &&
+    (status === 'DISABLED' ||
+      !overlapRulesChanged ||
+      (!equalPriorityOverlap && (!checks?.overlaps.length || overlapConfirmed)));
+
+  function changeBoundary(area: GeoArea | null) {
+    setGeojson(area ? JSON.stringify(area, null, 2) : '');
+    setOverlapConfirmed(false);
+  }
 
   const create = useGuardedAction({
     run: () => {
       if (!parsed?.ok || !townId) throw new Error('unreachable: guarded by the dialog');
       return createZone({
         townId,
-        code: code.trim(),
+        code: effectiveCode.trim(),
         label: label.trim(),
         aliases: aliases
           .split(',')
@@ -81,7 +142,7 @@ export function ZonesPage() {
           .split(',')
           .map((alias) => alias.trim())
           .filter(Boolean),
-        polygon: parsed?.ok ? parsed.area : undefined,
+        polygon: boundaryChanged && parsed?.ok ? parsed.area : undefined,
         priority: Number.parseInt(priority, 10),
         status,
         reason: reason.trim() || undefined,
@@ -96,6 +157,10 @@ export function ZonesPage() {
   function openCreate() {
     setEditing(null);
     setCode('');
+    setCodeEdited(false);
+    setStatus('ACTIVE');
+    setDrawing(false);
+    setOverlapConfirmed(false);
     setLabel('');
     setAliases('');
     setPriority('100');
@@ -108,6 +173,9 @@ export function ZonesPage() {
   function openEdit(zone: Zone) {
     setEditing(zone);
     setCode(zone.code);
+    setCodeEdited(true);
+    setDrawing(false);
+    setOverlapConfirmed(false);
     setLabel(zone.label);
     setAliases(zone.aliases.join(', '));
     setPriority(String(zone.priority));
@@ -207,8 +275,8 @@ export function ZonesPage() {
 
       <Stack spacing={2}>
         <Alert severity="info">
-          Coordinates are GeoJSON [longitude, latitude]. Where boundaries overlap, the zone with the
-          lower priority number wins. There is no interactive basemap in this release.
+          Add a zone by naming the area and drawing its boundary on the map. Open Edit to adjust an
+          existing boundary.
         </Alert>
 
         <ResourceTable
@@ -228,7 +296,7 @@ export function ZonesPage() {
       <FormDialog
         open={dialog !== null}
         title={dialog === 'create' ? 'Add a zone' : `Edit ${editing?.code ?? 'zone'}`}
-        description="Paste a GeoJSON Polygon or MultiPolygon. It is validated here and again by the server."
+        description="Name the area, draw its boundary, then save. Existing zones and the town boundary help you place it."
         submitLabel={dialog === 'create' ? 'Create zone' : 'Save zone'}
         pending={dialog === 'create' ? create.pending : update.pending}
         error={dialog === 'create' ? create.error : update.error}
@@ -236,79 +304,148 @@ export function ZonesPage() {
         onRetryUnconfirmed={() =>
           void (dialog === 'create' ? create.retryUnconfirmed() : update.retryUnconfirmed())
         }
-        disabled={
-          label.trim() === '' ||
-          (dialog === 'create' && (code.trim() === '' || !parsed?.ok)) ||
-          (geojson.trim() !== '' && parsed !== null && !parsed.ok)
-        }
+        disabled={!formValid}
         onClose={() => setDialog(null)}
         onSubmit={() => void (dialog === 'create' ? create.submit() : update.submit())}
         maxWidth="md"
       >
         <TextField
-          label="Code"
-          value={code}
-          onChange={(event) => setCode(event.target.value)}
-          fullWidth
-          required
-          disabled={dialog === 'edit'}
-          helperText={
-            dialog === 'edit'
-              ? 'A zone code cannot be changed once quotes reference it.'
-              : undefined
-          }
-        />
-        <TextField
-          label="Label"
+          label="Zone name"
           value={label}
-          onChange={(event) => setLabel(event.target.value)}
-          fullWidth
           required
-        />
-        <TextField
-          label="Aliases"
-          value={aliases}
-          onChange={(event) => setAliases(event.target.value)}
           fullWidth
-          helperText="Comma separated names customers use for this area."
+          onChange={(event) => setLabel(event.target.value)}
+          placeholder="e.g. Empumalanga"
         />
-        <TextField
-          label="Priority"
-          value={priority}
-          onChange={(event) => setPriority(event.target.value)}
-          fullWidth
-          inputMode="numeric"
-          helperText="Lower numbers win where boundaries overlap."
-        />
-        {dialog === 'edit' ? (
-          <TextField
-            select
-            label="Status"
-            value={status}
-            onChange={(event) => setStatus(event.target.value as 'ACTIVE' | 'DISABLED')}
-            fullWidth
-          >
-            <MenuItem value="ACTIVE">Active</MenuItem>
-            <MenuItem value="DISABLED">Disabled</MenuItem>
-          </TextField>
-        ) : null}
-        <TextField
-          label="Boundary GeoJSON"
-          value={geojson}
-          onChange={(event) => setGeojson(event.target.value)}
-          fullWidth
-          required={dialog === 'create'}
-          multiline
-          minRows={6}
-          error={parsed !== null && !parsed.ok}
-          helperText={
-            parsed === null
-              ? 'Polygon or MultiPolygon, coordinates as [longitude, latitude].'
-              : parsed.ok
-                ? `Parsed ${parsed.ringCount} ring(s) and ${parsed.pointCount} position(s).`
-                : parsed.message
-          }
-        />
+        {dialog === 'create' && effectiveCode && (
+          <Typography variant="caption" color="text.secondary">
+            Zone code: {effectiveCode}
+          </Typography>
+        )}
+        {(!town || townsQuery.isError || query.isError) && (
+          <Alert severity="warning">
+            Town boundaries and neighbouring zones must load before you can save.
+          </Alert>
+        )}
+        {dialog !== null && town && (
+          <Suspense fallback={<Typography>Loading boundary editor…</Typography>}>
+            <ZoneBoundaryMap
+              value={boundary}
+              townArea={town.serviceArea}
+              zones={query.data ?? []}
+              editingId={editing?.id}
+              onChange={changeBoundary}
+              onDrawingChange={setDrawing}
+            />
+          </Suspense>
+        )}
+        {checks?.error && (
+          <Alert severity={boundaryChanged ? 'error' : 'warning'}>{checks.error}</Alert>
+        )}
+        {checks?.outsideTown && (
+          <Alert severity={boundaryChanged ? 'error' : 'warning'}>
+            Part of this zone is outside the town boundary. Adjust the zone or review the town's
+            service area.
+          </Alert>
+        )}
+        {checks?.warning && <Alert severity="warning">{checks.warning}</Alert>}
+        {checks && checks.overlaps.length > 0 && (
+          <Alert severity="warning">
+            Overlaps: {checks.overlaps.map((zone) => zone.label).join(', ')}.
+            {equalPriorityOverlap
+              ? ' These zones have the same priority and would make location matching ambiguous. Set a different priority under Advanced settings or adjust the boundary.'
+              : ' The lower priority number wins for locations inside the overlap.'}
+            {overlapRulesChanged && status === 'ACTIVE' && !equalPriorityOverlap && (
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={overlapConfirmed}
+                    onChange={(event) => setOverlapConfirmed(event.target.checked)}
+                  />
+                }
+                label="This overlap is intentional; use the configured priorities."
+              />
+            )}
+          </Alert>
+        )}
+        {!boundary && (
+          <Typography variant="body2" color="text.secondary">
+            A boundary is required before saving.
+          </Typography>
+        )}
+        <Accordion disableGutters>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>Advanced settings</AccordionSummary>
+          <AccordionDetails>
+            <Stack spacing={2}>
+              <TextField
+                label="Code"
+                value={effectiveCode}
+                fullWidth
+                required
+                disabled={dialog === 'edit'}
+                onChange={(event) => {
+                  setCode(event.target.value);
+                  setCodeEdited(true);
+                }}
+                helperText={
+                  dialog === 'edit'
+                    ? 'The code stays fixed because tariffs and bookings reference it.'
+                    : 'Suggested from the zone name; change it before creating the zone if needed.'
+                }
+              />
+              <TextField
+                label="Aliases"
+                value={aliases}
+                onChange={(event) => setAliases(event.target.value)}
+                fullWidth
+                helperText="Optional comma-separated names customers use for this area."
+              />
+              <TextField
+                label="Priority"
+                value={priority}
+                fullWidth
+                inputMode="numeric"
+                error={!priorityValid}
+                onChange={(event) => {
+                  setPriority(event.target.value);
+                  setOverlapConfirmed(false);
+                }}
+                helperText="A whole number. Lower numbers win where boundaries intentionally overlap."
+              />
+              {dialog === 'edit' && (
+                <TextField
+                  select
+                  label="Status"
+                  value={status}
+                  onChange={(event) => setStatus(event.target.value as 'ACTIVE' | 'DISABLED')}
+                  fullWidth
+                >
+                  <MenuItem value="ACTIVE">Active</MenuItem>
+                  <MenuItem value="DISABLED">Disabled</MenuItem>
+                </TextField>
+              )}
+              <TextField
+                label="Boundary GeoJSON"
+                value={geojson}
+                fullWidth
+                multiline
+                minRows={6}
+                onChange={(event) => {
+                  setGeojson(event.target.value);
+                  setOverlapConfirmed(false);
+                }}
+                error={parsed !== null && !parsed.ok}
+                helperText={
+                  parsed === null
+                    ? 'Optional import or fallback: paste a Polygon or MultiPolygon using [longitude, latitude].'
+                    : parsed.ok
+                      ? `Parsed ${parsed.ringCount} ring(s) and ${parsed.pointCount} position(s).`
+                      : parsed.message
+                }
+              />
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
         {dialog === 'edit' ? (
           <ReasonField value={reason} onChange={setReason} required={false} />
         ) : null}

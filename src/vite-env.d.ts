@@ -1,4 +1,5 @@
 /// <reference types="vite/client" />
+/// <reference types="google.maps" />
 
 interface ImportMetaEnv {
   readonly VITE_API_BASE_URL?: string;
@@ -7,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_APP_LABEL?: string;
   readonly VITE_DEFAULT_TIMEZONE?: string;
   readonly VITE_ENABLE_MOCK_API?: string;
+  readonly VITE_GOOGLE_MAPS_API_KEY?: string;
   readonly VITE_DEV_API_PROXY_TARGET?: string;
 }
 

@@ -24,8 +24,8 @@ import { StatusChip } from '@/components/StatusChip';
 import { useGuardedAction } from '@/lib/useGuardedAction';
 
 /**
- * Parcel presets (specification section 4.8): labels, examples, dimensions, weight and
- * handling, matching the minimal-typing customer flow.
+ * Town-scoped presets: catalog suggestions and legacy upper bounds retain their
+ * distinct measurement, handling and operator-quote semantics.
  */
 export function ParcelPresetsPage() {
   const { townId, towns } = useTownScope();
@@ -49,6 +49,13 @@ export function ParcelPresetsPage() {
   const [handling, setHandling] = useState<string[]>([]);
   const [status, setStatus] = useState<'ACTIVE' | 'RETIRED'>('ACTIVE');
   const [reason, setReason] = useState('');
+
+  const suggested = editing?.measurementMode === 'SUGGESTED';
+  const rows = [...(query.data ?? [])].sort(
+    (left, right) =>
+      (left.displayOrder ?? Infinity) - (right.displayOrder ?? Infinity) ||
+      left.code.localeCompare(right.code),
+  );
 
   const numbers = [maxWeight, length, width, height].map((value) => Number.parseFloat(value));
   const measurementsComplete = numbers.every((value) => Number.isFinite(value) && value > 0);
@@ -117,10 +124,16 @@ export function ParcelPresetsPage() {
     setLabel(preset.label);
     setExamples(preset.examples.join(', '));
     setParcelClass(preset.parcelClass);
-    setMaxWeight(String(preset.maxWeightKg));
-    setLength(String(preset.maxDimensionsCm.lengthCm));
-    setWidth(String(preset.maxDimensionsCm.widthCm));
-    setHeight(String(preset.maxDimensionsCm.heightCm));
+    const weight =
+      preset.measurementMode === 'SUGGESTED' ? preset.suggestedWeightKg : preset.maxWeightKg;
+    const dimensions =
+      preset.measurementMode === 'SUGGESTED'
+        ? preset.suggestedDimensionsCm
+        : preset.maxDimensionsCm;
+    setMaxWeight(weight === undefined ? '' : String(weight));
+    setLength(dimensions ? String(dimensions.lengthCm) : '');
+    setWidth(dimensions ? String(dimensions.widthCm) : '');
+    setHeight(dimensions ? String(dimensions.heightCm) : '');
     setHandling(preset.supportedHandling);
     setStatus(preset.status);
     setReason('');
@@ -150,21 +163,56 @@ export function ParcelPresetsPage() {
       render: (preset) => preset.examples.join(', ') || '—',
     },
     {
+      id: 'measurementMode',
+      header: 'Measurements',
+      render: (preset) => (preset.measurementMode === 'SUGGESTED' ? 'Suggested' : 'Upper bounds'),
+    },
+    {
       id: 'weight',
-      header: 'Max weight',
+      header: 'Weight',
       align: 'right',
-      render: (preset) => `${preset.maxWeightKg} kg`,
+      render: (preset) => {
+        const weight =
+          preset.measurementMode === 'SUGGESTED' ? preset.suggestedWeightKg : preset.maxWeightKg;
+        return weight === undefined ? 'Not specified' : `${weight} kg`;
+      },
     },
     {
       id: 'dimensions',
-      header: 'Max dimensions',
-      render: (preset) =>
-        `${preset.maxDimensionsCm.lengthCm} × ${preset.maxDimensionsCm.widthCm} × ${preset.maxDimensionsCm.heightCm} cm`,
+      header: 'Dimensions',
+      render: (preset) => {
+        const dimensions =
+          preset.measurementMode === 'SUGGESTED'
+            ? preset.suggestedDimensionsCm
+            : preset.maxDimensionsCm;
+        return dimensions
+          ? `${dimensions.lengthCm} × ${dimensions.widthCm} × ${dimensions.heightCm} cm`
+          : 'Not specified';
+      },
+    },
+    {
+      id: 'scope',
+      header: 'Load scope',
+      render: (preset) => (preset.loadScope === 'CONSIGNMENT' ? 'Whole shipment' : 'Per item'),
+    },
+    {
+      id: 'operatorQuote',
+      header: 'Operator quote',
+      render: (preset) => (preset.requiresOperatorQuote ? 'Required' : 'Not required'),
     },
     {
       id: 'handling',
       header: 'Handling',
-      render: (preset) => preset.supportedHandling.join(', ') || 'None',
+      render: (preset) => (
+        <Stack spacing={0.25}>
+          <Typography variant="body2">
+            Required: {preset.requiredHandling?.join(', ') || 'None'}
+          </Typography>
+          <Typography variant="body2">
+            Supported: {preset.supportedHandling.join(', ') || 'None'}
+          </Typography>
+        </Stack>
+      ),
     },
     {
       id: 'status',
@@ -232,7 +280,7 @@ export function ParcelPresetsPage() {
       <ResourceTable
         caption="Parcel presets"
         columns={columns}
-        rows={query.data ?? []}
+        rows={rows}
         getRowId={(preset) => preset.id}
         isLoading={query.isLoading}
         isFetching={query.isFetching}
@@ -245,7 +293,11 @@ export function ParcelPresetsPage() {
       <FormDialog
         open={dialog !== null}
         title={dialog === 'create' ? 'Add a parcel preset' : `Edit ${editing?.label ?? 'preset'}`}
-        description="The declared limits are the upper bounds a customer accepts by choosing this preset."
+        description={
+          suggested
+            ? 'These measurements are starting suggestions customers can change. Blank figures are unspecified.'
+            : 'The declared limits are the upper bounds a customer accepts by choosing this preset.'
+        }
         submitLabel={dialog === 'create' ? 'Create preset' : 'Save preset'}
         pending={dialog === 'create' ? create.pending : update.pending}
         error={dialog === 'create' ? create.error : update.error}
@@ -295,7 +347,7 @@ export function ParcelPresetsPage() {
         />
         <Stack direction={{ xs: 'column', md: 'row' }} spacing={2}>
           <TextField
-            label="Max weight"
+            label={suggested ? 'Suggested weight' : 'Max weight'}
             value={maxWeight}
             onChange={(event) => setMaxWeight(event.target.value)}
             fullWidth
@@ -305,7 +357,7 @@ export function ParcelPresetsPage() {
             slotProps={{ input: { endAdornment: <Typography variant="caption">kg</Typography> } }}
           />
           <TextField
-            label="Max length"
+            label={suggested ? 'Suggested length' : 'Max length'}
             value={length}
             onChange={(event) => setLength(event.target.value)}
             fullWidth
@@ -315,7 +367,7 @@ export function ParcelPresetsPage() {
             slotProps={{ input: { endAdornment: <Typography variant="caption">cm</Typography> } }}
           />
           <TextField
-            label="Max width"
+            label={suggested ? 'Suggested width' : 'Max width'}
             value={width}
             onChange={(event) => setWidth(event.target.value)}
             fullWidth
@@ -325,7 +377,7 @@ export function ParcelPresetsPage() {
             slotProps={{ input: { endAdornment: <Typography variant="caption">cm</Typography> } }}
           />
           <TextField
-            label="Max height"
+            label={suggested ? 'Suggested height' : 'Max height'}
             value={height}
             onChange={(event) => setHeight(event.target.value)}
             fullWidth

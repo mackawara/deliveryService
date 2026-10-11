@@ -50,8 +50,8 @@ export function parseGeoArea(input: string): GeoParseResult {
   const candidate = parsed as { type?: unknown; coordinates?: unknown };
 
   if (candidate.type === 'Polygon') {
-    if (!Array.isArray(candidate.coordinates))
-      return { ok: false, message: 'Polygon coordinates must be an array of rings.' };
+    if (!Array.isArray(candidate.coordinates) || candidate.coordinates.length === 0)
+      return { ok: false, message: 'A polygon needs at least one boundary ring.' };
     for (const ring of candidate.coordinates) {
       const problem = checkRing(ring);
       if (problem) return { ok: false, message: problem };
@@ -69,14 +69,14 @@ export function parseGeoArea(input: string): GeoParseResult {
   }
 
   if (candidate.type === 'MultiPolygon') {
-    if (!Array.isArray(candidate.coordinates)) {
-      return { ok: false, message: 'MultiPolygon coordinates must be an array of polygons.' };
+    if (!Array.isArray(candidate.coordinates) || candidate.coordinates.length === 0) {
+      return { ok: false, message: 'A MultiPolygon needs at least one polygon.' };
     }
     let ringCount = 0;
     let pointCount = 0;
     for (const polygon of candidate.coordinates) {
-      if (!Array.isArray(polygon))
-        return { ok: false, message: 'Each polygon must be an array of rings.' };
+      if (!Array.isArray(polygon) || polygon.length === 0)
+        return { ok: false, message: 'Each polygon needs at least one boundary ring.' };
       for (const ring of polygon) {
         const problem = checkRing(ring);
         if (problem) return { ok: false, message: problem };

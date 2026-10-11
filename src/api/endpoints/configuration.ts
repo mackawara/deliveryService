@@ -4,6 +4,7 @@ import type { DimensionsCm, GeoArea, HandlingCode, WireList } from '@/api/dto/co
 import type {
   OperatingHours,
   RateExtra,
+  TownDefaults,
   TownFeatures,
   TownPolicy,
   TownRiskControls,
@@ -26,6 +27,10 @@ import type { ParcelPreset, RateCard, Town, TownRow, Zone } from '@/api/types';
  */
 export const configurationApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
+    getTownDefaults: build.query<TownDefaults, void>({
+      query: () => ({ url: '/admin/town-defaults' }),
+    }),
+
     listTowns: build.query<TownRow[], void>({
       query: () => ({ url: '/admin/towns' }),
       transformResponse: (response: WireList<WireTownRow>) =>
@@ -76,7 +81,11 @@ export const configurationApi = baseApi.injectEndpoints({
         expectedVersion?: number;
       }
     >({
-      query: ({ id, ...body }) => ({ url: `/admin/towns/${id}`, method: 'PATCH', body }),
+      query: ({ id, ...body }) => ({
+        url: `/admin/towns/${id}`,
+        method: 'PATCH',
+        body,
+      }),
       transformResponse: (response: { town: WireTown }) => toEntity(response.town),
       invalidatesTags: (_result, _error, args) => [entityTag('Town', args.id), allOf('Town')],
     }),
@@ -123,13 +132,20 @@ export const configurationApi = baseApi.injectEndpoints({
         expectedVersion?: number;
       }
     >({
-      query: ({ id, ...body }) => ({ url: `/admin/zones/${id}`, method: 'PATCH', body }),
+      query: ({ id, ...body }) => ({
+        url: `/admin/zones/${id}`,
+        method: 'PATCH',
+        body,
+      }),
       transformResponse: (response: { zone: WireZone }) => toEntity(response.zone),
       invalidatesTags: (_result, _error, args) => [entityTag('Zone', args.id), allOf('Zone')],
     }),
 
     listRateCards: build.query<RateCard[], { townId: string }>({
-      query: ({ townId }) => ({ url: '/admin/rate-cards', params: queryParams({ townId }) }),
+      query: ({ townId }) => ({
+        url: '/admin/rate-cards',
+        params: queryParams({ townId }),
+      }),
       transformResponse: (response: WireList<WireRateCard>) => toEntities(response.items ?? []),
       providesTags: (result, _error, args) => [
         listTag('RateCard', args.townId),
@@ -140,7 +156,12 @@ export const configurationApi = baseApi.injectEndpoints({
 
     createRateCard: build.mutation<
       RateCard,
-      { townId: string; zonePairRates: ZonePairRate[]; extras?: RateExtra[]; taxTreatment?: string }
+      {
+        townId: string;
+        zonePairRates: ZonePairRate[];
+        extras?: RateExtra[];
+        taxTreatment?: string;
+      }
     >({
       query: (body) => ({ url: '/admin/rate-cards', method: 'POST', body }),
       transformResponse: (response: { rateCard: WireRateCard }) => toEntity(response.rateCard),
@@ -159,7 +180,11 @@ export const configurationApi = baseApi.injectEndpoints({
         expectedVersion?: number;
       }
     >({
-      query: ({ id, ...body }) => ({ url: `/admin/rate-cards/${id}`, method: 'PATCH', body }),
+      query: ({ id, ...body }) => ({
+        url: `/admin/rate-cards/${id}`,
+        method: 'PATCH',
+        body,
+      }),
       transformResponse: (response: { rateCard: WireRateCard }) => toEntity(response.rateCard),
       invalidatesTags: (_result, _error, args) => [
         entityTag('RateCard', args.id),
@@ -214,7 +239,7 @@ export const configurationApi = baseApi.injectEndpoints({
     >({
       query: (body) => ({ url: '/admin/parcel-presets', method: 'POST', body }),
       transformResponse: (response: { preset: WireParcelPreset }) => toEntity(response.preset),
-      invalidatesTags: [allOf('ParcelPreset')],
+      invalidatesTags: [allOf('ParcelPreset'), allOf('Town')],
     }),
 
     updateParcelPreset: build.mutation<
@@ -229,17 +254,23 @@ export const configurationApi = baseApi.injectEndpoints({
         expectedVersion?: number;
       }
     >({
-      query: ({ id, ...body }) => ({ url: `/admin/parcel-presets/${id}`, method: 'PATCH', body }),
+      query: ({ id, ...body }) => ({
+        url: `/admin/parcel-presets/${id}`,
+        method: 'PATCH',
+        body,
+      }),
       transformResponse: (response: { preset: WireParcelPreset }) => toEntity(response.preset),
       invalidatesTags: (_result, _error, args) => [
         entityTag('ParcelPreset', args.id),
         allOf('ParcelPreset'),
+        allOf('Town'),
       ],
     }),
   }),
 });
 
 export const {
+  useGetTownDefaultsQuery,
   useListTownsQuery,
   useCreateTownMutation,
   useUpdateTownMutation,
