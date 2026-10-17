@@ -21,6 +21,17 @@
 		-Server
 	}
 
+	# Backend routes belong to the API. Host Caddy sends them there before they
+	# can reach this server, so arriving here means the routing is wrong. Say so
+	# as an API-shaped error rather than answering with the app shell, which
+	# would look like a working response to a client and a health check.
+	@backend path /api/* /media/* /health /readyz
+	handle @backend {
+		header Cache-Control "no-store"
+		header Content-Type "application/json"
+		respond `{"code":"BACKEND_ROUTE_MISROUTED","message":"This path belongs to the API; the host Caddy routing is wrong."}` 502
+	}
+
 	# Vite emits content-hashed filenames under /assets — cache forever. A
 	# missing asset stays a 404 instead of turning into the app shell.
 	handle /assets/* {
@@ -28,12 +39,25 @@
 		file_server
 	}
 
+	# Build identity: always revalidated, so a deployment shows up immediately.
+	handle /version.json {
+		header Cache-Control "no-store"
+		file_server
+	}
+
 	# Everything else is the app shell or a public file. index.html is never
-	# cached, so a deploy is picked up on the next load; browser deep links
-	# fall back to it for React Router.
+	# cached, so a deploy is picked up on the next load. Browser deep links fall
+	# back to the shell for React Router, but a path that names a file (has an
+	# extension) is a file request: missing means 404, never the app shell.
 	handle {
 		header Cache-Control "no-store"
-		try_files {path} /index.html
-		file_server
+		@file path_regexp file \.[A-Za-z0-9]+$
+		handle @file {
+			file_server
+		}
+		handle {
+			try_files {path} /index.html
+			file_server
+		}
 	}
 }

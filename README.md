@@ -104,16 +104,19 @@ dependency; a production build drops it from the bundle entirely.
 
 ## Scripts
 
-| Script           | Purpose                                             |
-| ---------------- | --------------------------------------------------- |
-| `yarn dev`       | Vite dev server with the `/api/v1` proxy            |
-| `yarn build`     | Production build into `dist/`                       |
-| `yarn preview`   | Serve the production build locally                  |
-| `yarn typecheck` | TypeScript, no emit                                 |
-| `yarn lint`      | ESLint over the whole repository                    |
-| `yarn test`      | Vitest component and integration suites             |
-| `yarn test:e2e`  | Playwright end-to-end suites at four viewport sizes |
-| `yarn verify`    | Typecheck, lint, test and build in one pass         |
+| Script               | Purpose                                                |
+| -------------------- | ------------------------------------------------------ |
+| `yarn dev`           | Vite dev server with the `/api/v1` proxy               |
+| `yarn build`         | Production build into `dist/`                          |
+| `yarn preview`       | Serve the production build locally                     |
+| `yarn typecheck`     | TypeScript, no emit                                    |
+| `yarn lint`          | ESLint over the whole repository                       |
+| `yarn test`          | Vitest component and integration suites                |
+| `yarn test:e2e`      | Playwright end-to-end suites at four viewport sizes    |
+| `yarn doctor`        | React Doctor full scan (advisory; shows every finding) |
+| `yarn doctor:check`  | React Doctor, failing on error-level findings          |
+| `yarn test:coverage` | Vitest with `coverage/lcov.info`                       |
+| `yarn verify`        | Typecheck, lint, format, doctor, test and build        |
 
 CI runs `yarn install --immutable`, so a lockfile that does not match `package.json`
 fails the build.
@@ -226,11 +229,15 @@ Environments that already ship a Chromium build can point Playwright at it with
 
 ## Deployment
 
-Pushes to `main` run CI, build an arm64 Docker image (Caddy serving `dist/`) and deploy
-it next to the API, with automatic rollback if it fails its healthcheck. See
-`deploy/README.md` for the pipeline and its GitHub settings, and for the general rules:
-serve behind HTTPS with `index.html` as the deep-link fallback, and keep `/api/v1`
-same-origin through a reverse proxy.
+PRs into `main` (Conventional Commit titles, squash-merged) must pass the `CI gate`.
+Pushes to `main` re-run it for that commit, calculate a SemVer with semantic-release,
+build and smoke-test an arm64 image (Caddy serving `dist/`) on GitHub, publish it to
+Docker Hub by immutable tag and deploy its **digest** next to the API. Activation is
+accepted only after container health and public HTTPS smoke checks pass; otherwise the
+previous dashboard is restored. The running build is shown in the sidebar footer and at
+`/version.json`. See `deploy/README.md` for the pipeline, its GitHub settings, the Google
+Maps key restrictions and the verification steps, and the deliveryBooking runbook for
+bootstrap order, monitoring and recovery.
 
 ## Licence
 

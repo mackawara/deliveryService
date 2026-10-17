@@ -11,6 +11,7 @@ export default tseslint.config(
       'coverage',
       'playwright-report',
       'test-results',
+      'doctor-report',
       '.yarn',
       'public/mockServiceWorker.js',
     ],
@@ -68,7 +69,13 @@ export default tseslint.config(
     },
   },
   {
-    files: ['*.config.{js,ts}', 'playwright.config.ts', 'vite.config.ts'],
+    files: [
+      '*.config.{js,ts}',
+      'playwright.config.ts',
+      'vite.config.ts',
+      'scripts/**/*.mjs',
+      '.github/scripts/**/*.mjs',
+    ],
     languageOptions: {
       globals: globals.node,
     },

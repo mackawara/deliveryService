@@ -57,12 +57,12 @@ export function CashPage() {
   // The current backend authorizes this ledger for finance and includes driver IDs,
   // while the driver directory is operator-only. Use the finance-safe references here.
   const townEntries = useMemo(
-    () =>
-      (query.currentData?.items ?? []).filter((entry) => !townId || entry.townId === townId),
+    () => (query.currentData?.items ?? []).filter((entry) => !townId || entry.townId === townId),
     [query.currentData, townId],
   );
   const driverIds = useMemo(
-    () => Array.from(new Set(townEntries.flatMap((entry) => (entry.driverId ? [entry.driverId] : [])))),
+    () =>
+      Array.from(new Set(townEntries.flatMap((entry) => (entry.driverId ? [entry.driverId] : [])))),
     [townEntries],
   );
   const effectiveDriverId = driverId && driverIds.includes(driverId) ? driverId : null;
@@ -78,12 +78,7 @@ export function CashPage() {
     [visibleEntries],
   );
   const selectedTotal = useMemo(
-    () =>
-      sumCents(
-        collected
-          .filter((entry) => selectedIds.includes(entry.id))
-          .map(retainedCash),
-      ),
+    () => sumCents(collected.filter((entry) => selectedIds.includes(entry.id)).map(retainedCash)),
     [collected, selectedIds],
   );
 
@@ -267,9 +262,9 @@ export function CashPage() {
 
         <Alert severity="info">
           Recording cash collection is an operator action on the booking. Remittance is recorded
-          here by finance against specific ledger entries, and it never counts as new revenue.
-          The table shows up to the {RECENT_RESULT_LIMIT} most recent matching entries until the
-          backend supports reliable offset pagination.
+          here by finance against specific ledger entries, and it never counts as new revenue. The
+          table shows up to the {RECENT_RESULT_LIMIT} most recent matching entries until the backend
+          supports reliable offset pagination.
         </Alert>
 
         <ResourceTable

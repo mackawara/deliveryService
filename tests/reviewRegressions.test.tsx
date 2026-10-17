@@ -167,7 +167,9 @@ describe('PR review regressions', () => {
     resetMockState({ authenticated: true });
     renderRoutes({ routes, initialEntries: ['/finance/cash?town=town-hwange'] });
 
-    expect(await screen.findByText(/up to the 100 most recent matching entries/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/up to the 100 most recent matching entries/i),
+    ).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Next' })).not.toBeInTheDocument();
   });
 });

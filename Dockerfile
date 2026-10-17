@@ -18,16 +18,41 @@ ARG VITE_APP_LABEL
 ARG VITE_DEFAULT_THEME
 ARG VITE_DEFAULT_PHONE_COUNTRY
 ARG VITE_DEFAULT_TIMEZONE
+# Browser Maps key: public by nature, so it must be restricted to the dashboard
+# origin and the Maps JavaScript API in Google Cloud. Loaded only when an
+# administrator opens the Zones boundary editor.
+ARG VITE_GOOGLE_MAPS_API_KEY
+# Release identity, shown in the UI and served at /version.json.
+ARG APP_VERSION=0.0.0-dev
+ARG APP_REVISION=unknown
+ARG APP_BUILD_TIME=unknown
 ENV VITE_API_BASE_URL=${VITE_API_BASE_URL} \
     VITE_APP_LABEL=${VITE_APP_LABEL} \
     VITE_DEFAULT_THEME=${VITE_DEFAULT_THEME} \
     VITE_DEFAULT_PHONE_COUNTRY=${VITE_DEFAULT_PHONE_COUNTRY} \
     VITE_DEFAULT_TIMEZONE=${VITE_DEFAULT_TIMEZONE} \
-    VITE_ENABLE_MOCK_API=false
-RUN yarn build
+    VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY} \
+    VITE_ENABLE_MOCK_API=false \
+    APP_VERSION=${APP_VERSION} \
+    APP_REVISION=${APP_REVISION} \
+    APP_BUILD_TIME=${APP_BUILD_TIME}
+RUN yarn build \
+ # The image is not produced if the bundle carries mocks, a server secret name,
+ # or a version that disagrees with what is being built.
+ && node scripts/check-dist.mjs dist --version "${APP_VERSION}" --revision "${APP_REVISION}" --require-build-time \
+    $([ -n "${VITE_GOOGLE_MAPS_API_KEY}" ] && printf -- '--maps-key %s' "${VITE_GOOGLE_MAPS_API_KEY}")
 
 # --- Production stage: Caddy serving the static bundle ---
 FROM caddy:2-alpine AS production
+
+ARG APP_VERSION=0.0.0-dev
+ARG APP_REVISION=unknown
+ARG APP_BUILD_TIME=unknown
+LABEL org.opencontainers.image.title="delivery-dashboard" \
+      org.opencontainers.image.version="${APP_VERSION}" \
+      org.opencontainers.image.revision="${APP_REVISION}" \
+      org.opencontainers.image.created="${APP_BUILD_TIME}" \
+      org.opencontainers.image.source="https://github.com/mackawara/deliveryService"
 
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY --from=build /app/dist /srv

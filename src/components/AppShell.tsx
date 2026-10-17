@@ -43,7 +43,7 @@ import { NoticeHost } from '@/components/NoticeHost';
 import { SessionExpiryNotice } from '@/components/SessionExpiryNotice';
 import { ThemeSelector } from '@/components/ThemeSelector';
 import { TownSelector } from '@/components/TownSelector';
-import { appConfig } from '@/config';
+import { appConfig, buildInfo } from '@/config';
 import { describeRoles, meetsRequirement, type StaffSession } from '@/lib/permissions';
 
 const DRAWER_WIDTH = 264;
@@ -247,6 +247,17 @@ export function AppShell() {
         session={session}
         onNavigate={expanded ? undefined : () => dispatch(navigationToggled(false))}
       />
+      <Box sx={{ flexGrow: 1 }} />
+      <Typography
+        variant="caption"
+        color="text.secondary"
+        component="p"
+        data-testid="build-info"
+        sx={{ px: 2, py: 1.5 }}
+        title={`Built ${buildInfo.buildTime}`}
+      >
+        Version {buildInfo.version} · {buildInfo.revision.slice(0, 7)}
+      </Typography>
     </>
   );
 
