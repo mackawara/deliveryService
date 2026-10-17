@@ -90,6 +90,8 @@ jobs:
   publish:
     name: Build and publish the image
     needs: plan
+    # A skipped optional ancestor must not trigger Actions' implicit success().
+    if: ${{ !cancelled() && !inputs.rollback_to && needs.plan.result == 'success' }}
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 30
     outputs:
@@ -126,7 +128,7 @@ jobs:
   release:
     name: Tag and publish release notes
     needs: [plan, publish]
-    if: ${{ needs.plan.outputs.new_release == 'true' }}
+    if: ${{ !cancelled() && !inputs.rollback_to && needs.plan.result == 'success' && needs.publish.result == 'success' && needs.plan.outputs.new_release == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     permissions:
@@ -158,7 +160,7 @@ jobs:
   guard:
     name: Check this is still the newest revision
     needs: [plan, publish, release]
-    if: ${{ !cancelled() && needs.publish.result == 'success' && (needs.release.result == 'success' || needs.release.result == 'skipped') }}
+    if: ${{ !cancelled() && !inputs.rollback_to && needs.plan.result == 'success' && needs.publish.result == 'success' && ((needs.plan.outputs.new_release == 'true' && needs.release.result == 'success') || (needs.plan.outputs.new_release == 'false' && needs.release.result == 'skipped')) }}
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
@@ -179,7 +181,7 @@ jobs:
   # 6. Activate, verify, then accept or roll back.
   deploy:
     needs: [plan, publish, guard]
-    if: ${{ !cancelled() && needs.guard.outputs.proceed == 'true' }}
+    if: ${{ !cancelled() && !inputs.rollback_to && needs.plan.result == 'success' && needs.publish.result == 'success' && needs.guard.result == 'success' && needs.guard.outputs.proceed == 'true' }}
     runs-on: ubuntu-latest
     # deploy.sh may wait up to 15 minutes for an API activation to be accepted,
     # and the smoke checks retry for several more.
@@ -209,17 +211,10 @@ jobs:
           host: ${{ secrets.SSH_HOST }}
           user: ${{ secrets.SSH_USER }}
 
-      # Refuses to use another stack's deploy.sh: grocery's also has a
-      # "dashboard" service, and this image must never replace it.
-      - name: Check the server has the delivery stack and its bundle
-        run: |
-          ssh deploy-host bash -s -- "$(printf '%q' "${DEPLOY_PATH}")" <<'REMOTE'
-          set -euo pipefail
-          if ! cd "$1" 2>/dev/null || [ "$(cat .stack-name 2>/dev/null)" != delivery ] || [ ! -f deploy.sh ]; then
-            echo "::error::$1 is not the delivery stack, or the API has not been deployed yet. Run the deliveryBooking Deploy API workflow first, or check the DEPLOY_PATH variable." >&2
-            exit 1
-          fi
-          REMOTE
+      # Refuses legacy scripts before any activation or settings/container change.
+      - name: Check shared deployment interface and bundle schema
+        id: preflight
+        run: bash .github/scripts/check-deploy-bundle.sh "${DEPLOY_PATH}" "${BUNDLE_SCHEMA}"
 
       - name: Activate (lock, disk check, pull by digest, replace the dashboard)
         id: activate
@@ -256,7 +251,7 @@ jobs:
           exit 1
 
       - name: Record
-        if: ${{ always() }}
+        if: ${{ always() && steps.preflight.outcome == 'success' }}
         run: |
           {
             echo "### Deploy Dashboard"
@@ -291,6 +286,9 @@ jobs:
           known-hosts: ${{ secrets.SSH_KNOWN_HOSTS }}
           host: ${{ secrets.SSH_HOST }}
           user: ${{ secrets.SSH_USER }}
+
+      - name: Check shared deployment interface and bundle schema
+        run: bash .github/scripts/check-deploy-bundle.sh "${DEPLOY_PATH}" 1
 
       - name: Read the verified record
         id: record
@@ -328,3 +326,21 @@ jobs:
           # shellcheck disable=SC2029
           ssh deploy-host "DELIVERY_ROOT=$(printf '%q' "${DEPLOY_PATH}") bash $(printf '%q' "${DEPLOY_PATH}/deploy.sh") rollback --run ${RUN_ID}"
           exit 1
+
+  # Always evaluate the whole run: skipped deploys must have an explicit reason.
+  outcome:
+    name: Deployment outcome
+    if: ${{ always() }}
+    needs: [ci, external-checks, plan, publish, release, guard, deploy, rollback]
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - name: Require deployment or an explicit terminal outcome
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          ROLLBACK_TO: ${{ inputs.rollback_to }}
+          EXTERNAL_REQUIRED: 'true'
+        run: node .github/scripts/deploy-outcome.mjs

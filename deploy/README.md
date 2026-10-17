@@ -63,6 +63,15 @@ keeps the previous SemVer in its metadata but gets its own image. Reruns reuse a
 existing image after verifying its revision label and never move a tag. Deployment uses
 the image **digest**.
 
+**Deployment outcome.** Every downstream job has an explicit status condition,
+including publication and release creation. Docs-only commits still publish and
+deploy their commit image while skipping Git tag/release creation. Failed or
+cancelled required checks block publication and activation. The final **Deployment
+outcome** job requires a successful deployment, a successful guard explicitly
+reporting a superseded revision, or a successful manual rollback. Unexpected skips
+or missing outputs fail the workflow with an actionable summary. The condition and
+outcome matrix runs in `tests/deployWorkflow.test.ts`.
+
 **Build identity.** `APP_VERSION`, `APP_REVISION` and `APP_BUILD_TIME` are Docker build
 arguments, stamped into the UI (sidebar footer), `version.json` (served with
 `Cache-Control: no-store`) and OCI labels.
@@ -98,6 +107,33 @@ with billing quotas set. If the key is missing or Maps fails to load, the editor
 retry and the advanced GeoJSON fallback; zones still save ordinary GeoJSON to the API.
 
 ### Activation, acceptance and rollback
+
+Before activation or manual rollback, `check-deploy-bundle.sh` checks the delivery
+ownership marker and invokes the installed `bash deploy.sh compatibility` read-only
+probe. It requires JSON identifying `interface: "delivery-deploy"`,
+`interface_version: 1`, `bundle_schema: 1`, and commands `activate`, `accept`,
+`rollback`, `rollback-to`, `record`, `status`. A legacy script that cannot answer,
+malformed output, missing commands or a schema/interface mismatch fails preflight
+before any activation or settings/container changes. JSON is checked on the runner;
+the VM needs no additional parser. `tests/deployPreflight.test.ts` covers compatible,
+legacy, incompatible and foreign-stack installations and preserves API settings.
+
+If preflight reports an outdated bundle (or an old run says
+`unknown service 'activate'`), recover in this order:
+
+1. Merge and deploy the corrected **deliveryBooking Deploy API** workflow/shared
+   bundle from [deliveryBooking #22](https://github.com/mackawara/deliveryBooking/issues/22).
+   Run it on the corrected main revision; rerunning the old SHA uses the old workflow.
+   Require publication, deployment, readiness, HTTPS smoke checks, acceptance and
+   **Deployment outcome** to succeed. A successful CI-only run is insufficient.
+2. In the server's `DEPLOY_PATH`, confirm `bash deploy.sh compatibility` reports
+   the interface/schema/commands above.
+3. Run the corrected **Deploy Dashboard** workflow on main. Require the preflight,
+   readiness, HTTPS smoke checks, acceptance and **Deployment outcome** to pass;
+   confirm the current API digest and settings remain unchanged.
+
+Do not install or overwrite the API-owned shared bundle from this repository and
+do not fall back to the legacy positional or mutable/tag-based deployment interface.
 
 The dashboard workflow runs the server's installed `deploy.sh` (owned by deliveryBooking):
 it takes the shared lock, checks disk, pulls the digest first, snapshots, replaces **only
