@@ -150,7 +150,8 @@ jobs:
         env:
           VERSION: ${{ needs.plan.outputs.version }}
         run: |
-          git fetch --tags --force
+          # semantic-release created the tag in this checkout. Verify it locally;
+          # checkout deliberately removes credentials, so do not fetch here.
           git tag --points-at HEAD | grep -qx "v${VERSION}" || {
             echo "::error::HEAD is not tagged v${VERSION}; the released version differs from the published image." >&2
             exit 1
