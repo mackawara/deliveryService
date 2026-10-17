@@ -52,6 +52,11 @@ jobs:
       - name: ESLint
         run: yarn lint
 
+      # Shell is where the deployment logic lives; ShellCheck is preinstalled on
+      # GitHub's runners. Warnings and errors fail the build.
+      - name: ShellCheck
+        run: shellcheck --severity=warning .github/scripts/*.sh
+
       - name: Prettier
         run: yarn format
 
