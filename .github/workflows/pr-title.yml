@@ -1,8 +1,9 @@
 name: PR title
 
 # The squash-merge title is the commit message semantic-release reads, so it
-# must be a Conventional Commit. Runs only on PR metadata; no checkout and no
-# secrets, so it is safe with pull_request_target.
+# must be a Conventional Commit. Checked inline (no third-party action, so
+# nothing unpinned runs here). It reads PR metadata only: no checkout and no
+# secrets, which is what makes pull_request_target safe.
 on:
   pull_request_target:
     types: [opened, edited, synchronize, reopened]
@@ -15,19 +16,13 @@ jobs:
     name: Conventional Commit title
     runs-on: ubuntu-latest
     steps:
-      - uses: amannn/action-semantic-pull-request@v5
+      - name: Check the title
         env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          types: |
-            feat
-            fix
-            perf
-            revert
-            build
-            docs
-            ci
-            chore
-            test
-            style
-            refactor
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          pattern='^(feat|fix|perf|revert|build|docs|ci|chore|test|style|refactor)(\([a-z0-9._/-]+\))?!?: .+'
+          if ! [[ "${TITLE}" =~ ${pattern} ]]; then
+            echo "::error::PR title '${TITLE}' is not a Conventional Commit, e.g. 'fix(api): handle empty zone'. It becomes the squash commit and decides the release version." >&2
+            exit 1
+          fi
+          echo "Title OK: ${TITLE}"
