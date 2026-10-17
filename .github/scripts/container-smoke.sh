@@ -23,7 +23,10 @@ trap cleanup EXIT
 
 fail() { echo "::error::container smoke: $*" >&2; docker logs "${NAME}" 2>&1 | tail -20 >&2 || true; exit 1; }
 
-docker run -d --name "${NAME}" -p "127.0.0.1:${PORT}:80" "${IMAGE}" >/dev/null
+# Same hardening as the compose stack in deliveryBooking (deploy/docker-compose.yml).
+docker run -d --name "${NAME}" -p "127.0.0.1:${PORT}:80" \
+  --cap-drop ALL --cap-add NET_BIND_SERVICE --security-opt no-new-privileges:true \
+  "${IMAGE}" >/dev/null
 for _ in $(seq 1 30); do
   curl -fsS -m 2 -o /dev/null "${BASE}/" 2>/dev/null && break
   sleep 1

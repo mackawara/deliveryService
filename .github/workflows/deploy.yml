@@ -42,6 +42,8 @@ jobs:
       statuses: read
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - name: Wait for the required checks on ${{ github.sha }}
         env:
           GH_TOKEN: ${{ github.token }}
@@ -74,6 +76,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -93,6 +96,8 @@ jobs:
       digest: ${{ steps.publish.outputs.digest }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
       - uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
@@ -130,6 +135,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -193,6 +199,8 @@ jobs:
       BUNDLE_SCHEMA: '1'
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: ./.github/actions/ssh-setup
         with:
@@ -275,6 +283,8 @@ jobs:
       RUN_ID: ${{ github.run_id }}-${{ github.run_attempt }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: ./.github/actions/ssh-setup
         with:
           private-key: ${{ secrets.SSH_PRIVATE_KEY }}
@@ -302,7 +312,9 @@ jobs:
       - name: HTTPS smoke checks
         env:
           DASHBOARD_ORIGIN: ${{ vars.PUBLIC_BASE_URL }}
-        run: .github/scripts/smoke.sh "${DASHBOARD_ORIGIN}" "${{ steps.record.outputs.version }}" "${{ steps.record.outputs.revision }}"
+          EXPECTED_VERSION: ${{ steps.record.outputs.version }}
+          EXPECTED_REVISION: ${{ steps.record.outputs.revision }}
+        run: .github/scripts/smoke.sh "${DASHBOARD_ORIGIN}" "${EXPECTED_VERSION}" "${EXPECTED_REVISION}"
 
       - name: Accept
         id: accept

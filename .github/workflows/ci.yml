@@ -30,6 +30,7 @@ jobs:
         with:
           # The changed-line coverage report diffs against the base branch.
           fetch-depth: 0
+          persist-credentials: false
 
       - uses: actions/setup-node@v7
         with:
@@ -115,6 +116,8 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: actions/setup-node@v7
         with:
@@ -154,6 +157,8 @@ jobs:
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
@@ -170,7 +175,9 @@ jobs:
           cache-from: type=gha
 
       - name: Run the production image
-        run: .github/scripts/container-smoke.sh delivery-dashboard:ci 0.0.0-ci "${{ github.event.pull_request.head.sha || github.sha }}"
+        env:
+          REVISION: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: .github/scripts/container-smoke.sh delivery-dashboard:ci 0.0.0-ci "${REVISION}"
 
   # The one check branch protection and the release workflow depend on. It
   # fails if any job it covers failed, was cancelled or was skipped when it
