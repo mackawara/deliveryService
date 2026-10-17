@@ -1,4 +1,5 @@
 /// <reference types="vitest/config" />
+import { rmSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 
 import react from '@vitejs/plugin-react';
@@ -23,6 +24,47 @@ function announceApiProxy(target: string, source: string): Plugin {
   };
 }
 
+/** Identity of this build, stamped by the release workflow (Dockerfile build args). */
+export interface BuildInfo {
+  version: string;
+  revision: string;
+  buildTime: string;
+}
+
+export function readBuildInfo(source: NodeJS.ProcessEnv = process.env): BuildInfo {
+  const read = (value: string | undefined, fallback: string) => value?.trim() || fallback;
+  return {
+    version: read(source.APP_VERSION, '0.0.0-dev'),
+    revision: read(source.APP_REVISION, 'unknown'),
+    buildTime: read(source.APP_BUILD_TIME, 'unknown'),
+  };
+}
+
+/**
+ * Serves the build identity at /version.json (never cached; see deploy/Caddyfile) so a
+ * deployment can prove which revision it is running, and removes the MSW worker script
+ * that `public/` would otherwise copy into a production bundle: a deployed image must
+ * not carry the browser API mocks.
+ */
+function buildMetadata(info: BuildInfo): Plugin {
+  return {
+    name: 'build-metadata',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'version.json',
+        source: `${JSON.stringify(info, null, 2)}\n`,
+      });
+    },
+    closeBundle() {
+      rmSync(fileURLToPath(new URL('./dist/mockServiceWorker.js', import.meta.url)), {
+        force: true,
+      });
+    },
+  };
+}
+
 /**
  * The deployment baseline is the frontend origin with a reverse-proxied `/api/v1`
  * (specification section 10), so the dev server proxies the same path to a local
@@ -35,9 +77,11 @@ export default defineConfig(({ mode }) => {
     ? 'VITE_DEV_API_PROXY_TARGET'
     : 'default; set VITE_DEV_API_PROXY_TARGET to change it';
   let lastProxyHint = 0;
+  const buildInfo = readBuildInfo();
 
   return {
-    plugins: [react(), announceApiProxy(proxyTarget, proxySource)],
+    plugins: [react(), announceApiProxy(proxyTarget, proxySource), buildMetadata(buildInfo)],
+    define: { __APP_BUILD__: JSON.stringify(buildInfo) },
     resolve: {
       alias: {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -106,6 +150,8 @@ export default defineConfig(({ mode }) => {
       coverage: {
         provider: 'v8',
         reportsDirectory: 'coverage',
+        // lcov.info is what Codacy and the changed-line report read.
+        reporter: ['text-summary', 'lcov'],
         include: ['src/**/*.{ts,tsx}'],
         exclude: ['src/**/*.d.ts', 'src/mocks/**'],
       },

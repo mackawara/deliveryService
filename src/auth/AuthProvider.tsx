@@ -60,11 +60,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       ? location.pathname === '/signed-out'
         ? 'anonymous'
         : 'loading'
-    : meQuery.data
-      ? 'authenticated'
-      : meQuery.isLoading || meQuery.isUninitialized
-        ? 'loading'
-        : 'anonymous';
+      : meQuery.data
+        ? 'authenticated'
+        : meQuery.isLoading || meQuery.isUninitialized
+          ? 'loading'
+          : 'anonymous';
 
   // One transition for concurrent unauthenticated failures: stop protected polling by
   // clearing the cache, then return to the login page.
@@ -113,7 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }),
     ]);
 
-    navigate(outcome === 'revoked' ? '/signed-out' : '/signed-out?remote=unconfirmed', { replace: true });
+    navigate(outcome === 'revoked' ? '/signed-out' : '/signed-out?remote=unconfirmed', {
+      replace: true,
+    });
     dispatch(signOutCompleted());
   }, [dispatch, logout, navigate]);
 

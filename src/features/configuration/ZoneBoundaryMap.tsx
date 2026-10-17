@@ -202,10 +202,17 @@ export function ZoneBoundaryMap({
       renderedValue.current = JSON.stringify({ value: area, colour: activeColour });
       changeRef.current(area);
     };
+    // Every listener is owned by this run, so the next run (or unmount) removes
+    // exactly these and none of them outlive the shapes they edit.
+    const listeners: google.maps.MapsEventListener[] = [];
     for (const shape of selected.current)
       shape.getPaths().forEach((path) => {
-        for (const event of ['insert_at', 'set_at', 'remove_at']) path.addListener(event, sync);
+        for (const event of ['insert_at', 'set_at', 'remove_at'])
+          listeners.push(path.addListener(event, sync));
       });
+    return () => {
+      for (const listener of listeners) listener.remove();
+    };
   }, [maps, value, drawing, activeColour]);
 
   useEffect(() => {

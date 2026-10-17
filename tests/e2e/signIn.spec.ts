@@ -42,7 +42,9 @@ test('signing out clears the session and returns to sign-in', async ({ page }) =
   // protected route until the signed-out session is refused.
   await expect(async () => {
     await page.goto('/bookings');
-    await expect(page.getByRole('button', { name: /Send code on WhatsApp/i })).toBeVisible({ timeout: 3000 });
+    await expect(page.getByRole('button', { name: /Send code on WhatsApp/i })).toBeVisible({
+      timeout: 3000,
+    });
   }).toPass({ timeout: 20_000 });
 });
 

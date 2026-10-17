@@ -15,3 +15,6 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
+
+/** Replaced at build time by vite.config.ts (version, revision, build time). */
+declare const __APP_BUILD__: { version: string; revision: string; buildTime: string };

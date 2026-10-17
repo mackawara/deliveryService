@@ -48,3 +48,9 @@ export const appConfig: AppConfig = {
   googleMapsApiKey: readString(import.meta.env.VITE_GOOGLE_MAPS_API_KEY, ''),
   enableMockApi: readBoolean(import.meta.env.VITE_ENABLE_MOCK_API, false) && import.meta.env.DEV,
 };
+
+/**
+ * Which build this is. Stamped by the release workflow; `0.0.0-dev` / `unknown` when
+ * built locally. `/version.json` in the deployed bundle carries the same values.
+ */
+export const buildInfo = __APP_BUILD__;

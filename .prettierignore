@@ -5,3 +5,4 @@ node_modules
 yarn.lock
 playwright-report
 test-results
+doctor-report

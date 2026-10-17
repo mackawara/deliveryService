@@ -93,6 +93,8 @@ describe('session lifecycle', () => {
     expect(await screen.findByRole('heading', { name: /You are signed out/i })).toBeInTheDocument();
     await waitFor(() => expect(protectedQueryKeys(store.getState())).toEqual([]));
     // The page says plainly that the server did not confirm the revocation.
-    expect(await screen.findByText(/could not confirm that this session was revoked/i)).toBeInTheDocument();
+    expect(
+      await screen.findByText(/could not confirm that this session was revoked/i),
+    ).toBeInTheDocument();
   });
 });

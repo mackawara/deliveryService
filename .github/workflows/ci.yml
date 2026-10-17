@@ -12,19 +12,31 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+# Read-only everywhere. Nothing here uses registry, SSH, WhatsApp, Paynow or
+# Atlas credentials, so a pull request cannot reach them even if its code runs.
 permissions:
   contents: read
 
 jobs:
   verify:
-    name: Typecheck, lint, test and build
+    name: Typecheck, lint, format, doctor, test and build
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Codacy needs a token; fork pull requests never receive it.
+      CODACY_PROJECT_TOKEN: ${{ (github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository) && secrets.CODACY_PROJECT_TOKEN || '' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
+        with:
+          # The changed-line coverage report diffs against the base branch.
+          fetch-depth: 0
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
+
+      - name: Node satisfies package.json engines (>=22.13)
+        run: node -e "const [a,b]=process.versions.node.split('.').map(Number); if (a<22||(a===22&&b<13)) { console.error('Node '+process.versions.node+' is older than the 22.13 minimum'); process.exit(1) }"
 
       - name: Enable Corepack
         run: corepack enable
@@ -36,14 +48,54 @@ jobs:
       - name: Typecheck
         run: yarn typecheck
 
-      - name: Lint
+      - name: ESLint
         run: yarn lint
 
-      - name: Unit, component and integration tests
-        run: yarn test
+      - name: Prettier
+        run: yarn format
+
+      # Pinned react-doctor 0.9.18, run directly (not the Action): errors block,
+      # warnings stay visible, scanner failures fail. Findings are in the log and
+      # the uploaded report.
+      - name: React Doctor
+        run: yarn doctor:check
+
+      - name: Upload React Doctor report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: doctor-report
+          path: doctor-report
+          retention-days: 7
+          if-no-files-found: ignore
+
+      - name: Unit, component and integration tests with coverage
+        run: yarn test:coverage
 
       - name: Build
         run: yarn build
+
+      - name: The bundle carries no mocks or server secrets
+        run: node scripts/check-dist.mjs dist
+
+      - name: Changed-line coverage
+        if: ${{ github.event_name == 'pull_request' }}
+        env:
+          # Report-only until the main baseline is validated; then set the
+          # repository variable to true to enforce 80% on changed lines.
+          ENFORCE: ${{ vars.ENFORCE_CHANGED_LINE_COVERAGE == 'true' && '--enforce' || '' }}
+          BASE_REF: origin/${{ github.base_ref }}
+        run: node .github/scripts/changed-line-coverage.mjs coverage/lcov.info "${BASE_REF}" --min 80 ${ENFORCE}
+
+      - name: Upload coverage to Codacy
+        if: ${{ env.CODACY_PROJECT_TOKEN != '' }}
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ env.CODACY_PROJECT_TOKEN }}
+          coverage-reports: coverage/lcov.info
+          # A pull request runs on a synthetic merge commit; Codacy must file
+          # the report under the commit its PR analysis is about.
+          commit-uuid: ${{ github.event.pull_request.head.sha || github.sha }}
 
       - name: Upload build output
         uses: actions/upload-artifact@v4
@@ -56,10 +108,11 @@ jobs:
     name: End-to-end tests
     runs-on: ubuntu-latest
     needs: verify
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
 
@@ -73,7 +126,8 @@ jobs:
         run: yarn playwright install --with-deps chromium
 
       # The end-to-end suite runs against the mock API, which serves the documented
-      # contracts. Staging runs point VITE_API_BASE_URL at the real backend instead.
+      # contracts. Production-image behaviour is verified separately (container
+      # smoke test and public HTTPS smoke checks).
       - name: Run Playwright tests
         run: yarn test:e2e
 
@@ -87,19 +141,50 @@ jobs:
 
   docker:
     name: Docker image builds
-    # On main the deploy workflow builds and pushes the real image right after
-    # this, so only pull requests need the dry run.
+    # On main the deploy workflow builds, smoke-tests and pushes the real
+    # image, so only pull requests need the dry run. It needs no registry or
+    # deployment credentials: the image is built and run locally, never pushed.
     if: ${{ github.event_name == 'pull_request' }}
     # Same arm64 platform as production, so the build cache is shared with it.
     runs-on: ubuntu-24.04-arm
-    timeout-minutes: 20
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
+          load: true
           push: false
+          tags: delivery-dashboard:ci
+          build-args: |
+            APP_VERSION=0.0.0-ci
+            APP_REVISION=${{ github.event.pull_request.head.sha || github.sha }}
+            APP_BUILD_TIME=2026-01-01T00:00:00Z
           cache-from: type=gha
+
+      - name: Run the production image
+        run: .github/scripts/container-smoke.sh delivery-dashboard:ci 0.0.0-ci "${{ github.event.pull_request.head.sha || github.sha }}"
+
+  # The one check branch protection and the release workflow depend on. It
+  # fails if any job it covers failed, was cancelled or was skipped when it
+  # should have run, so a green result means every gate passed for this commit.
+  ci-gate:
+    name: CI gate
+    if: ${{ always() }}
+    needs: [verify, e2e, docker]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every gate
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+          EVENT: ${{ github.event_name }}
+        run: |
+          echo "${RESULTS}" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          # `docker` is intentionally skipped outside pull requests.
+          echo "${RESULTS}" | jq -e --arg event "${EVENT}" '
+            to_entries
+            | all(.value.result == "success" or (.key == "docker" and $event != "pull_request" and .value.result == "skipped"))
+          ' >/dev/null

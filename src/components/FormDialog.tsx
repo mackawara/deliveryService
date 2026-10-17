@@ -72,7 +72,8 @@ export function FormDialog({
               <Stack spacing={1}>
                 <Typography variant="body2" color="warning.main">
                   Outcome not confirmed. The latest record has been refetched — review it before
-                  sending again.{unconfirmed === 'retryable'
+                  sending again.
+                  {unconfirmed === 'retryable'
                     ? ' Retrying re-sends the identical request with the same operation key.'
                     : ' Close this dialog and inspect the latest record before starting another action.'}
                 </Typography>
@@ -89,7 +90,11 @@ export function FormDialog({
           <Button onClick={onClose} disabled={pending}>
             Cancel
           </Button>
-          <Button type="submit" variant="contained" disabled={pending || unconfirmed !== false || disabled}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={pending || unconfirmed !== false || disabled}
+          >
             {pending ? 'Working…' : submitLabel}
           </Button>
         </DialogActions>

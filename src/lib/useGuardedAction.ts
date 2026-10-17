@@ -50,11 +50,7 @@ export function useGuardedAction<TArgs, TResult>(
   const lastRun = useRef<Run>(options.run);
 
   const execute = useCallback(
-    async (
-      args: TArgs,
-      key: string,
-      run: Run,
-    ): Promise<boolean> => {
+    async (args: TArgs, key: string, run: Run): Promise<boolean> => {
       setPending(true);
       setError(undefined);
       try {

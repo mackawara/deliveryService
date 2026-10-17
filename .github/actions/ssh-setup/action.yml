@@ -1,0 +1,42 @@
+name: Set up SSH to the deploy host
+description: Installs the deploy key and a pinned host key, and defines the `deploy-host` alias.
+inputs:
+  private-key:
+    description: Deploy key (PEM)
+    required: true
+  known-hosts:
+    description: Pinned host key lines; required (an unpinned host key is refused)
+    required: true
+  host:
+    description: Server hostname or IP
+    required: true
+  user:
+    description: Deploy user
+    required: true
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        SSH_PRIVATE_KEY: ${{ inputs.private-key }}
+        SSH_KNOWN_HOSTS: ${{ inputs.known-hosts }}
+        SSH_HOST: ${{ inputs.host }}
+        SSH_USER: ${{ inputs.user }}
+      run: |
+        if [ -z "${SSH_KNOWN_HOSTS}" ]; then
+          echo "::error::SSH_KNOWN_HOSTS is not set. Pin the server's host key (deploy/README.md, one-time setup); deployments never trust an unverified key." >&2
+          exit 1
+        fi
+        install -m 700 -d ~/.ssh
+        printf '%s\n' "${SSH_PRIVATE_KEY}" > ~/.ssh/deploy_key
+        chmod 600 ~/.ssh/deploy_key
+        printf '%s\n' "${SSH_KNOWN_HOSTS}" > ~/.ssh/known_hosts
+        cat > ~/.ssh/config <<EOF
+        Host deploy-host
+          HostName ${SSH_HOST}
+          User ${SSH_USER}
+          IdentityFile ~/.ssh/deploy_key
+          IdentitiesOnly yes
+          StrictHostKeyChecking yes
+          ServerAliveInterval 30
+        EOF
