@@ -21,7 +21,25 @@ set -euo pipefail
 SEMVER_TAG="${SEMVER_TAG:-false}"
 OUT="${GITHUB_OUTPUT:-/dev/stdout}"
 
-registry_digest() { docker buildx imagetools inspect "$1" --format '{{.Manifest.Digest}}' 2>/dev/null || true; }
+registry_digest() { # registry_digest REF -> digest, or empty only for a missing manifest
+  local digest errors
+  errors="$(mktemp)"
+  if digest="$(docker buildx imagetools inspect "$1" --format '{{.Manifest.Digest}}' 2>"${errors}")"; then
+    rm -f "${errors}"
+    if [[ ! "${digest}" =~ ^sha256:[a-f0-9]{64}$ ]]; then
+      echo "::error::Registry returned an invalid digest for $1; refusing to publish." >&2
+      return 1
+    fi
+    printf '%s\n' "${digest}"
+  elif grep -qiE 'manifest unknown|no such manifest|: not found$' "${errors}"; then
+    rm -f "${errors}"
+  else
+    cat "${errors}" >&2
+    rm -f "${errors}"
+    echo "::error::Could not inspect $1; refusing to assume the immutable tag is absent." >&2
+    return 1
+  fi
+}
 
 commit_digest="$(registry_digest "${IMAGE}:${SHA}")"
 reused=false
@@ -30,6 +48,11 @@ if [ -n "${commit_digest}" ]; then
   label="$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.revision" }}' "${IMAGE}@${commit_digest}")"
   if [ "${label}" != "${SHA}" ]; then
     echo "::error::${IMAGE}:${SHA} exists but was built from revision '${label}'. Refusing to reuse or overwrite it." >&2
+    exit 1
+  fi
+  version_label="$(docker inspect --format '{{ index .Config.Labels "org.opencontainers.image.version" }}' "${IMAGE}@${commit_digest}")"
+  if [ "${version_label}" != "${VERSION}" ]; then
+    echo "::error::${IMAGE}:${SHA} was built as version '${version_label}', not '${VERSION}'. Refusing to reuse or overwrite it." >&2
     exit 1
   fi
   echo "${IMAGE}:${SHA} is already published (${commit_digest}); reusing it."
