@@ -11,7 +11,7 @@ bootstrap order, monitoring, rollback and backup runbook are owned by deliveryBo
 see [deliveryBooking/deploy/README.md](https://github.com/mackawara/deliveryBooking/blob/main/deploy/README.md).
 Publish both initial images, run its `Deploy API` workflow once, then this one.
 
-- Dashboard origin: `https://delivery-dashboard.wifi.ventawifi.com`. The browser keeps
+- Dashboard origin: `https://delivery.ventawifi.com`. The browser keeps
   `VITE_API_BASE_URL=/api/v1`; host Caddy sends `/api/*`, `/media/*`, `/health` and
   `/readyz` to the API on the same origin, so session cookies, CSRF and signed photo
   links stay same-origin. The external API hostname is `https://delivery-api.ventawifi.com`.
@@ -79,19 +79,19 @@ arguments, stamped into the UI (sidebar footer), `version.json` (served with
 **Public build configuration** (GitHub repository _variables_; build-time, so changing
 one needs a new commit and image — published tags are never rebuilt):
 
-| Kind     | Name                                                                                          | Value                                                          |
-| -------- | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
-| variable | `VITE_API_BASE_URL`                                                                           | keep `/api/v1`                                                 |
-| variable | `VITE_GOOGLE_MAPS_API_KEY`                                                                    | browser Maps key, see below                                    |
-| variable | `VITE_APP_LABEL`, `VITE_DEFAULT_THEME`, `VITE_DEFAULT_PHONE_COUNTRY`, `VITE_DEFAULT_TIMEZONE` | optional                                                       |
-| variable | `PUBLIC_BASE_URL`                                                                             | `https://delivery-dashboard.wifi.ventawifi.com` (smoke checks) |
-| variable | `DEPLOY_PATH`                                                                                 | optional, default `/home/ubuntu/repos/delivery`                |
-| variable | `REQUIRED_STATUS_CHECKS`                                                                      | optional extra required checks, e.g. the Codacy status         |
-| variable | `ENFORCE_CHANGED_LINE_COVERAGE`                                                               | `true` once the baseline is validated                          |
-| secret   | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`                                                       | Docker Hub (write scope; release job only)                     |
-| secret   | `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_USER`                                                     | deploy access                                                  |
-| secret   | `SSH_KNOWN_HOSTS`                                                                             | pinned host key — **required**; deployments refuse without it  |
-| secret   | `CODACY_PROJECT_TOKEN`                                                                        | coverage upload; not exposed to fork PRs                       |
+| Kind     | Name                                                                                          | Value                                                         |
+| -------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
+| variable | `VITE_API_BASE_URL`                                                                           | keep `/api/v1`                                                |
+| variable | `VITE_GOOGLE_MAPS_API_KEY`                                                                    | browser Maps key, see below                                   |
+| variable | `VITE_APP_LABEL`, `VITE_DEFAULT_THEME`, `VITE_DEFAULT_PHONE_COUNTRY`, `VITE_DEFAULT_TIMEZONE` | optional                                                      |
+| variable | `PUBLIC_BASE_URL`                                                                             | `https://delivery.ventawifi.com` (smoke checks)               |
+| variable | `DEPLOY_PATH`                                                                                 | optional, default `/home/ubuntu/repos/delivery`               |
+| variable | `REQUIRED_STATUS_CHECKS`                                                                      | optional extra required checks, e.g. the Codacy status        |
+| variable | `ENFORCE_CHANGED_LINE_COVERAGE`                                                               | `true` once the baseline is validated                         |
+| secret   | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`                                                       | Docker Hub (write scope; release job only)                    |
+| secret   | `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_USER`                                                     | deploy access                                                 |
+| secret   | `SSH_KNOWN_HOSTS`                                                                             | pinned host key — **required**; deployments refuse without it |
+| secret   | `CODACY_PROJECT_TOKEN`                                                                        | coverage upload; not exposed to fork PRs                      |
 
 No server or provider secret is ever passed to the frontend build; `scripts/check-dist.mjs`
 (run in CI and inside the Dockerfile) fails the build if the bundle names one, carries the
@@ -102,7 +102,7 @@ MSW mock worker or runtime, or disagrees with the version being built.
 The Zones **Add/Edit** boundary editor lazy-loads Maps (street and satellite views, with
 neighbouring zones). Nothing else loads it. The key is a _browser_ key and is therefore
 visible in the bundle: in Google Cloud restrict it to **HTTP referrers**
-`https://delivery-dashboard.wifi.ventawifi.com/*` and to the **Maps JavaScript API** only,
+`https://delivery.ventawifi.com/*` and to the **Maps JavaScript API** only,
 with billing quotas set. If the key is missing or Maps fails to load, the editor offers
 retry and the advanced GeoJSON fallback; zones still save ordinary GeoJSON to the API.
 
