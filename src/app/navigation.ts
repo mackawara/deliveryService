@@ -1,4 +1,5 @@
 import AssignmentIcon from '@mui/icons-material/Assignment';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import CampaignIcon from '@mui/icons-material/Campaign';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import DirectionsCarIcon from '@mui/icons-material/DirectionsCar';
@@ -151,6 +152,14 @@ export const NAV_ITEMS: NavItem[] = [
     group: 'administration',
     requirement: ADMIN_ONLY,
     description: 'Blacklist review, activation and revocation.',
+  },
+  {
+    path: '/admin/food/shops',
+    label: 'Food shops',
+    icon: StorefrontIcon,
+    group: 'administration',
+    requirement: ADMIN_ONLY,
+    description: 'Review shop onboarding, pilot claims and commercial terms.',
   },
   {
     path: '/configuration/towns',
