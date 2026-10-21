@@ -24,6 +24,12 @@ export const TAG_TYPES = [
   'ParcelPreset',
   'AuditEvent',
   'Alerts',
+  'Shop',
+  'ShopItem',
+  'ShopMembership',
+  'ShopClaim',
+  'ShopTerms',
+  'PackingProfile',
 ] as const;
 
 export type TagType = (typeof TAG_TYPES)[number];

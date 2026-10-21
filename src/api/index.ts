@@ -12,6 +12,7 @@ export * from '@/api/endpoints/finance';
 export * from '@/api/endpoints/operations';
 export * from '@/api/endpoints/restrictions';
 export * from '@/api/endpoints/session';
+export * from '@/api/endpoints/shop';
 export * from '@/api/endpoints/staff';
 export * from '@/api/errors';
 export * from '@/api/polling';
