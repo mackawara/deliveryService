@@ -3,7 +3,7 @@ import '@testing-library/jest-dom/vitest';
 import { cleanup, configure } from '@testing-library/react';
 import { afterAll, afterEach, beforeAll, vi } from 'vitest';
 
-import { clearCsrfToken } from '@/api/csrf';
+import { clearCsrfToken, clearShopCsrfToken } from '@/api/csrf';
 import { resetMockState } from '@/mocks/handlers';
 import { mockServer } from '@/mocks/server';
 
@@ -38,6 +38,7 @@ afterEach(() => {
   mockServer.resetHandlers();
   resetMockState();
   clearCsrfToken();
+  clearShopCsrfToken();
   window.localStorage.clear();
 });
 

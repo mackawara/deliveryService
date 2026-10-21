@@ -4,7 +4,14 @@ import { AuthProvider } from '@/auth/AuthProvider';
 import { ForbiddenPage } from '@/auth/ForbiddenPage';
 import { LoginPage } from '@/auth/LoginPage';
 import { SignedOutPage } from '@/auth/SignedOutPage';
-import { RedirectIfAuthenticated, RequireAccess, RequireAuth } from '@/auth/guards';
+import {
+  RedirectIfAuthenticated,
+  RedirectIfShopAuthenticated,
+  RequireAccess,
+  RequireAuth,
+  RequireShopAuth,
+} from '@/auth/guards';
+import { OwnerAuthProvider } from '@/auth/OwnerAuthProvider';
 import { AppShell } from '@/components/AppShell';
 import { ADMIN_ONLY, AUDIT_READ, CONFIG_READ, FINANCE_ONLY, OPERATOR_ONLY } from '@/app/navigation';
 import { NotFoundPage } from '@/features/NotFoundPage';
@@ -33,6 +40,13 @@ import { RestrictionDetailPage } from '@/features/restrictions/RestrictionDetail
 import { RestrictionsPage } from '@/features/restrictions/RestrictionsPage';
 import { AccessPage } from '@/features/settings/AccessPage';
 import { AppearancePage } from '@/features/settings/AppearancePage';
+import { AdminShopsPage } from '@/features/shop/AdminShopsPage';
+import { ShopCataloguePage } from '@/features/shop/ShopCataloguePage';
+import { ShopHomePage } from '@/features/shop/ShopHomePage';
+import { ShopLoginPage } from '@/features/shop/ShopLoginPage';
+import { ShopProfilePage } from '@/features/shop/ShopProfilePage';
+import { ShopSetupPage } from '@/features/shop/ShopSetupPage';
+import { ShopShell } from '@/features/shop/ShopShell';
 
 /** Providers that need router context (navigation, location) sit inside the router. */
 function RootLayout() {
@@ -62,6 +76,44 @@ export const routes = [
         ),
       },
       { path: '/signed-out', element: <SignedOutPage /> },
+      {
+        element: (
+          <OwnerAuthProvider>
+            <Outlet />
+          </OwnerAuthProvider>
+        ),
+        children: [
+          {
+            path: 'shop/login',
+            element: (
+              <RedirectIfShopAuthenticated>
+                <ShopLoginPage />
+              </RedirectIfShopAuthenticated>
+            ),
+          },
+          {
+            path: 'shop/signup',
+            element: (
+              <RedirectIfShopAuthenticated>
+                <ShopLoginPage mode="signup" />
+              </RedirectIfShopAuthenticated>
+            ),
+          },
+          {
+            element: (
+              <RequireShopAuth>
+                <ShopShell />
+              </RequireShopAuth>
+            ),
+            children: [
+              { path: 'shop', element: <ShopHomePage /> },
+              { path: 'shop/setup', element: <ShopSetupPage /> },
+              { path: 'shop/:shopId/profile', element: <ShopProfilePage /> },
+              { path: 'shop/:shopId/catalogue', element: <ShopCataloguePage /> },
+            ],
+          },
+        ],
+      },
       {
         element: (
           <RequireAuth>
@@ -104,6 +156,7 @@ export const routes = [
             children: [
               { path: 'restrictions', element: <RestrictionsPage /> },
               { path: 'restrictions/:id', element: <RestrictionDetailPage /> },
+              { path: 'admin/food/shops', element: <AdminShopsPage /> },
             ],
           },
 

@@ -7,6 +7,7 @@
  * another origin's storage.
  */
 let csrfToken: string | null = null;
+let shopCsrfToken: string | null = null;
 
 export function getCsrfToken(): string | null {
   return csrfToken;
@@ -18,4 +19,17 @@ export function setCsrfToken(token: string | null): void {
 
 export function clearCsrfToken(): void {
   csrfToken = null;
+}
+
+/** Owner sessions have a separate CSRF domain from staff sessions. */
+export function getShopCsrfToken(): string | null {
+  return shopCsrfToken;
+}
+
+export function setShopCsrfToken(token: string | null): void {
+  shopCsrfToken = token && token.length > 0 ? token : null;
+}
+
+export function clearShopCsrfToken(): void {
+  shopCsrfToken = null;
 }

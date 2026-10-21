@@ -16,6 +16,10 @@ const SENSITIVE_ENDPOINTS = new Set([
   'verifyOtp',
   'getCsrf',
   'verifyStaffPhoneChange',
+  'getShopCsrf',
+  'requestShopOtp',
+  'resendShopOtp',
+  'verifyShopOtp',
 ]);
 
 const REDACTED = '[redacted]';

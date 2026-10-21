@@ -1,6 +1,6 @@
 import { fetchBaseQuery, type BaseQueryFn, type FetchArgs } from '@reduxjs/toolkit/query/react';
 
-import { getCsrfToken, setCsrfToken } from '@/api/csrf';
+import { getCsrfToken, getShopCsrfToken, setCsrfToken, setShopCsrfToken } from '@/api/csrf';
 import { normalizeApiError, type NormalizedApiError } from '@/api/errors';
 import { appConfig } from '@/config';
 
@@ -12,7 +12,40 @@ const AUTH_ENDPOINTS = new Set([
   'verifyOtp',
   'logout',
   'getMe',
+  'getShopCsrf',
+  'requestShopOtp',
+  'resendShopOtp',
+  'verifyShopOtp',
+  'getShopMe',
+  'shopLogout',
 ]);
+
+const SHOP_ENDPOINTS = new Set([
+  'getShopCsrf',
+  'requestShopOtp',
+  'resendShopOtp',
+  'verifyShopOtp',
+  'getShopMe',
+  'shopActivity',
+  'shopLogout',
+  'listShops',
+  'getShop',
+  'createShop',
+  'updateShop',
+  'listShopItems',
+  'createShopItem',
+  'updateShopItem',
+  'archiveShopItem',
+  'listPackingProfiles',
+  'getShopTerms',
+  'requestShopTerms',
+  'uploadShopImage',
+  'listShopClaims',
+  'submitShopClaim',
+]);
+
+// Owner authorization failures must not sign a staff operator out of the dashboard.
+for (const endpoint of SHOP_ENDPOINTS) AUTH_ENDPOINTS.add(endpoint);
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: appConfig.apiBaseUrl,
@@ -21,8 +54,8 @@ const rawBaseQuery = fetchBaseQuery({
   credentials: 'include',
   timeout: 30_000,
   prepareHeaders: (headers, api) => {
-    if (api.type === 'mutation') {
-      const token = getCsrfToken();
+    if (api.type === 'mutation' && !headers.has('X-CSRF-Token')) {
+      const token = SHOP_ENDPOINTS.has(api.endpoint) ? getShopCsrfToken() : getCsrfToken();
       if (token) headers.set('X-CSRF-Token', token);
     }
     if (!headers.has('Accept')) headers.set('Accept', 'application/json');
@@ -43,6 +76,7 @@ export function setSessionExpiryListener(listener: SessionExpiryListener): void 
 }
 
 let csrfInFlight: Promise<void> | null = null;
+let shopCsrfInFlight: Promise<void> | null = null;
 
 /**
  * The CSRF token is fetched when the app loads. If that request failed (the API was
@@ -68,6 +102,24 @@ async function ensureCsrfToken(
   await csrfInFlight;
 }
 
+async function ensureShopCsrfToken(
+  api: Parameters<typeof rawBaseQuery>[1],
+  extraOptions: Parameters<typeof rawBaseQuery>[2],
+): Promise<void> {
+  shopCsrfInFlight ??= (async () => {
+    const result = await rawBaseQuery(
+      { url: '/shop/auth/csrf', headers: { 'Cache-Control': 'no-store' } },
+      api,
+      extraOptions,
+    );
+    const token = (result.data as { csrfToken?: unknown } | undefined)?.csrfToken;
+    if (typeof token === 'string') setShopCsrfToken(token);
+  })().finally(() => {
+    shopCsrfInFlight = null;
+  });
+  await shopCsrfInFlight;
+}
+
 /**
  * Application base query: normalizes every failure, keeps cookies on the request and
  * reports session expiry once for concurrent 401s.
@@ -81,7 +133,13 @@ export const appBaseQuery: BaseQueryFn<string | FetchArgs, unknown, NormalizedAp
   // reads the token at once; sign-out relies on that, since it clears the token straight
   // after starting the logout request. A failed fetch leaves the token unset, and the
   // request then fails with the server's own answer, which the caller reports.
-  if (api.type === 'mutation' && !getCsrfToken()) await ensureCsrfToken(api, extraOptions);
+  if (api.type === 'mutation') {
+    if (SHOP_ENDPOINTS.has(api.endpoint)) {
+      if (!getShopCsrfToken()) await ensureShopCsrfToken(api, extraOptions);
+    } else if (!getCsrfToken()) {
+      await ensureCsrfToken(api, extraOptions);
+    }
+  }
   const result = await rawBaseQuery(args, api, extraOptions);
 
   if (result.error) {
