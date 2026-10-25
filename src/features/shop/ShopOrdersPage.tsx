@@ -86,7 +86,10 @@ function RefreshState({
 }
 export function ShopOrdersEntry() {
   const { session } = useOwnerAuth();
-  const memberships = session?.memberships.filter((m) => m.status === 'ACTIVE') ?? [];
+  const memberships =
+    session?.memberships.filter(
+      (m) => m.status === 'ACTIVE' && (m.role === 'OWNER' || m.role === 'MANAGER'),
+    ) ?? [];
   const saved = session ? localStorage.getItem(`shop-branch:${session.owner.id}`) : null;
   const shopId = memberships.find((m) => m.shopId === saved)?.shopId ?? memberships[0]?.shopId;
   return <Navigate replace to={shopId ? `/shop/${shopId}/orders` : '/shop/setup'} />;
@@ -95,8 +98,12 @@ export function ShopOrdersPage() {
   const { shopId = '', orderId } = useParams();
   const { session } = useOwnerAuth();
   const allowed =
-    !!session?.memberships.some((m) => m.shopId === shopId && m.status === 'ACTIVE') &&
-    session.capabilities.includes('orders:manage');
+    !!session?.memberships.some(
+      (m) =>
+        m.shopId === shopId &&
+        m.status === 'ACTIVE' &&
+        (m.role === 'OWNER' || m.role === 'MANAGER'),
+    ) && session.capabilities.includes('orders:manage');
   if (!allowed || !session)
     return <Alert severity="info">Orders are unavailable for this branch.</Alert>;
   return orderId ? (
@@ -293,7 +300,9 @@ function OrderContent({
   const clock = useOrderClock(order.serverNow);
   const invalidPrep =
     !/^\d+$/.test(prep) || Number(prep) < 1 || Number(prep) > order.prepMaxMinutes;
-  const dialogStale = !!dialog && dialog.version !== order.version;
+  const dialogStale =
+    !!dialog &&
+    (dialog.version !== order.version || !order.availableActions.includes(dialog.action));
   const expired =
     order.status === 'AWAITING_SHOP' && clock.now >= Date.parse(order.acceptanceDeadlineAt);
   const blocked = disabled || clock.stale || state.isLoading || !!pending || expired;

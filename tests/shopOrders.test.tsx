@@ -27,7 +27,6 @@ const auth: OwnerAuthContextValue = {
         shopId: 'branch-a',
         ownerId: 'owner-a',
         townId: 'town',
-        phone: '+263772000001',
         role: 'OWNER',
         status: 'ACTIVE',
         version: 1,
@@ -118,6 +117,16 @@ describe('shop inbox and guarded actions (#22)', () => {
     expect(screen.queryByRole('button', { name: 'Reject order' })).not.toBeInTheDocument();
     expect(screen.getByText(/Original pizza snapshot/)).toBeVisible();
     expect(screen.getByText(/Total: USD \$15.50/)).toBeVisible();
+  });
+  it('disables an open dialog as soon as a newer WhatsApp state arrives', async () => {
+    const user = userEvent.setup();
+    mount();
+    await user.click(await screen.findByRole('button', { name: 'Accept order' }));
+    await user.type(screen.getByLabelText(/Preparation minutes/), '15');
+    current = shopOrderFixture({ status: 'PREPARING', version: 2, availableActions: ['READY'] });
+    act(() => store!.dispatch(baseApi.internalActions.onFocus()));
+    await screen.findByText('This order changed. Close this dialog and review the current status.');
+    expect(screen.getByRole('button', { name: 'Confirm action' })).toBeDisabled();
   });
   it('replays precisely the original timeout payload/key, even after the order changes', async () => {
     const calls: { key: string | null; body: unknown }[] = [];

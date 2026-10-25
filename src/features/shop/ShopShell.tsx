@@ -98,7 +98,12 @@ export function ShopShell() {
   const current = shops.currentData?.items.find(
     (shop) =>
       shop._id === shopId &&
-      session?.memberships.some((m) => m.shopId === shopId && m.status === 'ACTIVE'),
+      session?.memberships.some(
+        (m) =>
+          m.shopId === shopId &&
+          m.status === 'ACTIVE' &&
+          (m.role === 'OWNER' || m.role === 'MANAGER'),
+      ),
   );
   const activeShopId = shopId ?? shops.data?.items[0]?._id;
 
@@ -124,7 +129,15 @@ export function ShopShell() {
   ]);
 
   function switchShop(nextShopId: string) {
-    if (!session?.memberships.some((m) => m.shopId === nextShopId && m.status === 'ACTIVE')) return;
+    if (
+      !session?.memberships.some(
+        (m) =>
+          m.shopId === nextShopId &&
+          m.status === 'ACTIVE' &&
+          (m.role === 'OWNER' || m.role === 'MANAGER'),
+      )
+    )
+      return;
     localStorage.setItem(`shop-branch:${session.owner.id}`, nextShopId);
     navigate(
       `/shop/${nextShopId}/${location.pathname.includes('/orders') ? 'orders' : 'catalogue'}`,
