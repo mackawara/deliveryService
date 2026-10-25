@@ -25,6 +25,7 @@ export const TAG_TYPES = [
   'AuditEvent',
   'Alerts',
   'Shop',
+  'ShopOrder',
   'ShopItem',
   'ShopMembership',
   'ShopClaim',

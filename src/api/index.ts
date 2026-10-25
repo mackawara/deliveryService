@@ -17,3 +17,5 @@ export * from '@/api/endpoints/staff';
 export * from '@/api/errors';
 export * from '@/api/polling';
 export * from '@/api/types';
+
+export * from '@/api/endpoints/shopOrders';

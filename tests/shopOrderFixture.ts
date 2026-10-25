@@ -1,0 +1,63 @@
+import type { ShopOrder } from '@/api/dto/shopOrder';
+export function shopOrderFixture(patch: Partial<ShopOrder> = {}): ShopOrder {
+  return {
+    notifications: { pending: 0, needsHelp: false },
+    id: 'order-a',
+    reference: 'FOOD-001',
+    shopId: 'branch-a',
+    status: 'AWAITING_SHOP',
+    version: 1,
+    createdAt: '2026-10-25T10:00:00.000Z',
+    updatedAt: '2026-10-25T10:00:00.000Z',
+    placedAt: '2026-10-25T10:00:00.000Z',
+    acceptanceDeadlineAt: '2026-10-25T10:05:00.000Z',
+    acceptedAt: null,
+    prepMinutes: null,
+    estimatedReadyAt: null,
+    readyAt: null,
+    rejectedAt: null,
+    rejectionReason: null,
+    cancelledAt: null,
+    amounts: { currency: 'USD', foodSubtotalCents: 1300, deliveryFeeCents: 250, totalCents: 1550 },
+    payment: { method: 'CASH_ON_DELIVERY', state: 'DUE' },
+    delivery: {
+      status: 'CONFIRMED',
+      version: 1,
+      progress: 'AWAITING_SHOP',
+      dispatchEligible: false,
+      holdCode: null,
+      estimate: null,
+    },
+    itemCount: 2,
+    availableActions: ['ACCEPT', 'REJECT'],
+    prepMaxMinutes: 120,
+    serverNow: '2026-10-25T10:00:00.000Z',
+    help: 'Contact delivery operations with the order reference.',
+    items: [
+      {
+        itemId: 'archived-item',
+        name: 'Original pizza snapshot',
+        quantity: 2,
+        unitPriceCents: 650,
+        lineTotalCents: 1300,
+        deliverySize: {
+          weightGrams: 800,
+          dimensionsCm: { length: 32, width: 32, height: 5 },
+          capacityUnits: 1,
+          profileVersion: 1,
+        },
+      },
+    ],
+    customer: { name: 'Test customer' },
+    dropoff: { addressLine: 'Main Street', zoneCode: 'B' },
+    history: [
+      {
+        at: '2026-10-25T10:00:00.000Z',
+        type: 'PLACED',
+        channel: 'WHATSAPP',
+        actor: { type: 'CUSTOMER' },
+      },
+    ],
+    ...patch,
+  };
+}

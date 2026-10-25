@@ -23,6 +23,9 @@ const AUTH_ENDPOINTS = new Set([
 ]);
 
 const SHOP_ENDPOINTS = new Set([
+  'listShopOrders',
+  'getShopOrder',
+  'commandShopOrder',
   'getShopCsrf',
   'requestShopOtp',
   'requestShopContactOtp',
@@ -75,6 +78,10 @@ const rawBaseQuery = fetchBaseQuery({
 export type SessionExpiryListener = () => void;
 
 let onSessionExpired: SessionExpiryListener = () => {};
+let onOwnerAccessExpired: SessionExpiryListener = () => {};
+export function setOwnerAccessExpiryListener(listener: SessionExpiryListener) {
+  onOwnerAccessExpired = listener;
+}
 
 export function setSessionExpiryListener(listener: SessionExpiryListener): void {
   onSessionExpired = listener;
@@ -149,6 +156,12 @@ export const appBaseQuery: BaseQueryFn<string | FetchArgs, unknown, NormalizedAp
 
   if (result.error) {
     const normalized = normalizeApiError(result.error, result.meta);
+    if (
+      SHOP_ENDPOINTS.has(api.endpoint) &&
+      !['getShopMe', 'shopLogout'].includes(api.endpoint) &&
+      ['unauthenticated', 'forbidden'].includes(normalized.kind)
+    )
+      setTimeout(onOwnerAccessExpired, 0);
     if (normalized.kind === 'unauthenticated' && !AUTH_ENDPOINTS.has(api.endpoint)) {
       onSessionExpired();
     }

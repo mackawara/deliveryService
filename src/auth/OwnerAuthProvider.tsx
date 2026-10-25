@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useMemo, type ReactNode } from 'react';
+import { createContext, useCallback, useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 
 import { baseApi } from '@/api/baseApi';
@@ -31,10 +31,40 @@ export function OwnerAuthProvider({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [logout, logoutState] = useShopLogoutMutation();
   useGetShopCsrfQuery();
-  const me = useGetShopMeQuery(undefined, { skip: logoutState.isLoading });
+  const me = useGetShopMeQuery(undefined, {
+    skip: logoutState.isLoading,
+    pollingInterval: 5000,
+    skipPollingIfUnfocused: true,
+  });
+  const previousAccess = useRef<string | null>(null);
+  const access = me.data
+    ? JSON.stringify([
+        me.data.owner.id,
+        me.data.memberships.map((m) => [m.shopId, m.status]).sort(),
+      ])
+    : null;
+  useEffect(() => {
+    if (access && previousAccess.current && access !== previousAccess.current)
+      dispatch(baseApi.util.resetApiState());
+    if (access) previousAccess.current = access;
+    if (
+      me.error &&
+      (me.error as NormalizedApiError).kind === 'unauthenticated' &&
+      previousAccess.current
+    ) {
+      previousAccess.current = null;
+      dispatch(baseApi.util.resetApiState());
+    }
+  }, [access, dispatch, me.error]);
 
   const status: OwnerAuthStatus =
-    me.isLoading || me.isUninitialized ? 'loading' : me.data ? 'authenticated' : 'anonymous';
+    me.isLoading || me.isUninitialized
+      ? 'loading'
+      : me.error && (me.error as NormalizedApiError).kind === 'unauthenticated'
+        ? 'anonymous'
+        : me.data
+          ? 'authenticated'
+          : 'anonymous';
 
   useEffect(() => {
     if (
@@ -57,7 +87,7 @@ export function OwnerAuthProvider({ children }: { children: ReactNode }) {
       await logout().unwrap();
     } finally {
       clearShopCsrfToken();
-      dispatch(baseApi.util.invalidateTags(['Shop', 'ShopItem', 'ShopClaim', 'ShopTerms']));
+      dispatch(baseApi.util.resetApiState());
       navigate('/shop/login', { replace: true });
     }
   }, [dispatch, logout, navigate]);

@@ -9,6 +9,7 @@ const PORT = 5174;
 
 export default defineConfig({
   testDir: './tests/e2e',
+  testIgnore: 'shopOrders.spec.ts',
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 1 : 0,

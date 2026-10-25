@@ -143,6 +143,9 @@ jobs:
       - name: Run Playwright tests
         run: yarn test:e2e
 
+      - name: Shop phone and desktop order workflows
+        run: yarn playwright test --config playwright.shop-orders.config.ts
+
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

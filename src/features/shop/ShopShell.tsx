@@ -33,8 +33,18 @@ const DRAWER_WIDTH = 248;
 
 function ShopNavigation({ shopId, close }: { shopId?: string; close?: () => void }) {
   const location = useLocation();
+  const { session } = useOwnerAuth();
   const links = shopId
     ? [
+        ...(session?.capabilities.includes('orders:manage')
+          ? [
+              {
+                label: 'Orders',
+                path: `/shop/${shopId}/orders`,
+                icon: <StorefrontIcon fontSize="small" />,
+              },
+            ]
+          : []),
         {
           label: 'Profile',
           path: `/shop/${shopId}/profile`,
@@ -78,21 +88,47 @@ export function ShopShell() {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const dispatch = useAppDispatch();
   const { shopId } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
   const { session, signOut, signingOut } = useOwnerAuth();
-  const shops = useListShopsQuery({}, { skip: !session });
-  const current = shops.data?.items.find((shop) => shop._id === shopId);
+  const shops = useListShopsQuery(
+    { limit: 100 },
+    { skip: !session, pollingInterval: 5000, skipPollingIfUnfocused: true },
+  );
+  const current = shops.currentData?.items.find(
+    (shop) =>
+      shop._id === shopId &&
+      session?.memberships.some((m) => m.shopId === shopId && m.status === 'ACTIVE'),
+  );
   const activeShopId = shopId ?? shops.data?.items[0]?._id;
 
   useEffect(() => {
     if (!shopId || shops.isLoading || shops.error || !shops.data || current) return;
     dispatch(baseApi.util.invalidateTags(['Shop', 'ShopItem', 'ShopTerms']));
     const fallback = shops.data.items[0]?._id;
-    navigate(fallback ? `/shop/${fallback}/catalogue` : '/shop/setup', { replace: true });
-  }, [current, dispatch, navigate, shopId, shops.data, shops.error, shops.isLoading]);
+    navigate(
+      fallback
+        ? `/shop/${fallback}/${location.pathname.includes('/orders') ? 'orders' : 'catalogue'}`
+        : '/shop/setup',
+      { replace: true },
+    );
+  }, [
+    current,
+    dispatch,
+    navigate,
+    shopId,
+    shops.data,
+    shops.error,
+    shops.isLoading,
+    location.pathname,
+  ]);
 
   function switchShop(nextShopId: string) {
-    navigate(`/shop/${nextShopId}/catalogue`);
+    if (!session?.memberships.some((m) => m.shopId === nextShopId && m.status === 'ACTIVE')) return;
+    localStorage.setItem(`shop-branch:${session.owner.id}`, nextShopId);
+    navigate(
+      `/shop/${nextShopId}/${location.pathname.includes('/orders') ? 'orders' : 'catalogue'}`,
+    );
   }
 
   const drawer = (
@@ -142,11 +178,11 @@ export function ShopShell() {
           <Box sx={{ flexGrow: 1 }} />
           <Select
             size="small"
-            value={activeShopId ?? ''}
+            value={shops.data?.items.some((s) => s._id === activeShopId) ? activeShopId : ''}
             displayEmpty
             onChange={(event) => switchShop(event.target.value)}
             sx={{ minWidth: { xs: 150, sm: 230 }, bgcolor: 'background.paper', borderRadius: 1 }}
-            aria-label="Current shop branch"
+            inputProps={{ 'aria-label': 'Current shop branch' }}
           >
             {!shops.data?.items.length ? <MenuItem value="">No branches yet</MenuItem> : null}
             {shops.data?.items.map((shop) => (
@@ -191,7 +227,11 @@ export function ShopShell() {
             </Typography>
           </Box>
         ) : null}
-        <Outlet />
+        {!signingOut && (!shopId || !!current) ? (
+          <Outlet />
+        ) : (
+          <Typography>Checking branch access…</Typography>
+        )}
       </Box>
     </Box>
   );
