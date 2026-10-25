@@ -5,6 +5,7 @@ import type {
   CreateItemBody,
   CreateShopBody,
   ShopCommandArgs,
+  ShopTownChoice,
   ShopPage,
   UpdateItemBody,
   UpdateShopBody,
@@ -87,6 +88,43 @@ export const shopApi = baseApi.injectEndpoints({
       },
     }),
 
+    listShopTowns: build.query<ShopTownChoice[], void>({
+      query: () => ({ url: '/shop/towns' }),
+      transformResponse: (response: { items: ShopTownChoice[] }) => response.items,
+    }),
+    requestShopContactOtp: build.mutation<
+      WireOtpChallenge,
+      { shopId: string; expectedVersion: number; consent: true } & ShopCommandArgs
+    >({
+      query: ({ shopId, idempotencyKey, ...body }) => ({
+        url: `/shop/shops/${shopId}/contact/otp/request`,
+        method: 'POST',
+        body,
+        headers: commandHeaders(idempotencyKey),
+      }),
+    }),
+    verifyShopContactOtp: build.mutation<
+      WireShop,
+      {
+        shopId: string;
+        expectedVersion: number;
+        challengeId: string;
+        code: string;
+        consent: true;
+      } & ShopCommandArgs
+    >({
+      query: ({ shopId, idempotencyKey, ...body }) => ({
+        url: `/shop/shops/${shopId}/contact/otp/verify`,
+        method: 'POST',
+        body,
+        headers: commandHeaders(idempotencyKey),
+      }),
+      transformResponse: (response: { shop: WireShop }) => response.shop,
+      invalidatesTags: (_result, _error, args) => [
+        entityTag('Shop', args.shopId),
+        listTag('Shop', 'owner'),
+      ],
+    }),
     listShops: build.query<ShopPage<WireShop>, { limit?: number; skip?: number }>({
       query: ({ limit, skip } = {}) => ({ url: '/shop/shops', params: pageParams(limit, skip) }),
       providesTags: (result) => [
@@ -227,7 +265,10 @@ export const shopApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, args) => [
         entityTag('Shop', args.shopId),
-        ...(args.itemId ? [entityTag('ShopItem', args.itemId)] : []),
+        listTag('Shop', 'owner'),
+        ...(args.itemId
+          ? [entityTag('ShopItem', args.itemId), listTag('ShopItem', args.shopId)]
+          : []),
       ],
     }),
     listShopClaims: build.query<ShopPage<WireClaim>, { limit?: number; skip?: number }>({
@@ -309,7 +350,10 @@ export const shopApi = baseApi.injectEndpoints({
         body,
         headers: commandHeaders(idempotencyKey),
       }),
-      invalidatesTags: (_result, _error, args) => [entityTag('Shop', args.shopId)],
+      invalidatesTags: (_result, _error, args) => [
+        entityTag('Shop', args.shopId),
+        listTag('ShopTerms', args.shopId),
+      ],
     }),
     listAdminClaims: build.query<
       ShopPage<WireClaim>,
@@ -391,6 +435,9 @@ export const {
   useGetShopMeQuery,
   useShopActivityMutation,
   useShopLogoutMutation,
+  useListShopTownsQuery,
+  useRequestShopContactOtpMutation,
+  useVerifyShopContactOtpMutation,
   useListShopsQuery,
   useGetShopQuery,
   useCreateShopMutation,

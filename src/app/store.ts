@@ -18,6 +18,8 @@ const SENSITIVE_ENDPOINTS = new Set([
   'verifyStaffPhoneChange',
   'getShopCsrf',
   'requestShopOtp',
+  'requestShopContactOtp',
+  'verifyShopContactOtp',
   'resendShopOtp',
   'verifyShopOtp',
 ]);

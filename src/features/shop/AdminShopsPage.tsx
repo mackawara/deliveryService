@@ -1,3 +1,4 @@
+import { schedulePayload, validSchedule } from './settlement';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import FactCheckIcon from '@mui/icons-material/FactCheck';
 import GavelIcon from '@mui/icons-material/Gavel';
@@ -136,16 +137,7 @@ function TermsDialog({ detail, onClose }: { detail: WireShopDetail; onClose: () 
   async function submit(event: FormEvent) {
     event.preventDefault();
     try {
-      const schedule = {
-        frequency,
-        timezone,
-        cutoffTime,
-        ...(frequency === 'WEEKLY'
-          ? { periodAnchor: Number(anchor || 0) }
-          : frequency === 'MONTHLY'
-            ? { periodAnchor: Number(anchor || 1) }
-            : {}),
-      };
+      const schedule = schedulePayload({ frequency, timezone, cutoffTime, anchor });
       await propose({
         shopId: detail.shop._id,
         expectedVersion: detail.shop.version,
@@ -216,13 +208,29 @@ function TermsDialog({ detail, onClose }: { detail: WireShopDetail; onClose: () 
                 value={anchor}
                 onChange={(event) => setAnchor(event.target.value)}
                 type="number"
+                required
+                slotProps={{
+                  htmlInput: {
+                    min: frequency === 'WEEKLY' ? 0 : 1,
+                    max: frequency === 'WEEKLY' ? 6 : 28,
+                    step: 1,
+                  },
+                }}
               />
             ) : null}
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={onClose}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={state.isLoading || !reference.trim()}>
+          <Button
+            type="submit"
+            variant="contained"
+            disabled={
+              state.isLoading ||
+              !reference.trim() ||
+              !validSchedule({ frequency, timezone, cutoffTime, anchor })
+            }
+          >
             {state.isLoading ? 'Saving…' : 'Propose terms'}
           </Button>
         </DialogActions>
@@ -262,8 +270,8 @@ function DetailCard({
             />
           </Stack>
           <Typography variant="body2">
-            Source: {shop.source ?? 'SELF_SERVICE'} · {shop.isOpen ? 'Open' : 'Closed'} · profile
-            version {shop.version}
+            Source: {shop.provenance ?? 'SELF_SERVICE'} · {shop.isOpen ? 'Open' : 'Closed'} ·
+            profile version {shop.version}
           </Typography>
           {detail.data?.shop.approvalReason ? (
             <Alert severity="info">{detail.data.shop.approvalReason}</Alert>

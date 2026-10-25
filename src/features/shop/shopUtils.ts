@@ -1,4 +1,4 @@
-import type { WireFoodItem, WireShop } from '@/api/dto/shop';
+import type { WireFoodItem, WireShop, UpdateShopBody, WireSettlementPolicy } from '@/api/dto/shop';
 
 export function imageSource(base64?: string): string | undefined {
   return base64 ? `data:image/jpeg;base64,${base64}` : undefined;
@@ -27,4 +27,37 @@ export function readImageBase64(file: File): Promise<string> {
     reader.onerror = () => reject(new Error('The image could not be read.'));
     reader.readAsDataURL(file);
   });
+}
+
+export function currentProposal(
+  shop: WireShop,
+  terms: WireSettlementPolicy[],
+): WireSettlementPolicy | undefined {
+  return terms.find((terms) => terms._id === shop.proposedTermsId);
+}
+export function profilePatch(
+  record: WireShop,
+  draft: {
+    name: string;
+    branchName: string;
+    phone: string;
+    lat: string;
+    lng: string;
+    address: string;
+  },
+): Omit<UpdateShopBody, 'expectedVersion'> {
+  return {
+    ...(draft.name.trim() !== record.name ? { name: draft.name.trim() } : {}),
+    ...(draft.branchName.trim() !== (record.branchName ?? '')
+      ? { branchName: draft.branchName.trim() }
+      : {}),
+    ...(draft.phone.trim() !== record.contactPhone ? { contactPhone: draft.phone.trim() } : {}),
+    ...(Number(draft.lat) !== record.pickup.point.coordinates[1] ||
+    Number(draft.lng) !== record.pickup.point.coordinates[0] ||
+    draft.address.trim() !== record.pickup.addressLine
+      ? {
+          pickup: { lat: Number(draft.lat), lng: Number(draft.lng), address: draft.address.trim() },
+        }
+      : {}),
+  };
 }

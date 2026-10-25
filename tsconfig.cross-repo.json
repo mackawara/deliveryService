@@ -1,0 +1,12 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@/*": ["src/*"],
+      "@api-test/*": ["../deliveryBooking-1/tests/helpers/*"],
+      "@api-src/*": ["../deliveryBooking-1/src/*"]
+    }
+  },
+  "include": ["cross-repo", "vitest.cross-repo.config.ts", "src/**/*.d.ts", "tests/setup.ts"]
+}

@@ -1,7 +1,7 @@
-import type { IsoDateTime, WireDocument, WireVersioned } from '@/api/dto/common';
+import type { GeoArea, IsoDateTime, WireDocument, WireVersioned } from '@/api/dto/common';
 
 export type ShopApprovalState = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED';
-export type ShopStatus = 'ACTIVE' | 'DISABLED';
+export type ShopStatus = 'ACTIVE' | 'ARCHIVED';
 export type ShopMembershipRole = 'OWNER' | 'MANAGER';
 export type ShopMembershipStatus = 'ACTIVE' | 'REVOKED';
 export type ShopItemStatus = 'ACTIVE' | 'ARCHIVED';
@@ -13,29 +13,43 @@ export interface WirePickup {
   zoneCode: string;
 }
 
-export interface ShopSchedule {
-  frequency: SettlementFrequency;
-  timezone: string;
-  cutoffTime: string;
-  periodAnchor?: number;
-}
+export type ShopSchedule = { timezone: string; cutoffTime: string } & (
+  | { frequency: 'DAILY'; periodAnchor?: never }
+  | { frequency: 'WEEKLY' | 'MONTHLY'; periodAnchor: number }
+);
 
 export interface WireSettlementPolicy {
-  _id?: string;
+  _id: string;
   version: number;
+  shopId: string;
+  commissionPolicy: WireCommissionPolicy;
+  settlementPolicy: ShopSchedule & { version: number; effectiveFrom: IsoDateTime };
+  acknowledgedAt?: IsoDateTime;
+  acknowledgedByOwnerId?: string;
+}
+
+export interface WireCommissionPolicy {
+  kind: 'BASIS_POINTS';
   basisPoints: number;
-  status: 'UNAGREED' | 'AGREED';
-  effectiveFrom?: IsoDateTime;
-  schedule: ShopSchedule;
-  reference?: string;
+  rounding: 'HALF_UP';
+  reference: string;
+  effectiveFrom: IsoDateTime;
+  version: number;
+}
+
+export interface ShopTownChoice {
+  _id: string;
+  name: string;
+  serviceArea: GeoArea;
 }
 
 export interface WireThumbnail {
   recipe: string;
-  checksum: string;
+  sourceChecksum: string;
+  contentType: 'image/jpeg';
   width: number;
   height: number;
-  byteCount: number;
+  bytes: number;
   generatedAt: IsoDateTime;
 }
 
@@ -49,10 +63,15 @@ export interface WireShop extends WireDocument, WireVersioned {
   approvalState: ShopApprovalState;
   ownerManaged: boolean;
   isOpen: boolean;
-  source?: 'PILOT' | 'SELF_SERVICE' | 'FIXTURE';
+  provenance?: 'PILOT' | 'SELF_SERVICE' | 'FIXTURE';
   thumbnail?: WireThumbnail;
   thumbnailBase64?: string;
-  terms?: WireSettlementPolicy;
+  commissionPolicy: WireCommissionPolicy;
+  settlementPolicy: ShopSchedule & { version: number; effectiveFrom: IsoDateTime };
+  proposedTermsId?: string;
+  termsVersion?: number;
+  whatsappOptIn?: boolean;
+  whatsappConsent?: { phone: string; policy: 'food-shop-orders-v1'; verifiedAt: IsoDateTime };
   requestedSettlement?: ShopSchedule;
   approvalReason?: string;
   approvalUpdatedAt?: IsoDateTime;
@@ -107,11 +126,10 @@ export interface WirePackingProfile extends WireDocument, WireVersioned {
   };
 }
 
-export interface WireTermsRequest extends WireDocument, WireVersioned {
+export interface WireTermsRequest extends WireDocument {
   shopId: string;
   schedule?: ShopSchedule;
   acknowledgeTermsId?: string;
-  status: 'PENDING' | 'ACKNOWLEDGED' | 'REJECTED';
   createdAt: IsoDateTime;
 }
 

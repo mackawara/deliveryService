@@ -242,3 +242,9 @@ bootstrap order, monitoring and recovery.
 ## Licence
 
 MIT — see `LICENSE`.
+
+## Order Food onboarding development
+
+See [Order Food development and cross-repository tests](docs/order-food-development.md)
+for the paired API checkout, branch WhatsApp verification, town/map fallback,
+recoverable drafts and the isolated full onboarding journey.

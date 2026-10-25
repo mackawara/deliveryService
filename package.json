@@ -25,7 +25,9 @@
     "test:e2e": "playwright test",
     "doctor": "node scripts/doctor.mjs",
     "doctor:check": "node scripts/doctor.mjs --check",
-    "verify": "yarn typecheck && yarn lint && yarn format && yarn doctor:check && yarn test && yarn build"
+    "verify": "yarn typecheck && yarn lint && yarn format && yarn doctor:check && yarn test && yarn build",
+    "test:cross-repo": "vitest run --config vitest.cross-repo.config.ts",
+    "typecheck:cross-repo": "tsc --noEmit -p tsconfig.cross-repo.json"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
