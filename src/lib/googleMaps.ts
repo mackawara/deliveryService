@@ -5,7 +5,7 @@ import { appConfig } from '@/config';
 let configured = false;
 let pending: Promise<typeof google.maps> | undefined;
 
-/** Invoked only by the mounted admin boundary editor; never by the page listing. */
+/** Shared by the boundary editor and branch pickup picker; loaded only when mounted. */
 export function loadGoogleMaps(): Promise<typeof google.maps> {
   if (!appConfig.googleMapsApiKey)
     return Promise.reject(new Error('Google Maps is not configured.'));
@@ -13,7 +13,7 @@ export function loadGoogleMaps(): Promise<typeof google.maps> {
     setOptions({ key: appConfig.googleMapsApiKey, v: 'quarterly', region: 'ZW' });
     configured = true;
   }
-  pending ??= Promise.all([importLibrary('maps'), importLibrary('core')])
+  pending ??= Promise.all([importLibrary('maps'), importLibrary('core'), importLibrary('marker')])
     .then(() => google.maps)
     .catch((error: unknown) => {
       pending = undefined;

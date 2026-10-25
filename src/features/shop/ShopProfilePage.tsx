@@ -1,3 +1,4 @@
+import { SettlementFields } from './SettlementFields';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import LockClockIcon from '@mui/icons-material/LockClock';
 import SaveIcon from '@mui/icons-material/Save';
@@ -9,7 +10,6 @@ import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Chip from '@mui/material/Chip';
 import Divider from '@mui/material/Divider';
-import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
@@ -20,6 +20,7 @@ import { useParams } from 'react-router-dom';
 import type { WireSettlementPolicy, WireShop } from '@/api/dto/shop';
 import {
   useGetShopQuery,
+  useListShopTownsQuery,
   useGetShopTermsQuery,
   useRequestShopTermsMutation,
   useUpdateShopMutation,
@@ -30,7 +31,11 @@ import { ApiError } from '@/components/ApiError';
 import { PageHeader } from '@/components/PageHeader';
 import { newIdempotencyKey } from '@/lib/idempotency';
 import { readImageBase64 } from '@/features/shop/shopUtils';
-import { shopImage } from '@/features/shop/shopUtils';
+import { shopImage, profilePatch, currentProposal } from '@/features/shop/shopUtils';
+import { PickupPicker } from './PickupPicker';
+import { validPickup } from './pickup';
+import { scheduleDraft, schedulePayload, scheduleLabel, validSchedule } from './settlement';
+import { ShopContactVerification } from './ShopContactVerification';
 
 function ProfileEditor({
   shopId,
@@ -48,7 +53,7 @@ function ProfileEditor({
   const [address, setAddress] = useState(record.pickup.addressLine);
   const [lat, setLat] = useState(String(record.pickup.point.coordinates[1]));
   const [lng, setLng] = useState(String(record.pickup.point.coordinates[0]));
-  const [open, setOpen] = useState(record.isOpen);
+  const towns = useListShopTownsQuery();
   const [error, setError] = useState<NormalizedApiError>();
 
   async function save(patch: { isOpen?: boolean } = {}) {
@@ -57,11 +62,9 @@ function ProfileEditor({
       await updateShop({
         shopId,
         expectedVersion: record.version,
-        name: name.trim(),
-        branchName: branchName.trim() || undefined,
-        contactPhone: phone.trim(),
-        pickup: { lat: Number(lat), lng: Number(lng), address: address.trim() },
-        ...patch,
+        ...(patch.isOpen !== undefined
+          ? patch
+          : profilePatch(record, { name, branchName, phone, lat, lng, address })),
         idempotencyKey: newIdempotencyKey(),
       }).unwrap();
       onSaved();
@@ -93,36 +96,25 @@ function ProfileEditor({
         onChange={(event) => setPhone(event.target.value)}
         fullWidth
       />
-      <TextField
-        required
-        label="Short pickup address"
-        value={address}
-        onChange={(event) => setAddress(event.target.value)}
-        fullWidth
+      <PickupPicker
+        value={{ lat, lng, address }}
+        onChange={(value) => {
+          setLat(value.lat);
+          setLng(value.lng);
+          setAddress(value.address);
+        }}
+        town={towns.data?.find((town) => town._id === record.townId)}
       />
-      <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-        <TextField
-          fullWidth
-          label="Latitude"
-          type="number"
-          value={lat}
-          onChange={(event) => setLat(event.target.value)}
-          slotProps={{ htmlInput: { step: 'any' } }}
-        />
-        <TextField
-          fullWidth
-          label="Longitude"
-          type="number"
-          value={lng}
-          onChange={(event) => setLng(event.target.value)}
-          slotProps={{ htmlInput: { step: 'any' } }}
-        />
-      </Stack>
       <Button
         variant="contained"
         startIcon={<SaveIcon />}
         onClick={() => void save()}
-        disabled={updateState.isLoading || !name.trim() || !phone.trim() || !address.trim()}
+        disabled={
+          updateState.isLoading ||
+          !name.trim() ||
+          !phone.trim() ||
+          !validPickup({ lat, lng, address })
+        }
       >
         {updateState.isLoading ? 'Saving…' : 'Save profile'}
       </Button>
@@ -135,9 +127,12 @@ function ProfileEditor({
           </Typography>
         </Stack>
         <Switch
-          checked={open}
+          checked={record.isOpen}
+          disabled={
+            updateState.isLoading ||
+            (!record.isOpen && (record.approvalState !== 'APPROVED' || !record.whatsappOptIn))
+          }
           onChange={(event) => {
-            setOpen(event.target.checked);
             void save({ isOpen: event.target.checked });
           }}
           slotProps={{ input: { 'aria-label': 'Open branch for orders' } }}
@@ -159,14 +154,13 @@ function TermsEditor({
   onChanged: () => void;
 }) {
   const [requestTerms, state] = useRequestShopTermsMutation();
-  const [frequency, setFrequency] = useState(
-    currentTerms?.schedule.frequency ?? record.requestedSettlement?.frequency ?? 'DAILY',
-  );
-  const [timezone, setTimezone] = useState(
-    currentTerms?.schedule.timezone ?? record.requestedSettlement?.timezone ?? 'Africa/Harare',
-  );
-  const [cutoffTime, setCutoffTime] = useState(
-    currentTerms?.schedule.cutoffTime ?? record.requestedSettlement?.cutoffTime ?? '22:00',
+  const [schedule, setSchedule] = useState(() =>
+    scheduleDraft(
+      currentTerms?.settlementPolicy ??
+        (record.settlementPolicy.version > 0
+          ? record.settlementPolicy
+          : record.requestedSettlement),
+    ),
   );
   const [error, setError] = useState<NormalizedApiError>();
 
@@ -176,7 +170,7 @@ function TermsEditor({
       await requestTerms({
         shopId,
         expectedVersion: record.version,
-        schedule: { frequency, timezone, cutoffTime },
+        schedule: schedulePayload(schedule),
         idempotencyKey: newIdempotencyKey(),
       }).unwrap();
       onChanged();
@@ -204,41 +198,15 @@ function TermsEditor({
   return (
     <Stack spacing={1.5}>
       {error ? <ApiError error={error} /> : null}
-      <TextField
-        select
-        label="Requested frequency"
-        value={frequency}
-        onChange={(event) => setFrequency(event.target.value as typeof frequency)}
-        size="small"
+      <SettlementFields value={schedule} onChange={setSchedule} />
+      <Button
+        variant="outlined"
+        onClick={() => void submitSchedule()}
+        disabled={state.isLoading || !validSchedule(schedule)}
       >
-        {['DAILY', 'WEEKLY', 'MONTHLY'].map((value) => (
-          <MenuItem key={value} value={value}>
-            {value}
-          </MenuItem>
-        ))}
-      </TextField>
-      <Stack direction="row" spacing={1}>
-        <TextField
-          fullWidth
-          label="Timezone"
-          value={timezone}
-          onChange={(event) => setTimezone(event.target.value)}
-          size="small"
-        />
-        <TextField
-          fullWidth
-          label="Cut-off"
-          type="time"
-          value={cutoffTime}
-          onChange={(event) => setCutoffTime(event.target.value)}
-          size="small"
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
-      </Stack>
-      <Button variant="outlined" onClick={() => void submitSchedule()} disabled={state.isLoading}>
         {state.isLoading ? 'Sending…' : 'Request schedule'}
       </Button>
-      {currentTerms && currentTerms._id && currentTerms.status !== 'AGREED' ? (
+      {currentTerms && currentTerms._id && !currentTerms.acknowledgedAt ? (
         <Button variant="contained" onClick={() => void acknowledge()} disabled={state.isLoading}>
           Acknowledge latest terms
         </Button>
@@ -280,7 +248,7 @@ export function ShopProfilePage() {
     );
   if (!shop.data) return null;
   const record = shop.data;
-  const currentTerms = terms.data?.terms?.at(-1);
+  const currentTerms = currentProposal(record, terms.data?.terms ?? []);
   return (
     <Stack spacing={3}>
       <PageHeader
@@ -324,6 +292,10 @@ export function ShopProfilePage() {
                   }}
                 />
               </Button>
+              <ShopContactVerification
+                key={`contact:${record._id}:${record.version}`}
+                shop={record}
+              />
               <ProfileEditor
                 key={`${record._id}:${record.version}`}
                 shopId={shopId}
@@ -367,20 +339,33 @@ export function ShopProfilePage() {
                   <LockClockIcon color="action" />
                   <Typography variant="h2">Settlement terms</Typography>
                 </Stack>
+                {terms.error && (
+                  <ApiError
+                    error={terms.error as NormalizedApiError}
+                    onRetry={() => void terms.refetch()}
+                  />
+                )}
+                {record.settlementPolicy.version > 0 && (
+                  <Typography variant="body2">
+                    Agreed v{record.termsVersion ?? record.settlementPolicy.version}:{' '}
+                    {scheduleLabel(record.settlementPolicy)} · commission{' '}
+                    {(record.commissionPolicy.basisPoints / 100).toFixed(2)}%
+                  </Typography>
+                )}
                 {currentTerms ? (
                   <>
                     <Typography variant="body2">
-                      {currentTerms.schedule.frequency} · cutoff {currentTerms.schedule.cutoffTime}
+                      Proposal v{currentTerms.version}:{' '}
+                      {scheduleLabel(currentTerms.settlementPolicy)}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      {currentTerms.schedule.timezone}
-                      {currentTerms.schedule.periodAnchor !== undefined
-                        ? ` · anchor ${currentTerms.schedule.periodAnchor}`
-                        : ''}
+                      {currentTerms.acknowledgedAt
+                        ? 'Acknowledged'
+                        : 'Awaiting your acknowledgement'}
                     </Typography>
                     <Typography variant="body2">
-                      Commission: {(currentTerms.basisPoints / 100).toFixed(2)}% ·{' '}
-                      {currentTerms.status}
+                      Commission: {(currentTerms.commissionPolicy.basisPoints / 100).toFixed(2)}% ·{' '}
+                      {currentTerms.commissionPolicy.reference}
                     </Typography>
                   </>
                 ) : (
@@ -393,6 +378,19 @@ export function ShopProfilePage() {
                   Request a schedule during onboarding, or acknowledge the exact current proposal
                   after admin review.
                 </Typography>
+                {(terms.data?.terms.length ?? 0) > 1 && (
+                  <details>
+                    <summary>Terms history</summary>
+                    {terms.data?.terms.map((entry) => (
+                      <Typography variant="body2" key={entry._id}>
+                        v{entry.version} · {scheduleLabel(entry.settlementPolicy)} ·{' '}
+                        {(entry.commissionPolicy.basisPoints / 100).toFixed(2)}% ·{' '}
+                        {entry.acknowledgedAt ? 'Acknowledged' : 'Unacknowledged'}
+                        {entry._id === record.proposedTermsId ? ' · current proposal' : ''}
+                      </Typography>
+                    ))}
+                  </details>
+                )}
                 <TermsEditor
                   key={`${record.version}:${currentTerms?._id ?? 'none'}`}
                   shopId={shopId}

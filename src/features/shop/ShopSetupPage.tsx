@@ -1,4 +1,6 @@
+import { SettlementFields } from './SettlementFields';
 import AddBusinessIcon from '@mui/icons-material/AddBusiness';
+import Alert from '@mui/material/Alert';
 import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
@@ -7,44 +9,121 @@ import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
 import Typography from '@mui/material/Typography';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
-import { useCreateShopMutation, useSubmitShopClaimMutation } from '@/api/endpoints/shop';
+import {
+  useCreateShopMutation,
+  useSubmitShopClaimMutation,
+  useListShopTownsQuery,
+} from '@/api/endpoints/shop';
 import type { NormalizedApiError } from '@/api/errors';
+import { useOwnerAuth } from '@/auth/useOwnerAuth';
 import { useGuardedAction } from '@/lib/useGuardedAction';
+import { PickupPicker } from './PickupPicker';
+import { validPickup, type PickupDraft } from './pickup';
+import { scheduleDraft, schedulePayload, validSchedule, type ScheduleDraft } from './settlement';
 
+interface SetupDraft {
+  createKey: string;
+  name: string;
+  branchName: string;
+  phone: string;
+  townId: string;
+  pickup: PickupDraft;
+  schedule: ScheduleDraft;
+}
+const emptyDraft = (): SetupDraft => ({
+  createKey: crypto.randomUUID(),
+  name: '',
+  branchName: '',
+  phone: '',
+  townId: '',
+  pickup: { lat: '', lng: '', address: '' },
+  schedule: scheduleDraft(),
+});
+function readDraft(key: string): SetupDraft {
+  try {
+    const saved = JSON.parse(sessionStorage.getItem(key) ?? 'null');
+    if (!saved || typeof saved.savedAt !== 'number' || Date.now() - saved.savedAt > 7 * 86400000)
+      return emptyDraft();
+    const value = saved.value as SetupDraft;
+    if (
+      ![
+        value.name,
+        value.branchName,
+        value.phone,
+        value.townId,
+        value.pickup.lat,
+        value.pickup.lng,
+        value.pickup.address,
+        value.schedule.timezone,
+        value.schedule.cutoffTime,
+        value.schedule.anchor,
+      ].every((part) => typeof part === 'string') ||
+      !['DAILY', 'WEEKLY', 'MONTHLY'].includes(value.schedule.frequency)
+    )
+      return emptyDraft();
+    return {
+      ...value,
+      createKey: typeof value.createKey === 'string' ? value.createKey : crypto.randomUUID(),
+    };
+  } catch {
+    return emptyDraft();
+  }
+}
 export function ShopSetupPage() {
+  const { session } = useOwnerAuth();
+  return session ? <SetupForm key={session.owner.id} ownerId={session.owner.id} /> : null;
+}
+function SetupForm({ ownerId }: { ownerId: string }) {
   const navigate = useNavigate();
-  const [name, setName] = useState('');
-  const [branchName, setBranchName] = useState('');
-  const [phone, setPhone] = useState('');
-  const [townId, setTownId] = useState('');
-  const [lat, setLat] = useState('');
-  const [lng, setLng] = useState('');
-  const [address, setAddress] = useState('');
-  const [frequency, setFrequency] = useState<'DAILY' | 'WEEKLY' | 'MONTHLY'>('DAILY');
-  const [timezone, setTimezone] = useState('Africa/Harare');
-  const [cutoffTime, setCutoffTime] = useState('22:00');
+  const draftKey = `shop-setup:v1:${ownerId}`;
+  const [draft, setDraft] = useState(() => readDraft(draftKey));
   const [claimShopId, setClaimShopId] = useState('');
   const [evidence, setEvidence] = useState('');
   const [createShop] = useCreateShopMutation();
   const [submitClaim] = useSubmitShopClaimMutation();
-
-  // Town options are read from the already-loaded staff configuration cache when present.
+  const towns = useListShopTownsQuery();
+  useEffect(() => {
+    try {
+      sessionStorage.setItem(draftKey, JSON.stringify({ savedAt: Date.now(), value: draft }));
+    } catch {
+      /* Setup remains usable when browser storage is unavailable. */
+    }
+  }, [draft, draftKey]);
+  const field = (key: 'name' | 'branchName' | 'phone' | 'townId', value: string) =>
+    setDraft((current) => ({
+      ...current,
+      createKey: crypto.randomUUID(),
+      [key]: value,
+      ...(key === 'townId'
+        ? { pickup: { lat: '', lng: '', address: current.pickup.address } }
+        : {}),
+    }));
   const create = useGuardedAction({
-    run: (_: undefined, key: string) =>
+    run: (_: undefined, _key: string) =>
       createShop({
-        name: name.trim(),
-        branchName: branchName.trim() || undefined,
-        contactPhone: phone.trim(),
-        townId,
-        pickup: { lat: Number(lat), lng: Number(lng), address: address.trim() },
-        requestedSettlement: { frequency, timezone: timezone.trim(), cutoffTime },
-        idempotencyKey: key,
+        name: draft.name.trim(),
+        branchName: draft.branchName.trim() || undefined,
+        contactPhone: draft.phone.trim(),
+        townId: draft.townId,
+        pickup: {
+          lat: Number(draft.pickup.lat),
+          lng: Number(draft.pickup.lng),
+          address: draft.pickup.address.trim(),
+        },
+        requestedSettlement: schedulePayload(draft.schedule),
+        idempotencyKey: draft.createKey,
       }).unwrap(),
-    successMessage: 'Branch created. Add catalogue items while it awaits approval.',
-    onSuccess: (shop) => navigate(`/shop/${shop._id}/catalogue`),
+    successMessage: 'Branch created. Verify its WhatsApp contact and prepare the catalogue.',
+    onSuccess: (shop) => {
+      try {
+        sessionStorage.removeItem(draftKey);
+      } catch {
+        /* Optional draft storage. */
+      }
+      navigate(`/shop/${shop._id}/profile`);
+    },
   });
   const claim = useGuardedAction({
     run: (_: undefined, key: string) =>
@@ -60,137 +139,110 @@ export function ShopSetupPage() {
     },
   });
   const valid =
-    name.trim() &&
-    phone.trim() &&
-    townId &&
-    address.trim() &&
-    lat.trim() &&
-    lng.trim() &&
-    Number.isFinite(Number(lat)) &&
-    Number.isFinite(Number(lng)) &&
-    timezone.trim();
-
+    draft.name.trim() &&
+    draft.phone.trim() &&
+    towns.data?.some((town) => town._id === draft.townId) &&
+    validPickup(draft.pickup) &&
+    validSchedule(draft.schedule);
   return (
     <Stack spacing={3} sx={{ maxWidth: 860, mx: 'auto' }}>
       <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center' }}>
         <AddBusinessIcon color="primary" />
-        <Stack>
-          <Typography variant="h1">Set up a branch</Typography>
-          <Typography color="text.secondary">Step 1 of 2 · business and location</Typography>
-        </Stack>
+        <Typography variant="h1">Set up a branch</Typography>
       </Stack>
       <Card>
         <CardContent>
           <Stack spacing={2.5}>
             <Typography variant="h2">Branch details</Typography>
-            <Typography variant="body2" color="text.secondary">
-              A branch starts closed and pending. You can prepare its catalogue before approval.
+            <Typography>
+              A branch starts closed and pending. After creation, verify the branch WhatsApp contact
+              and add its catalogue.
             </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField
-                fullWidth
-                required
-                label="Business name"
-                value={name}
-                onChange={(event) => setName(event.target.value)}
-              />
-              <TextField
-                fullWidth
-                label="Branch label"
-                value={branchName}
-                onChange={(event) => setBranchName(event.target.value)}
-                helperText="For example, Town centre"
-              />
-            </Stack>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField
-                fullWidth
-                required
-                label="Contact phone"
-                value={phone}
-                onChange={(event) => setPhone(event.target.value)}
-                inputMode="tel"
-              />
-              <TextField
-                fullWidth
-                required
-                label="Town ID"
-                value={townId}
-                onChange={(event) => setTownId(event.target.value)}
-                helperText="Use the town identifier supplied by the delivery team."
-              />
-            </Stack>
+            <Typography variant="body2" color="text.secondary">
+              Your draft is saved in this browser tab for seven days. Codes and consent are never
+              saved in drafts.
+            </Typography>
+            <Button onClick={() => setDraft(emptyDraft())}>Clear setup draft</Button>
             <TextField
               fullWidth
               required
-              label="Short pickup address"
-              value={address}
-              onChange={(event) => setAddress(event.target.value)}
+              label="Business name"
+              value={draft.name}
+              onChange={(event) => field('name', event.target.value)}
             />
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField
-                fullWidth
-                required
-                label="Latitude"
-                value={lat}
-                onChange={(event) => setLat(event.target.value)}
-                type="number"
-                slotProps={{ htmlInput: { step: 'any' } }}
-              />
-              <TextField
-                fullWidth
-                required
-                label="Longitude"
-                value={lng}
-                onChange={(event) => setLng(event.target.value)}
-                type="number"
-                slotProps={{ htmlInput: { step: 'any' } }}
-              />
-            </Stack>
+            <TextField
+              fullWidth
+              label="Branch label"
+              value={draft.branchName}
+              onChange={(event) => field('branchName', event.target.value)}
+              helperText="For example, Town centre"
+            />
+            <TextField
+              fullWidth
+              required
+              label="Contact phone"
+              value={draft.phone}
+              onChange={(event) => field('phone', event.target.value)}
+              inputMode="tel"
+              helperText="The WhatsApp number that will receive and act on branch orders. It is verified separately from your login."
+            />
+            {towns.error && (
+              <Alert
+                severity="error"
+                action={<Button onClick={() => void towns.refetch()}>Retry towns</Button>}
+              >
+                Delivery towns could not be loaded.
+              </Alert>
+            )}
+            <TextField
+              required
+              select
+              label="Delivery town"
+              value={draft.townId}
+              onChange={(event) => field('townId', event.target.value)}
+              disabled={towns.isLoading || !towns.data?.length}
+            >
+              {(towns.data ?? []).map((town) => (
+                <MenuItem key={town._id} value={town._id}>
+                  {town.name}
+                </MenuItem>
+              ))}
+            </TextField>
+            {!towns.isLoading && towns.data?.length === 0 && (
+              <Alert severity="info">
+                No delivery towns are open for branch setup yet. Your draft is saved; try again
+                later.
+              </Alert>
+            )}
+            <PickupPicker
+              key={draft.townId}
+              value={draft.pickup}
+              onChange={(pickup) =>
+                setDraft((current) => ({ ...current, createKey: crypto.randomUUID(), pickup }))
+              }
+              town={towns.data?.find((town) => town._id === draft.townId)}
+            />
             <Divider />
             <Typography variant="h2">Settlement request</Typography>
-            <Typography variant="body2" color="text.secondary">
-              This is a request for admin review; no default weekly policy is assumed.
+            <Typography variant="body2">
+              Choose your preferred period. The delivery team will propose the agreed terms for your
+              acknowledgement.
             </Typography>
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-              <TextField
-                fullWidth
-                select
-                label="Frequency"
-                value={frequency}
-                onChange={(event) => setFrequency(event.target.value as typeof frequency)}
-              >
-                {['DAILY', 'WEEKLY', 'MONTHLY'].map((value) => (
-                  <MenuItem key={value} value={value}>
-                    {value[0] + value.slice(1).toLowerCase()}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <TextField
-                fullWidth
-                label="Timezone"
-                value={timezone}
-                onChange={(event) => setTimezone(event.target.value)}
-              />
-              <TextField
-                fullWidth
-                label="Cut-off time"
-                value={cutoffTime}
-                onChange={(event) => setCutoffTime(event.target.value)}
-                type="time"
-                slotProps={{ inputLabel: { shrink: true } }}
-              />
-            </Stack>
-            {create.error ? (
-              <Typography color="error">{(create.error as NormalizedApiError).message}</Typography>
-            ) : null}
+            <SettlementFields
+              value={draft.schedule}
+              onChange={(schedule) =>
+                setDraft((current) => ({ ...current, createKey: crypto.randomUUID(), schedule }))
+              }
+            />
+            {create.error && (
+              <Alert severity="error">{(create.error as NormalizedApiError).message}</Alert>
+            )}
             <Button
               variant="contained"
               onClick={() => void create.submit()}
               disabled={!valid || create.pending}
             >
-              {' '}
-              {create.pending ? 'Creating branch…' : 'Create branch'}{' '}
+              {create.pending ? 'Creating branch…' : 'Create branch'}
             </Button>
           </Stack>
         </CardContent>

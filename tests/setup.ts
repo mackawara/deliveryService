@@ -40,6 +40,7 @@ afterEach(() => {
   clearCsrfToken();
   clearShopCsrfToken();
   window.localStorage.clear();
+  window.sessionStorage.clear();
 });
 
 afterAll(() => {
