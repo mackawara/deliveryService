@@ -1,3 +1,4 @@
+import { Alert, Typography, Stack } from '@mui/material';
 import { Outlet, createBrowserRouter } from 'react-router-dom';
 
 import { AuthProvider } from '@/auth/AuthProvider';
@@ -46,6 +47,7 @@ import { ShopHomePage } from '@/features/shop/ShopHomePage';
 import { ShopLoginPage } from '@/features/shop/ShopLoginPage';
 import { ShopProfilePage } from '@/features/shop/ShopProfilePage';
 import { ShopSetupPage } from '@/features/shop/ShopSetupPage';
+import { ShopOrdersPage, ShopOrdersEntry } from '@/features/shop/ShopOrdersPage';
 import { ShopShell } from '@/features/shop/ShopShell';
 
 /** Providers that need router context (navigation, location) sit inside the router. */
@@ -107,6 +109,26 @@ export const routes = [
             ),
             children: [
               { path: 'shop', element: <ShopHomePage /> },
+              { path: 'shop/orders', element: <ShopOrdersEntry /> },
+              {
+                path: 'shop/help',
+                element: (
+                  <Stack spacing={2}>
+                    <Typography component="h1" variant="h4">
+                      Delivery operations help
+                    </Typography>
+                    <Alert severity="info">
+                      Contact your agreed pilot delivery operations contact and quote the order
+                      reference. Explain any delay, notification problem or failed handover. After
+                      acceptance, operations must handle exceptions while preserving custody and
+                      payment records. WhatsApp remains the order notification route when the
+                      browser is asleep.
+                    </Alert>
+                  </Stack>
+                ),
+              },
+              { path: 'shop/:shopId/orders', element: <ShopOrdersPage /> },
+              { path: 'shop/:shopId/orders/:orderId', element: <ShopOrdersPage /> },
               { path: 'shop/setup', element: <ShopSetupPage /> },
               { path: 'shop/:shopId/profile', element: <ShopProfilePage /> },
               { path: 'shop/:shopId/catalogue', element: <ShopCataloguePage /> },

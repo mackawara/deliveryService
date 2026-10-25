@@ -5,7 +5,7 @@ import { setupListeners } from '@reduxjs/toolkit/query/react';
 // store is created.
 import '@/api';
 import { baseApi } from '@/api/baseApi';
-import { setSessionExpiryListener } from '@/api/baseQuery';
+import { setOwnerAccessExpiryListener, setSessionExpiryListener } from '@/api/baseQuery';
 import { sessionExpired, sessionReducer } from '@/auth/sessionSlice';
 import { uiReducer } from '@/app/uiSlice';
 
@@ -17,6 +17,9 @@ const SENSITIVE_ENDPOINTS = new Set([
   'getCsrf',
   'verifyStaffPhoneChange',
   'getShopCsrf',
+  'listShopOrders',
+  'getShopOrder',
+  'commandShopOrder',
   'requestShopOtp',
   'requestShopContactOtp',
   'verifyShopContactOtp',
@@ -67,6 +70,10 @@ export function createAppStore() {
 
   // Refetch on reconnect and on window focus (specification section 6).
   setupListeners(store.dispatch);
+
+  setOwnerAccessExpiryListener(() => {
+    store.dispatch(baseApi.util.resetApiState());
+  });
 
   // One login transition for concurrent unauthenticated failures.
   setSessionExpiryListener(() => {
