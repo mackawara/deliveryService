@@ -129,6 +129,10 @@ describe('shop inbox and guarded actions (#22)', () => {
     expect(screen.getByRole('button', { name: 'Confirm action' })).toBeDisabled();
   });
   it('replays precisely the original timeout payload/key, even after the order changes', async () => {
+    let release!: () => void;
+    const inFlight = new Promise<void>((resolve) => {
+      release = resolve;
+    });
     const calls: { key: string | null; body: unknown }[] = [];
     mockServer.use(
       http.post('*/shop/food-orders/:id/accept', async ({ request }) => {
@@ -138,7 +142,10 @@ describe('shop inbox and guarded actions (#22)', () => {
           version: 2,
           availableActions: ['READY'],
         });
-        if (calls.length === 1) return HttpResponse.error();
+        if (calls.length === 1) {
+          await inFlight;
+          return HttpResponse.error();
+        }
         return HttpResponse.json({ order: current, serverNow: current.serverNow });
       }),
     );
@@ -147,8 +154,23 @@ describe('shop inbox and guarded actions (#22)', () => {
     await user.click(await screen.findByRole('button', { name: 'Accept order' }));
     await user.type(screen.getByLabelText(/Preparation minutes/), '12');
     await user.click(screen.getByRole('button', { name: 'Confirm action' }));
+    await waitFor(() => expect(calls).toHaveLength(1));
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(screen.getByRole('button', { name: 'Confirming…' })).toBeDisabled();
+    expect(calls).toHaveLength(1);
+    act(() => release());
     await screen.findByText(/Outcome unconfirmed/);
-    // Dialog stays locked until an original-key replay resolves the ambiguous outcome.
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    // Backgrounding a phone must retain the uncertain command above the paused refresh timer.
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+    expect(screen.getByRole('button', { name: 'Retry original action' })).toBeVisible();
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    act(() => document.dispatchEvent(new Event('visibilitychange')));
+
     await user.keyboard('{Escape}');
     await user.click(await screen.findByRole('button', { name: 'Retry original action' }));
     await waitFor(() => expect(calls).toHaveLength(2));
@@ -233,6 +255,24 @@ describe('shop inbox and guarded actions (#22)', () => {
     expect(serverTimeAt('2026-10-25T10:00:00Z', 100, 2100)).toBe(
       Date.parse('2026-10-25T10:00:02Z'),
     );
+  });
+  it('keeps a configured one-minute polling cadence fresh until three intervals are missed', async () => {
+    let monotonic = 0;
+    vi.spyOn(performance, 'now').mockImplementation(() => monotonic);
+    current = shopOrderFixture({ pollingIntervalMs: 60000 });
+    mount();
+    const accept = await screen.findByRole('button', { name: 'Accept order' });
+    monotonic = 20000;
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+    });
+    expect(accept).toBeEnabled();
+    monotonic = 181000;
+    await act(async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1100));
+    });
+    expect(accept).toBeDisabled();
+    expect(screen.getByText(/Order information is stale/)).toBeVisible();
   });
   it('hides actions for terminal orders and hides protected stale data on a resource denial', async () => {
     current = shopOrderFixture({

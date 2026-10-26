@@ -146,6 +146,16 @@ test('unconfirmed retry preserves the original key and payload', async ({ page }
   await page.getByLabel(/Preparation minutes/).fill('12');
   await page.getByRole('button', { name: 'Confirm action' }).click();
   await expect(page.getByText(/Outcome unconfirmed/)).toBeVisible();
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: true });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
+  await expect(page.getByRole('button', { name: 'Retry original action' })).toBeVisible();
+  await page.evaluate(() => {
+    Object.defineProperty(document, 'hidden', { configurable: true, value: false });
+    document.dispatchEvent(new Event('visibilitychange'));
+  });
   await page.getByRole('button', { name: 'Retry original action' }).click();
   await expect(page.getByText(/Action confirmed by the server/)).toBeVisible();
   expect(state.calls).toHaveLength(2);

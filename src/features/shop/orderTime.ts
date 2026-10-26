@@ -8,7 +8,7 @@ export function serverTimeAt(
 ) {
   return serverNow ? Date.parse(serverNow) + Math.max(0, monotonicNow - receivedAt) : 0;
 }
-export function useOrderClock(serverNow?: string) {
+export function useOrderClock(serverNow?: string, pollingIntervalMs = 5000) {
   const [frame, setFrame] = useState(() => {
     const at = performance.now();
     return { serverNow, receivedAt: at, at };
@@ -32,7 +32,7 @@ export function useOrderClock(serverNow?: string) {
   const elapsed = frame.serverNow === serverNow ? frame.at - frame.receivedAt : 0;
   return {
     now: serverTimeAt(serverNow, 0, elapsed),
-    stale: elapsed > 15_000,
+    stale: elapsed > Math.max(15_000, pollingIntervalMs * 3),
     ageSeconds: Math.floor(elapsed / 1000),
   };
 }
@@ -74,6 +74,7 @@ export function countdown(deadline: string, now: number) {
 export function useOrderRefresh(refresh: () => unknown, active: boolean, intervalMs = 5000) {
   useEffect(() => {
     if (!active) return;
+    void refresh();
     const timer = window.setInterval(
       () => {
         void refresh();

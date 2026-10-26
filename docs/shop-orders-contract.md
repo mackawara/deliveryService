@@ -31,8 +31,9 @@ Only PREPARING permits READY; terminal delivery state also blocks it. Closing a
 branch does not revoke access or cancel an accepted order.
 
 Filters: `ACTIVE`, `ALL`, `COMPLETED`, `AWAITING_SHOP`, `PREPARING`, `READY`,
-`REJECTED`, `CANCELLED`. ACTIVE excludes fulfillment outcomes; COMPLETED includes
-terminal fulfillment outcomes. READY is food state and can persist after delivery;
+`REJECTED`, `CANCELLED`. ACTIVE excludes only DELIVERED/RETURNED fulfillment outcomes; COMPLETED includes
+only those terminal fulfillment outcomes. FAILED attempts, RETRY_AUTHORIZED and RETURNING
+remain active until the delivery actually ends. READY is food state and can persist after delivery;
 use delivery progress for the delivery outcome. Cursor pagination sorts immutable
 `createdAt DESC, id DESC`, including tied timestamps. A cursor binds branch and filter;
 changing either starts a new page chain. Newly inserted head records appear on the
@@ -50,7 +51,7 @@ Money is integer cents; the UI uses the shared USD formatter.
 `payment:{method,state}` reflects the linked delivery. `delivery` contains its
 `status,version,progress,dispatchEligible,holdCode,estimate`. Progress distinguishes
 pending/preparing, held, finding, offered (unaccepted), assigned, picked up, delivered,
-closed and operations assistance. Eligibility is advisory at read time: readiness,
+closed, retry authorized, returning and operations assistance. Eligibility is advisory at read time: readiness,
 service hours, payment, cash arrangement, customer eligibility and immutable load
 checks are rechecked by dispatch. Finding a rider is displayed only after readiness
 with these checks passed. Offered never implies assigned. Rider suitability/fresh
@@ -66,6 +67,8 @@ packaged delivery size), customer name, delivery address/area, and event history
 private shop contacts, commercial ledger/refusal data, provider payloads and rider
 balances are omitted. Original actor identity remains in the privileged audit log.
 `notifications:{pending,needsHelp}` exposes only aggregate retry/failure state.
+A bookingId-leading `(bookingId,status,attempts)` outbox index scopes polling counts
+to that delivery instead of scanning unrelated bookings.
 `help` directs staff to delivery operations; `/shop/help` provides the dashboard's
 exception instructions. The pilot must agree an operations contact before use.
 
@@ -90,13 +93,14 @@ applied. Query merges refuse older order/delivery versions or older server reads
 
 Default visible inbox/detail refresh: 5 seconds plus request latency. Server tuning:
 `FOOD_SHOP_POLL_INTERVAL_MS=5000` (1,000–60,000). The UI honors this guidance, refetches
-on focus/reconnect/visibility recovery, and cancels the timer on hide/unmount. The
+on focus/reconnect/visibility recovery, and cancels the timer on hide/unmount. The detail subscription remains mounted while
+hidden so an in-flight or unconfirmed command retains its payload, key and synchronous lock. The
 owner/membership and branch lists also refresh every five seconds while focused.
 Use first-page polling for new arrivals; historical pages remain stable. Detail stays
 on its selected ID, unaffected by new inbox ordering. Text announces new orders.
 
-Last server refresh, offline/stale state and retry are visible. A 15-second read gap
-blocks normal actions until refreshed. Countdowns and proposed ready time use server
+Last server refresh, offline/stale state and retry are visible. A read gap longer than three configured polling intervals (at least 15 seconds)
+blocks normal actions until refreshed; a normal 60-second cadence is not stale after 15 seconds. Countdowns and proposed ready time use server
 responses plus monotonic elapsed time, independent of the device's wall clock.
 Expired preparation shows overdue and never signals readiness. WhatsApp remains the
 notification route while a browser sleeps. The server remains authoritative at the

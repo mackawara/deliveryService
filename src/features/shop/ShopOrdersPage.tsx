@@ -45,6 +45,8 @@ const labels: Record<string, string> = {
   PICKED_UP: 'Picked up',
   DELIVERED: 'Delivered',
   CLOSED: 'Delivery closed',
+  RETRY_AUTHORIZED: 'Delivery retry authorized',
+  RETURNING: 'Returning to the shop',
   NEEDS_HELP: 'Delivery operations assistance needed',
   REJECTED: 'Rejected',
   CANCELLED: 'Cancelled',
@@ -56,16 +58,18 @@ const protectedFailure = (error: unknown) =>
   );
 function RefreshState({
   serverNow,
+  pollingIntervalMs,
   failed,
   online,
   retry,
 }: {
   serverNow?: string;
+  pollingIntervalMs?: number;
   failed: boolean;
   online: boolean;
   retry: () => void;
 }) {
-  const clock = useOrderClock(serverNow);
+  const clock = useOrderClock(serverNow, pollingIntervalMs);
   return (
     <Stack spacing={1}>
       <Typography variant="body2">
@@ -141,7 +145,7 @@ function ShopInbox({ ownerId, shopId }: { ownerId: string; shopId: string }) {
     known.current = ids;
     if (count) setAnnouncement(`${count} new order${count === 1 ? '' : 's'} arrived.`);
   }, [cursor, data]);
-  const clock = useOrderClock(data?.serverNow);
+  const clock = useOrderClock(data?.serverNow, data?.pollingIntervalMs);
   const retry = () => {
     if (!query.isUninitialized) void query.refetch();
   };
@@ -179,6 +183,7 @@ function ShopInbox({ ownerId, shopId }: { ownerId: string; shopId: string }) {
       </TextField>
       <RefreshState
         serverNow={data?.serverNow}
+        pollingIntervalMs={data?.pollingIntervalMs}
         failed={query.isError}
         online={polling.online}
         retry={retry}
@@ -239,10 +244,7 @@ function ShopInbox({ ownerId, shopId }: { ownerId: string; shopId: string }) {
 }
 function ShopOrderDetail({ ownerId, shopId, id }: { ownerId: string; shopId: string; id: string }) {
   const polling = useOrderPolling();
-  const query = useGetShopOrderQuery(
-    { ownerId, shopId, id },
-    { ...polling.options, skip: !polling.visible },
-  );
+  const query = useGetShopOrderQuery({ ownerId, shopId, id }, polling.options);
   useOrderRefresh(
     query.refetch,
     polling.visible && polling.online && !query.isUninitialized,
@@ -259,6 +261,7 @@ function ShopOrderDetail({ ownerId, shopId, id }: { ownerId: string; shopId: str
       </Button>
       <RefreshState
         serverNow={query.currentData?.serverNow}
+        pollingIntervalMs={order?.pollingIntervalMs}
         failed={query.isError}
         online={polling.online}
         retry={retry}
@@ -297,7 +300,7 @@ function OrderContent({
   const lock = useRef(false);
   const prepInput = useRef<HTMLInputElement>(null);
   const [command, state] = useCommandShopOrderMutation();
-  const clock = useOrderClock(order.serverNow);
+  const clock = useOrderClock(order.serverNow, order.pollingIntervalMs);
   const invalidPrep =
     !/^\d+$/.test(prep) || Number(prep) < 1 || Number(prep) > order.prepMaxMinutes;
   const dialogStale =
