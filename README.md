@@ -14,6 +14,10 @@ application that talks to the `deliveryBooking` backend's staff API.
 - **Devices:** desktop and tablet, touch and keyboard
 - **Money:** USD, stored and transmitted as integer cents
 
+Owner earnings, manual shop settlements and rider cash reconciliation are covered
+in the [settlement workflow and rollout guide](docs/food-settlements-dashboard.md).
+They ship behind `VITE_ENABLE_FOOD_SETTLEMENTS=false` until the matching API is deployed.
+
 ## Getting started
 
 ```bash

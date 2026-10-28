@@ -144,6 +144,8 @@ export const financeApi = baseApi.injectEndpoints({
       {
         driverId: string;
         ledgerEntryIds: string[];
+        /** Required by the versioned settlement cash API; omitted for the legacy deployment. */
+        collectionVersions?: Record<string, number>;
         amountCents: number;
         receiptReference: string;
         notes?: string;

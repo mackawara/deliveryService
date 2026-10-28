@@ -56,6 +56,13 @@ export const CAPABILITY = {
   auditRead: 'audit.read',
   auditReadFinance: 'audit.read.finance',
   staffManage: 'staff.manage',
+  foodSettlementsRead: 'food.settlements.read',
+  foodSettlementsCreate: 'food.settlements.create',
+  foodSettlementsApprove: 'food.settlements.approve',
+  foodSettlementsVoid: 'food.settlements.void',
+  foodSettlementsPay: 'food.settlements.pay',
+  foodSettlementsReveal: 'food.settlements.reveal',
+  foodSettlementsAdjust: 'food.settlements.adjust',
 } as const;
 
 export type CapabilityId = (typeof CAPABILITY)[keyof typeof CAPABILITY];

@@ -9,6 +9,7 @@ export * from '@/api/endpoints/customers';
 export * from '@/api/endpoints/dispatch';
 export * from '@/api/endpoints/enquiries';
 export * from '@/api/endpoints/finance';
+export * from '@/api/endpoints/foodFinance';
 export * from '@/api/endpoints/operations';
 export * from '@/api/endpoints/restrictions';
 export * from '@/api/endpoints/session';

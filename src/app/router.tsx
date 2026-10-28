@@ -49,6 +49,13 @@ import { ShopProfilePage } from '@/features/shop/ShopProfilePage';
 import { ShopSetupPage } from '@/features/shop/ShopSetupPage';
 import { ShopOrdersPage, ShopOrdersEntry } from '@/features/shop/ShopOrdersPage';
 import { ShopShell } from '@/features/shop/ShopShell';
+import { ShopEarningsPage } from '@/features/shop/ShopEarningsPage';
+import { ShopPayoutDetailsPage } from '@/features/shop/ShopPayoutDetailsPage';
+import { ShopSettlementPage } from '@/features/shop/ShopSettlementPage';
+import { ShopFinanceEntry } from '@/features/shop/ShopFinanceEntry';
+import { FoodSettlementsPage } from '@/features/finance/FoodSettlementsPage';
+import { FoodSettlementPage } from '@/features/finance/FoodSettlementPage';
+import { FOOD_SETTLEMENTS_READ } from '@/lib/foodSettlementAccess';
 
 /** Providers that need router context (navigation, location) sit inside the router. */
 function RootLayout() {
@@ -110,6 +117,15 @@ export const routes = [
             children: [
               { path: 'shop', element: <ShopHomePage /> },
               { path: 'shop/orders', element: <ShopOrdersEntry /> },
+              { path: 'shop/earnings', element: <ShopFinanceEntry section="earnings" /> },
+              {
+                path: 'shop/payout-details',
+                element: <ShopFinanceEntry section="payout-details" />,
+              },
+              { path: 'shop/settlements/:id', element: <ShopFinanceEntry section="settlements" /> },
+              { path: 'shop/:shopId/earnings', element: <ShopEarningsPage /> },
+              { path: 'shop/:shopId/payout-details', element: <ShopPayoutDetailsPage /> },
+              { path: 'shop/:shopId/settlements/:id', element: <ShopSettlementPage /> },
               {
                 path: 'shop/help',
                 element: (
@@ -145,6 +161,14 @@ export const routes = [
         children: [
           { index: true, element: <OverviewPage /> },
           { path: 'forbidden', element: <ForbiddenPage /> },
+
+          {
+            element: <RequireAccess requirement={FOOD_SETTLEMENTS_READ} />,
+            children: [
+              { path: 'finance/food-settlements', element: <FoodSettlementsPage /> },
+              { path: 'finance/food-settlements/:id', element: <FoodSettlementPage /> },
+            ],
+          },
 
           {
             element: <RequireAccess requirement={OPERATOR_ONLY} />,

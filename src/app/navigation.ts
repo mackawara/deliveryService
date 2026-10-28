@@ -22,6 +22,7 @@ import VerifiedUserIcon from '@mui/icons-material/VerifiedUser';
 import type { SvgIconComponent } from '@mui/icons-material';
 
 import { CAPABILITY, type AccessRequirement } from '@/lib/permissions';
+import { FOOD_SETTLEMENTS_READ } from '@/lib/foodSettlementAccess';
 
 export type NavGroup = 'operations' | 'finance' | 'administration';
 
@@ -31,6 +32,7 @@ export interface NavItem {
   icon: SvgIconComponent;
   group: NavGroup;
   requirement?: AccessRequirement;
+  feature?: 'foodSettlements';
   /** Short description used as a tooltip and on the overview cards. */
   description: string;
 }
@@ -65,6 +67,15 @@ export const PRIMARY_ITEMS: NavItem[] = [
 ];
 
 export const NAV_ITEMS: NavItem[] = [
+  {
+    path: '/finance/food-settlements',
+    label: 'Shop settlements',
+    icon: PaymentsIcon,
+    group: 'finance',
+    requirement: FOOD_SETTLEMENTS_READ,
+    feature: 'foodSettlements',
+    description: 'Review shop statements and record completed external payouts.',
+  },
   {
     path: '/bookings',
     label: 'Bookings',

@@ -51,7 +51,10 @@ const GROUP_ORDER: NavGroup[] = ['operations', 'finance', 'administration'];
 
 function visibleItems(session: StaffSession | null, group: NavGroup): NavItem[] {
   return NAV_ITEMS.filter(
-    (item) => item.group === group && meetsRequirement(session, item.requirement),
+    (item) =>
+      item.group === group &&
+      meetsRequirement(session, item.requirement) &&
+      (item.feature !== 'foodSettlements' || appConfig.enableFoodSettlements),
   );
 }
 

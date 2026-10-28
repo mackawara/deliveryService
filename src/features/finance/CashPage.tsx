@@ -13,6 +13,7 @@ import type { NormalizedApiError } from '@/api/errors';
 import { POLLING, polled } from '@/api/polling';
 import type { CashEntry } from '@/api/types';
 import { useTownScope } from '@/app/useTownScope';
+import { useStaffSession } from '@/auth/useAuth';
 import { FormDialog } from '@/components/FormDialog';
 import { Money } from '@/components/Money';
 import { MoneyField, moneyFieldError } from '@/components/MoneyField';
@@ -20,9 +21,11 @@ import { PageHeader } from '@/components/PageHeader';
 import { ResourceTable, type Column } from '@/components/ResourceTable';
 import { StatusChip } from '@/components/StatusChip';
 import { cashStateMeta, describeStatus } from '@/components/statusMeta';
+import { FoodCashPanel } from '@/features/finance/FoodCashPanel';
 import { formatDateTime } from '@/lib/datetime';
+import { foodFinanceScopeKey } from '@/lib/foodSettlementAccess';
 import { parseUsdToCents, sumCents } from '@/lib/money';
-import { useGuardedAction } from '@/lib/useGuardedAction';
+import { useFinancialAction } from '@/lib/useFinancialAction';
 import { useQueryParam } from '@/lib/useUrlState';
 
 const RECENT_RESULT_LIMIT = 100;
@@ -39,7 +42,9 @@ function retainedCash(entry: CashEntry): number {
  * action on a booking; finance records remittance against ledger references.
  */
 export function CashPage() {
+  const session = useStaffSession();
   const { townId } = useTownScope();
+  const [bookingId] = useQueryParam('booking');
   const [state, setState] = useQueryParam('state');
   const [driverId, setDriverId] = useQueryParam('driver');
   const [remitOpen, setRemitOpen] = useState(false);
@@ -49,7 +54,7 @@ export function CashPage() {
   const [notes, setNotes] = useState('');
 
   const query = useListCashLedgerQuery(
-    { state: state as never, limit: RECENT_RESULT_LIMIT, skip: 0 },
+    { bookingId, state: state as never, limit: RECENT_RESULT_LIMIT, skip: 0 },
     polled(POLLING.finance),
   );
   const [recordRemittance] = useRecordCashRemittanceMutation();
@@ -82,7 +87,8 @@ export function CashPage() {
     [collected, selectedIds],
   );
 
-  const remit = useGuardedAction({
+  const remit = useFinancialAction({
+    scopeKey: `${foodFinanceScopeKey(session)}:${townId ?? 'all'}:${driverId ?? ''}`,
     allowUnconfirmedRetry: true,
     run: (_args: void, idempotencyKey: string) => {
       const parsed = parseUsdToCents(amount);
@@ -90,6 +96,11 @@ export function CashPage() {
       return recordRemittance({
         driverId: effectiveDriverId,
         ledgerEntryIds: [...selectedIds],
+        collectionVersions: Object.fromEntries(
+          collected
+            .filter((entry) => selectedIds.includes(entry.id))
+            .map((entry) => [entry.id, entry.version]),
+        ),
         amountCents: parsed.cents,
         receiptReference: receiptReference.trim(),
         notes: notes.trim() || undefined,
@@ -279,6 +290,7 @@ export function CashPage() {
           emptyTitle="No cash entries"
           emptyDescription="Adjust the filters, or choose a driver to see what they are holding."
         />
+        <FoodCashPanel />
       </Stack>
 
       <FormDialog
