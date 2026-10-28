@@ -42,7 +42,9 @@ describe('dispatch workspace', () => {
     renderRoutes({ routes, initialEntries: ['/dispatch?booking=booking-ready'] });
 
     // Wait for a candidate row rather than the panel description.
-    expect((await screen.findAllByText(/km — approximate geographic distance/i))[0]).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText(/km — approximate geographic distance/i))[0],
+    ).toBeInTheDocument();
     expect(screen.getByText(/Missing or stale location/i)).toBeInTheDocument();
     expect(screen.getByText(/Unsuitable for this load/i)).toBeInTheDocument();
     // No driving ETA is ever offered.
