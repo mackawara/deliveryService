@@ -19,14 +19,18 @@ function CandidateRow({
   onSelect,
   selected,
   disabled,
+  override = false,
 }: {
   candidate: WireCandidate;
   onSelect?: (candidate: WireCandidate) => void;
   selected: boolean;
   disabled?: boolean;
+  override?: boolean;
 }) {
   return (
     <Stack
+      component="section"
+      aria-label={`${candidate.driverName} · ${candidate.registration}`}
       spacing={0.5}
       sx={{
         p: 1.5,
@@ -74,7 +78,7 @@ function CandidateRow({
           onClick={() => onSelect(candidate)}
           disabled={disabled}
         >
-          {selected ? 'Selected' : 'Select driver'}
+          {selected ? 'Selected' : override ? 'Select with override' : 'Select driver'}
         </Button>
       ) : null}
     </Stack>
@@ -84,7 +88,9 @@ function CandidateRow({
 export interface CandidateListProps {
   result: WireCandidateResult;
   selectedDriverId: string | null;
+  selectedVehicleId: string | null;
   onSelect: (candidate: WireCandidate) => void;
+  canOverrideSuitability?: boolean;
   disabled?: boolean;
 }
 
@@ -98,7 +104,9 @@ export interface CandidateListProps {
 export function CandidateList({
   result,
   selectedDriverId,
+  selectedVehicleId,
   onSelect,
+  canOverrideSuitability = false,
   disabled,
 }: CandidateListProps) {
   return (
@@ -122,7 +130,9 @@ export function CandidateList({
               key={`${candidate.driverId}-${candidate.vehicleId}`}
               candidate={candidate}
               onSelect={onSelect}
-              selected={selectedDriverId === candidate.driverId}
+              selected={
+                selectedDriverId === candidate.driverId && selectedVehicleId === candidate.vehicleId
+              }
               disabled={disabled}
             />
           ))
@@ -145,7 +155,10 @@ export function CandidateList({
                 key={`${candidate.driverId}-${candidate.vehicleId}`}
                 candidate={candidate}
                 onSelect={onSelect}
-                selected={selectedDriverId === candidate.driverId}
+                selected={
+                  selectedDriverId === candidate.driverId &&
+                  selectedVehicleId === candidate.vehicleId
+                }
                 disabled={disabled}
               />
             ))}
@@ -164,7 +177,17 @@ export function CandidateList({
               <CandidateRow
                 key={`${candidate.driverId}-${candidate.vehicleId}`}
                 candidate={candidate}
-                selected={false}
+                onSelect={
+                  canOverrideSuitability && candidate.suitability.overrideAllowed === true
+                    ? onSelect
+                    : undefined
+                }
+                selected={
+                  selectedDriverId === candidate.driverId &&
+                  selectedVehicleId === candidate.vehicleId
+                }
+                disabled={disabled}
+                override
               />
             ))}
           </Stack>

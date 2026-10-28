@@ -197,6 +197,27 @@ Visible-page polling follows the specification: 10s for dispatch and the active 
 15s for queues, fleet and alerts, 30s for finance and enquiries, paused when the page is
 not focused.
 
+## Dispatch suitability overrides
+
+The backend checks the declared load against each vehicle's payload limit, cargo
+dimensions, loading opening and handling capabilities. Multiple items also use a
+70% usable-volume allowance and need a recorded packing inspection. Suitable
+available drivers are ranked by geographic distance to pickup, then idle time.
+
+Staff with both **operator** and **admin** roles can select **Select with override**
+on a vehicle whose load checks the backend permits them to override. The offer or
+reassignment requires a separate vehicle suitability reason of at least three
+characters. The assignment and audit record retain that reason, the administrator
+and the failed checks; the booking's assignment history displays the approval.
+Operators can record packing inspections without an administrator override.
+
+An override does not release booking holds, change the accepted price, or bypass
+missing load information, driver eligibility, vehicle service status, town access
+or conflicting reservations. Driver acceptance rechecks the approval against the
+current load and vehicle details. Deploy the matching `deliveryBooking-1` backend
+change with the dashboard: candidates without `suitability.overrideAllowed` never
+offer the override action.
+
 ## What still needs backend work
 
 WhatsApp OTP sign-in, cookie sessions with CSRF, `GET /admin/me` and staff provisioning
