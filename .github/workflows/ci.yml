@@ -146,6 +146,9 @@ jobs:
       - name: Shop phone and desktop order workflows
         run: yarn playwright test --config playwright.shop-orders.config.ts
 
+      - name: Shop earnings and settlement phone and desktop workflows
+        run: yarn test:food-settlements:e2e
+
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

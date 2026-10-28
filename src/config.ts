@@ -37,6 +37,8 @@ export interface AppConfig {
   googleMapsApiKey: string;
   /** Dev/test only: serve API contracts from in-browser mock handlers. */
   enableMockApi: boolean;
+  /** Enable only with the matching, deployed food-settlement API and approved policy. */
+  enableFoodSettlements: boolean;
 }
 
 export const appConfig: AppConfig = {
@@ -47,6 +49,7 @@ export const appConfig: AppConfig = {
   defaultTimeZone: readString(import.meta.env.VITE_DEFAULT_TIMEZONE, 'Africa/Harare'),
   googleMapsApiKey: readString(import.meta.env.VITE_GOOGLE_MAPS_API_KEY, ''),
   enableMockApi: readBoolean(import.meta.env.VITE_ENABLE_MOCK_API, false) && import.meta.env.DEV,
+  enableFoodSettlements: readBoolean(import.meta.env.VITE_ENABLE_FOOD_SETTLEMENTS, false),
 };
 
 /**

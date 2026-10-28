@@ -79,19 +79,20 @@ arguments, stamped into the UI (sidebar footer), `version.json` (served with
 **Public build configuration** (GitHub repository _variables_; build-time, so changing
 one needs a new commit and image — published tags are never rebuilt):
 
-| Kind     | Name                                                                                          | Value                                                         |
-| -------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------- |
-| variable | `VITE_API_BASE_URL`                                                                           | keep `/api/v1`                                                |
-| variable | `VITE_GOOGLE_MAPS_API_KEY`                                                                    | browser Maps key, see below                                   |
-| variable | `VITE_APP_LABEL`, `VITE_DEFAULT_THEME`, `VITE_DEFAULT_PHONE_COUNTRY`, `VITE_DEFAULT_TIMEZONE` | optional                                                      |
-| variable | `PUBLIC_BASE_URL`                                                                             | `https://delivery.ventawifi.com` (smoke checks)               |
-| variable | `DEPLOY_PATH`                                                                                 | optional, default `/home/ubuntu/repos/delivery`               |
-| variable | `REQUIRED_STATUS_CHECKS`                                                                      | optional extra required checks, e.g. the Codacy status        |
-| variable | `ENFORCE_CHANGED_LINE_COVERAGE`                                                               | `true` once the baseline is validated                         |
-| secret   | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`                                                       | Docker Hub (write scope; release job only)                    |
-| secret   | `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_USER`                                                     | deploy access                                                 |
-| secret   | `SSH_KNOWN_HOSTS`                                                                             | pinned host key — **required**; deployments refuse without it |
-| secret   | `CODACY_PROJECT_TOKEN`                                                                        | coverage upload; not exposed to fork PRs                      |
+| Kind     | Name                                                                                          | Value                                                                                                                                                        |
+| -------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| variable | `VITE_API_BASE_URL`                                                                           | keep `/api/v1`                                                                                                                                               |
+| variable | `VITE_GOOGLE_MAPS_API_KEY`                                                                    | browser Maps key, see below                                                                                                                                  |
+| variable | `VITE_ENABLE_FOOD_SETTLEMENTS`                                                                | defaults to `false`; enable only with the matching deployed API and agreed financial policy; see [settlement rollout](../docs/food-settlements-dashboard.md) |
+| variable | `VITE_APP_LABEL`, `VITE_DEFAULT_THEME`, `VITE_DEFAULT_PHONE_COUNTRY`, `VITE_DEFAULT_TIMEZONE` | optional                                                                                                                                                     |
+| variable | `PUBLIC_BASE_URL`                                                                             | `https://delivery.ventawifi.com` (smoke checks)                                                                                                              |
+| variable | `DEPLOY_PATH`                                                                                 | optional, default `/home/ubuntu/repos/delivery`                                                                                                              |
+| variable | `REQUIRED_STATUS_CHECKS`                                                                      | optional extra required checks, e.g. the Codacy status                                                                                                       |
+| variable | `ENFORCE_CHANGED_LINE_COVERAGE`                                                               | `true` once the baseline is validated                                                                                                                        |
+| secret   | `DOCKERHUB_USERNAME`, `DOCKERHUB_TOKEN`                                                       | Docker Hub (write scope; release job only)                                                                                                                   |
+| secret   | `SSH_PRIVATE_KEY`, `SSH_HOST`, `SSH_USER`                                                     | deploy access                                                                                                                                                |
+| secret   | `SSH_KNOWN_HOSTS`                                                                             | pinned host key — **required**; deployments refuse without it                                                                                                |
+| secret   | `CODACY_PROJECT_TOKEN`                                                                        | coverage upload; not exposed to fork PRs                                                                                                                     |
 
 No server or provider secret is ever passed to the frontend build; `scripts/check-dist.mjs`
 (run in CI and inside the Dockerfile) fails the build if the bundle names one, carries the

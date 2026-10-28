@@ -1,6 +1,7 @@
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
+import PaymentsIcon from '@mui/icons-material/Payments';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
@@ -31,6 +32,14 @@ import { appConfig } from '@/config';
 
 const DRAWER_WIDTH = 248;
 
+function branchSection(path: string): string {
+  if (path.includes('/payout-details')) return 'payout-details';
+  if (path.includes('/earnings') || path.includes('/settlements')) return 'earnings';
+  if (path.includes('/orders')) return 'orders';
+  if (path.includes('/profile')) return 'profile';
+  return 'catalogue';
+}
+
 function ShopNavigation({ shopId, close }: { shopId?: string; close?: () => void }) {
   const location = useLocation();
   const { session } = useOwnerAuth();
@@ -50,6 +59,20 @@ function ShopNavigation({ shopId, close }: { shopId?: string; close?: () => void
           path: `/shop/${shopId}/profile`,
           icon: <AccountCircleIcon fontSize="small" />,
         },
+        ...(appConfig.enableFoodSettlements && session?.capabilities.includes('settlements:read')
+          ? [
+              {
+                label: 'Earnings',
+                path: `/shop/${shopId}/earnings`,
+                icon: <PaymentsIcon fontSize="small" />,
+              },
+              {
+                label: 'Payout details',
+                path: `/shop/${shopId}/payout-details`,
+                icon: <AccountCircleIcon fontSize="small" />,
+              },
+            ]
+          : []),
         {
           label: 'Catalogue',
           path: `/shop/${shopId}/catalogue`,
@@ -111,12 +134,9 @@ export function ShopShell() {
     if (!shopId || shops.isLoading || shops.error || !shops.data || current) return;
     dispatch(baseApi.util.invalidateTags(['Shop', 'ShopItem', 'ShopTerms']));
     const fallback = shops.data.items[0]?._id;
-    navigate(
-      fallback
-        ? `/shop/${fallback}/${location.pathname.includes('/orders') ? 'orders' : 'catalogue'}`
-        : '/shop/setup',
-      { replace: true },
-    );
+    navigate(fallback ? `/shop/${fallback}/${branchSection(location.pathname)}` : '/shop/setup', {
+      replace: true,
+    });
   }, [
     current,
     dispatch,
@@ -138,10 +158,12 @@ export function ShopShell() {
       )
     )
       return;
-    localStorage.setItem(`shop-branch:${session.owner.id}`, nextShopId);
-    navigate(
-      `/shop/${nextShopId}/${location.pathname.includes('/orders') ? 'orders' : 'catalogue'}`,
-    );
+    try {
+      localStorage.setItem(`shop-branch:${session.owner.id}`, nextShopId);
+    } catch {
+      /* Optional preference. */
+    }
+    navigate(`/shop/${nextShopId}/${branchSection(location.pathname)}`);
   }
 
   const drawer = (

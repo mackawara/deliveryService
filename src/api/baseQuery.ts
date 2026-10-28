@@ -1,4 +1,9 @@
-import { fetchBaseQuery, type BaseQueryFn, type FetchArgs } from '@reduxjs/toolkit/query/react';
+import {
+  fetchBaseQuery,
+  type BaseQueryFn,
+  type FetchArgs,
+  type FetchBaseQueryMeta,
+} from '@reduxjs/toolkit/query/react';
 
 import { getCsrfToken, getShopCsrfToken, setCsrfToken, setShopCsrfToken } from '@/api/csrf';
 import { normalizeApiError, type NormalizedApiError } from '@/api/errors';
@@ -23,6 +28,13 @@ const AUTH_ENDPOINTS = new Set([
 ]);
 
 const SHOP_ENDPOINTS = new Set([
+  'getShopFoodEarnings',
+  'listShopFoodSettlements',
+  'getShopFoodSettlement',
+  'getShopPayoutDetails',
+  'updateShopPayoutDetails',
+  'exportShopFoodEarnings',
+  'exportShopFoodSettlement',
   'listShopOrders',
   'getShopOrder',
   'commandShopOrder',
@@ -136,11 +148,15 @@ async function ensureShopCsrfToken(
  * Application base query: normalizes every failure, keeps cookies on the request and
  * reports session expiry once for concurrent 401s.
  */
-export const appBaseQuery: BaseQueryFn<string | FetchArgs, unknown, NormalizedApiError> = async (
-  args,
-  api,
-  extraOptions,
-) => {
+export const appBaseQuery: BaseQueryFn<
+  string | FetchArgs,
+  unknown,
+  NormalizedApiError,
+  // RTK's default empty options shape keeps endpoint extraOptions optional.
+  // eslint-disable-next-line @typescript-eslint/no-empty-object-type
+  {},
+  FetchBaseQueryMeta
+> = async (args, api, extraOptions) => {
   // Only a missing token is awaited. With one held, the request starts synchronously and
   // reads the token at once; sign-out relies on that, since it clears the token straight
   // after starting the logout request. A failed fetch leaves the token unset, and the

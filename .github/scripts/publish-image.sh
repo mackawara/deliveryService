@@ -68,6 +68,7 @@ else
     --build-arg "VITE_DEFAULT_THEME=${VITE_DEFAULT_THEME:-}" \
     --build-arg "VITE_DEFAULT_PHONE_COUNTRY=${VITE_DEFAULT_PHONE_COUNTRY:-}" \
     --build-arg "VITE_DEFAULT_TIMEZONE=${VITE_DEFAULT_TIMEZONE:-}" \
+    --build-arg "VITE_ENABLE_FOOD_SETTLEMENTS=${VITE_ENABLE_FOOD_SETTLEMENTS:-false}" \
     --build-arg "VITE_GOOGLE_MAPS_API_KEY=${VITE_GOOGLE_MAPS_API_KEY:-}" \
     -t "${IMAGE}:${SHA}" .
   .github/scripts/container-smoke.sh "${IMAGE}:${SHA}" "${VERSION}" "${SHA}"

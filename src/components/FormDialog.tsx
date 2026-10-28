@@ -17,6 +17,8 @@ export interface FormDialogProps {
   description?: string;
   submitLabel: string;
   pending?: boolean;
+  /** Keep a financial command mounted until its uncertain outcome can be replayed safely. */
+  closeDisabled?: boolean;
   error?: NormalizedApiError;
   /** True after a timeout; the caller offers a retry that reuses the same key. */
   unconfirmed?: UnconfirmedState;
@@ -41,6 +43,7 @@ export function FormDialog({
   description,
   submitLabel,
   pending = false,
+  closeDisabled = false,
   error,
   unconfirmed = false,
   onRetryUnconfirmed,
@@ -56,7 +59,12 @@ export function FormDialog({
   }
 
   return (
-    <Dialog open={open} onClose={pending ? undefined : onClose} fullWidth maxWidth={maxWidth}>
+    <Dialog
+      open={open}
+      onClose={pending || closeDisabled ? undefined : onClose}
+      fullWidth
+      maxWidth={maxWidth}
+    >
       <form onSubmit={handleSubmit} noValidate>
         <DialogTitle>{title}</DialogTitle>
         <DialogContent>
@@ -87,7 +95,7 @@ export function FormDialog({
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose} disabled={pending}>
+          <Button onClick={onClose} disabled={pending || closeDisabled}>
             Cancel
           </Button>
           <Button

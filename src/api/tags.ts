@@ -31,6 +31,10 @@ export const TAG_TYPES = [
   'ShopClaim',
   'ShopTerms',
   'PackingProfile',
+  'FoodSettlement',
+  'FoodBalance',
+  'FoodPayout',
+  'FoodCash',
 ] as const;
 
 export type TagType = (typeof TAG_TYPES)[number];

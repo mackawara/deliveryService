@@ -119,6 +119,7 @@ jobs:
           VITE_DEFAULT_THEME: ${{ vars.VITE_DEFAULT_THEME }}
           VITE_DEFAULT_PHONE_COUNTRY: ${{ vars.VITE_DEFAULT_PHONE_COUNTRY }}
           VITE_DEFAULT_TIMEZONE: ${{ vars.VITE_DEFAULT_TIMEZONE }}
+          VITE_ENABLE_FOOD_SETTLEMENTS: ${{ vars.VITE_ENABLE_FOOD_SETTLEMENTS || 'false' }}
           VITE_GOOGLE_MAPS_API_KEY: ${{ vars.VITE_GOOGLE_MAPS_API_KEY }}
         run: |
           BUILD_TIME="$(date -u +%Y-%m-%dT%H:%M:%SZ)" .github/scripts/publish-image.sh

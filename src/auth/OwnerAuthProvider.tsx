@@ -40,6 +40,7 @@ export function OwnerAuthProvider({ children }: { children: ReactNode }) {
   const access = me.data
     ? JSON.stringify([
         me.data.owner.id,
+        [...me.data.capabilities].sort(),
         me.data.memberships.map((m) => [m.shopId, m.status, m.role, m.version]).sort(),
       ])
     : null;

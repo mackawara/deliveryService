@@ -11,6 +11,11 @@ import { uiReducer } from '@/app/uiSlice';
 
 /** Authentication endpoints whose arguments and results must never reach dev tooling. */
 const SENSITIVE_ENDPOINTS = new Set([
+  'updateShopPayoutDetails',
+  'revealFoodSettlementDestination',
+  'recordFoodSettlementPaid',
+  'recordRiderCashHandIn',
+  'resolveCashDiscrepancy',
   'requestOtp',
   'resendOtp',
   'verifyOtp',

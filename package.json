@@ -27,7 +27,10 @@
     "doctor:check": "node scripts/doctor.mjs --check",
     "verify": "yarn typecheck && yarn lint && yarn format && yarn doctor:check && yarn test && yarn build",
     "test:cross-repo": "vitest run --config vitest.cross-repo.config.ts",
-    "typecheck:cross-repo": "tsc --noEmit -p tsconfig.cross-repo.json"
+    "typecheck:cross-repo": "tsc --noEmit -p tsconfig.cross-repo.json",
+    "test:food-settlements:api": "vitest run --config vitest.food-settlements.config.ts",
+    "typecheck:food-settlements:api": "tsc --noEmit -p tsconfig.food-settlements.json",
+    "test:food-settlements:e2e": "playwright test --config playwright.food-settlements.config.ts"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",

@@ -8,6 +8,7 @@ interface ImportMetaEnv {
   readonly VITE_APP_LABEL?: string;
   readonly VITE_DEFAULT_TIMEZONE?: string;
   readonly VITE_ENABLE_MOCK_API?: string;
+  readonly VITE_ENABLE_FOOD_SETTLEMENTS?: string;
   readonly VITE_GOOGLE_MAPS_API_KEY?: string;
   readonly VITE_DEV_API_PROXY_TARGET?: string;
 }

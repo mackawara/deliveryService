@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "allowImportingTsExtensions": true,
+    "paths": {
+      "@/*": ["src/*"],
+      "@api-test/*": ["../deliveryBooking-settlements/tests/helpers/*"],
+      "@api-src/*": ["../deliveryBooking-settlements/src/*"]
+    }
+  },
+  "include": [
+    "cross-repo/foodSettlementsJourney.test.ts",
+    "vitest.food-settlements.config.ts",
+    "src/**/*.d.ts",
+    "tests/setup.ts"
+  ]
+}
