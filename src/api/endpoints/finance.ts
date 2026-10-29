@@ -22,6 +22,10 @@ import type { CashEntry, PaymentAttempt, Refund } from '@/api/types';
  * control, and no refund or cash entry is ever completed optimistically.
  */
 export interface PaymentListArgs extends PageQuery {
+  /** Cache-only authorization identity; never sent as authorization input. */
+  scopeKey?: string;
+  shopId?: string | null;
+  foodOrderId?: string | null;
   townId?: string | null;
   bookingId?: string | null;
   status?: PaymentAttemptStatus | null;
@@ -34,6 +38,10 @@ export interface CashLedgerArgs extends PageQuery {
 }
 
 export interface RefundListArgs extends PageQuery {
+  scopeKey?: string;
+  shopId?: string | null;
+  foodOrderId?: string | null;
+  paymentAttemptId?: string | null;
   bookingId?: string | null;
   status?: RefundStatus | null;
 }
@@ -41,11 +49,15 @@ export interface RefundListArgs extends PageQuery {
 export const financeApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
     listPayments: build.query<Page<PaymentAttempt>, PaymentListArgs>({
+      keepUnusedDataFor: 0,
       query: (args) => {
         const page = clampPageQuery(args);
         return {
           url: '/admin/payments',
+          headers: { 'Cache-Control': 'no-store' },
           params: queryParams({
+            shopId: args.shopId ?? undefined,
+            foodOrderId: args.foodOrderId ?? undefined,
             townId: args.townId ?? undefined,
             bookingId: args.bookingId ?? undefined,
             status: args.status ?? undefined,
@@ -56,7 +68,7 @@ export const financeApi = baseApi.injectEndpoints({
       transformResponse: (response: WireList<WirePaymentAttempt>, _meta, args) =>
         toEntityPage(response, clampPageQuery(args)),
       providesTags: (result, _error, args) => [
-        listTag('Payment', args.townId, args.bookingId, args.status),
+        listTag('Payment', args.townId, args.shopId, args.foodOrderId, args.bookingId, args.status),
         allOf('Payment'),
         ...(result?.items ?? []).map((payment) => entityTag('Payment', payment.id)),
       ],
@@ -78,6 +90,8 @@ export const financeApi = baseApi.injectEndpoints({
         ...(args.bookingId ? [entityTag('Booking', args.bookingId)] : []),
         'Alerts',
         'Overview',
+        'FoodBalance',
+        'FoodSettlement',
       ],
     }),
 
@@ -167,11 +181,16 @@ export const financeApi = baseApi.injectEndpoints({
     }),
 
     listRefunds: build.query<Page<Refund>, RefundListArgs>({
+      keepUnusedDataFor: 0,
       query: (args) => {
         const page = clampPageQuery(args);
         return {
           url: '/admin/refunds',
+          headers: { 'Cache-Control': 'no-store' },
           params: queryParams({
+            shopId: args.shopId ?? undefined,
+            foodOrderId: args.foodOrderId ?? undefined,
+            paymentAttemptId: args.paymentAttemptId ?? undefined,
             bookingId: args.bookingId ?? undefined,
             status: args.status ?? undefined,
             ...page,
@@ -181,7 +200,14 @@ export const financeApi = baseApi.injectEndpoints({
       transformResponse: (response: WireList<WireRefund>, _meta, args) =>
         toEntityPage(response, clampPageQuery(args)),
       providesTags: (result, _error, args) => [
-        listTag('Refund', args.bookingId, args.status),
+        listTag(
+          'Refund',
+          args.shopId,
+          args.foodOrderId,
+          args.paymentAttemptId,
+          args.bookingId,
+          args.status,
+        ),
         allOf('Refund'),
         ...(result?.items ?? []).map((refund) => entityTag('Refund', refund.id)),
       ],
@@ -247,6 +273,8 @@ export const financeApi = baseApi.injectEndpoints({
         entityTag('Refund', args.id),
         allOf('Refund'),
         allOf('Payment'),
+        'FoodBalance',
+        'FoodSettlement',
         'Overview',
       ],
     }),

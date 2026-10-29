@@ -12,7 +12,25 @@ export const PAYMENT_ATTEMPT_STATUSES = [
 ] as const;
 export type PaymentAttemptStatus = (typeof PAYMENT_ATTEMPT_STATUSES)[number];
 
+/** Frozen allocations returned by the API; never calculated from current shop terms. */
+export interface FoodPaymentAllocations {
+  foodSubtotalCents: number;
+  deliveryFeeCents: number;
+  commissionCents: number;
+  shopNetCents: number;
+}
+export type ProvisionalCreditStatus = 'PENDING' | 'HELD' | 'ELIGIBLE' | 'REVERSED';
+
 export interface WirePaymentAttempt extends WireDocument, WireVersioned {
+  foodOrderId?: string;
+  shopId?: string;
+  allocations?: FoodPaymentAllocations;
+  verifiedAmountCents?: number;
+  verifiedCurrency?: string;
+  provisionalCreditStatus?: ProvisionalCreditStatus;
+  holdReason?: string;
+  /** Food reconciliation is offered only when the server explicitly permits it. */
+  canReconcile?: boolean;
   bookingId: string;
   townId: string;
   customerId: string;
@@ -106,6 +124,9 @@ export const REFUND_SETTLEMENT_STATUSES = [
 export type RefundSettlementStatus = (typeof REFUND_SETTLEMENT_STATUSES)[number];
 
 export interface WireRefund extends WireDocument, WireVersioned {
+  foodOrderId?: string;
+  shopId?: string;
+  holdReason?: string;
   bookingId: string;
   townId: string;
   paymentAttemptId?: string;

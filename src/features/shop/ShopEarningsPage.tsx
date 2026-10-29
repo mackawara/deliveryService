@@ -108,7 +108,7 @@ function ShopEarnings({ scope }: { scope: OwnerFoodScope }) {
     <Stack spacing={3}>
       <PageHeader
         title="Earnings"
-        description="Delivered food earnings and manual payouts for the selected branch. All amounts are USD and are calculated by the delivery service."
+        description="Food earnings, provisional online credits and manual payouts for the selected branch. All amounts are USD and are calculated by the delivery service."
         actions={
           <>
             <Button
@@ -142,6 +142,32 @@ function ShopEarnings({ scope }: { scope: OwnerFoodScope }) {
             Branch {scope.shopId} · last refreshed {financeTime(data.serverNow)} · Africa/Harare
           </Typography>
           <FinanceBalanceSummary balance={data.balance} />
+          {(data.balance.paidOnlineLiabilityCents ?? 0) > 0 ? (
+            <Alert severity="warning">
+              Previously paid shop proceeds include{' '}
+              <Money cents={data.balance.paidOnlineLiabilityCents!} /> linked to an online payment
+              hold or refund. Finance review is required; the previous payout remains recorded and
+              the shop has not been automatically debited.
+            </Alert>
+          ) : null}
+          {data.balance.paymentExceptions?.length ? (
+            <Alert severity="warning">
+              Online collection exceptions:{' '}
+              {data.balance.paymentExceptions
+                .map(
+                  (entry) =>
+                    `${entry.orderId}: ${entry.reason}${entry.alreadyPaid ? ' (previous shop payout recorded)' : ''}`,
+                )
+                .join('; ')}
+            </Alert>
+          ) : null}
+          {data.balance.provisionalPendingCents !== undefined ? (
+            <Alert severity="info">
+              Confirmed online collections are provisional until fulfillment and settlement checks
+              pass. Held or refunded orders are not available for settlement. Customer collections
+              include delivery; branch credit is net food only, with no second delivery deduction.
+            </Alert>
+          ) : null}
           <Typography variant="body2" color="text.secondary">
             Totals cover the branch’s complete ledger, including prior pilot payments. Paging and
             statement filters do not change these totals. Held failed-delivery food costs are shown
@@ -213,7 +239,14 @@ function ShopEarnings({ scope }: { scope: OwnerFoodScope }) {
               </Stack>
             ),
           },
-          { id: 'type', header: 'Entry', render: (entry) => entry.entryType },
+          {
+            id: 'type',
+            header: 'Entry',
+            render: (entry) =>
+              entry.entryType === 'PROVISIONAL_CREDIT'
+                ? 'Provisional online food credit'
+                : entry.entryType,
+          },
           {
             id: 'amount',
             header: 'Signed USD amount',
@@ -223,7 +256,20 @@ function ShopEarnings({ scope }: { scope: OwnerFoodScope }) {
           {
             id: 'status',
             header: 'Eligibility',
-            render: (entry) => <Chip size="small" label={entry.eligibility ?? 'UNKNOWN'} />,
+            render: (entry) => (
+              <Chip
+                size="small"
+                label={
+                  entry.provisionalCreditStatus === 'PENDING'
+                    ? 'Provisional online credit'
+                    : entry.provisionalCreditStatus === 'HELD'
+                      ? 'Held online credit'
+                      : entry.provisionalCreditStatus === 'REVERSED'
+                        ? 'Online credit reversed'
+                        : (entry.eligibility ?? 'UNKNOWN')
+                }
+              />
+            ),
           },
           {
             id: 'reason',

@@ -189,6 +189,28 @@ function FoodSettlementsWorkspace() {
       render: (row) => <Money cents={row.heldCents} />,
     },
     {
+      id: 'provisional-online',
+      header: 'Provisional online food',
+      align: 'right',
+      render: (row) =>
+        row.provisionalPendingCents === undefined ? (
+          '—'
+        ) : (
+          <Money cents={row.provisionalPendingCents} />
+        ),
+    },
+    {
+      id: 'paid-online-liability',
+      header: 'Paid online liability',
+      align: 'right',
+      render: (row) =>
+        row.paidOnlineLiabilityCents === undefined ? (
+          '—'
+        ) : (
+          <Money cents={row.paidOnlineLiabilityCents} />
+        ),
+    },
+    {
       id: 'pending',
       header: 'Pending schedule',
       align: 'right',
@@ -426,6 +448,17 @@ function FoodSettlementsWorkspace() {
           <>
             <Typography variant="subtitle1">Branch {draftShop.shopId}</Typography>
             <FinanceBalanceSummary balance={draftShop} />
+            {draftShop.paymentExceptions?.length ? (
+              <Alert severity="warning">
+                Online collection review:{' '}
+                {draftShop.paymentExceptions
+                  .map(
+                    (entry) =>
+                      `${entry.orderId}: ${entry.reason}${entry.alreadyPaid ? ' (shop payout already recorded; no automatic debit)' : ''}`,
+                  )
+                  .join('; ')}
+              </Alert>
+            ) : null}
           </>
         ) : null}
         <ApiError
