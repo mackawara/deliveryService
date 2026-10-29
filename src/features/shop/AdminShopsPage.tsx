@@ -32,6 +32,7 @@ import type { NormalizedApiError } from '@/api/errors';
 import { ApiError } from '@/components/ApiError';
 import { PageHeader } from '@/components/PageHeader';
 import { newIdempotencyKey } from '@/lib/idempotency';
+import { AdminCustomerPaymentsPanel } from './CustomerPaymentsPanel';
 
 function ReviewDialog({ shop, onClose }: { shop: WireShop; onClose: () => void }) {
   const [decision, setDecision] = useState<'APPROVED' | 'REJECTED' | 'SUSPENDED'>('APPROVED');
@@ -289,6 +290,7 @@ function DetailCard({
               Configure terms
             </Button>
           </Stack>
+          <AdminCustomerPaymentsPanel shopId={shop._id} townId={shop.townId} />
         </Stack>
       </CardContent>
     </Card>

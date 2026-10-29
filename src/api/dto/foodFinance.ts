@@ -59,12 +59,14 @@ export type FoodLedgerEligibility =
 export interface FoodLedgerEntry extends WireDocument, WireVersioned {
   shopId: string;
   townId: string;
-  entryType: 'EARNING' | 'COMMISSION' | 'ADJUSTMENT' | 'PAYOUT';
+  entryType: 'EARNING' | 'COMMISSION' | 'ADJUSTMENT' | 'PAYOUT' | 'PROVISIONAL_CREDIT';
   amountCents: number;
   currency: 'USD';
   sourceKey: string;
   operationKey?: string;
   orderId?: string;
+  paymentId?: string;
+  provisionalCreditStatus?: 'PENDING' | 'HELD' | 'ELIGIBLE' | 'REVERSED';
   payableId?: string;
   payoutId?: string;
   settlementId?: string;
@@ -121,6 +123,16 @@ export interface ShopFinanceBalance {
   heldCents: number;
   carryForwardCents: number;
   pendingCents: number;
+  /** Verified online net food awaiting fulfillment; separate from pending schedule. */
+  provisionalPendingCents?: number;
+  paidOnlineLiabilityCents?: number;
+  paymentExceptions?: Array<{
+    orderId: string;
+    paymentId: string;
+    amountCents: number;
+    reason: string;
+    alreadyPaid: boolean;
+  }>;
   disputedCents: number;
   failureExceptions: FoodFailureException[];
   nextPayoutAt: IsoDateTime | null;

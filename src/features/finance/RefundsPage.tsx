@@ -28,8 +28,11 @@ import { StatusChip } from '@/components/StatusChip';
 import { describeStatus, refundStatusMeta } from '@/components/statusMeta';
 import { formatDateTime } from '@/lib/datetime';
 import { parseUsdToCents } from '@/lib/money';
-import { useGuardedAction } from '@/lib/useGuardedAction';
+import { useFinancialAction } from '@/lib/useFinancialAction';
+import { hasCapability, type StaffSession } from '@/lib/permissions';
 import { useQueryParam } from '@/lib/useUrlState';
+import { useStaffSession } from '@/auth/useAuth';
+import { foodFinanceScopeKey } from '@/lib/foodSettlementAccess';
 
 const RECENT_RESULT_LIMIT = 100;
 
@@ -40,12 +43,28 @@ const RECENT_RESULT_LIMIT = 100;
  * completed refund reflects a server finance record rather than an optimistic change.
  */
 export function RefundsPage() {
+  const session = useStaffSession();
+  const scopeKey = foodFinanceScopeKey(session);
+  return <ScopedRefundsPage key={scopeKey} scopeKey={scopeKey} session={session} />;
+}
+
+function ScopedRefundsPage({
+  scopeKey,
+  session,
+}: {
+  scopeKey: string;
+  session: StaffSession | null;
+}) {
   const [status, setStatus] = useQueryParam('status');
+  const [shopId, setShopId] = useQueryParam('shopId');
+  const [foodOrderId, setFoodOrderId] = useQueryParam('foodOrderId');
+  const [paymentAttemptId, setPaymentAttemptId] = useQueryParam('paymentAttemptId');
   const [requestOpen, setRequestOpen] = useState(false);
   const [approveTarget, setApproveTarget] = useState<Refund | null>(null);
   const [settleTarget, setSettleTarget] = useState<Refund | null>(null);
 
   const [bookingId, setBookingId] = useState('');
+  const [requestAttemptId, setRequestAttemptId] = useState(paymentAttemptId ?? '');
   const [amount, setAmount] = useState('');
   const [reason, setReason] = useState('');
   const [approveReason, setApproveReason] = useState('');
@@ -55,20 +74,30 @@ export function RefundsPage() {
   const [failureReason, setFailureReason] = useState('');
 
   const query = useListRefundsQuery(
-    { status: status as never, limit: RECENT_RESULT_LIMIT, skip: 0 },
+    {
+      scopeKey,
+      shopId,
+      foodOrderId,
+      paymentAttemptId,
+      status: status as never,
+      limit: RECENT_RESULT_LIMIT,
+      skip: 0,
+    },
     polled(POLLING.finance),
   );
   const [requestRefund] = useRequestRefundMutation();
   const [approveRefund] = useApproveRefundMutation();
   const [settleRefund] = useSettleRefundMutation();
 
-  const request = useGuardedAction({
+  const request = useFinancialAction({
+    scopeKey,
     allowUnconfirmedRetry: true,
     run: (_args: void, idempotencyKey: string) => {
       const parsed = parseUsdToCents(amount);
       if (!parsed.ok) throw new Error('unreachable: guarded by the dialog');
       return requestRefund({
         bookingId: bookingId.trim(),
+        paymentAttemptId: requestAttemptId.trim() || undefined,
         amountCents: parsed.cents,
         reason: reason.trim(),
         idempotencyKey,
@@ -79,12 +108,14 @@ export function RefundsPage() {
     onSuccess: () => {
       setRequestOpen(false);
       setBookingId('');
+      setRequestAttemptId('');
       setAmount('');
       setReason('');
     },
   });
 
-  const approve = useGuardedAction({
+  const approve = useFinancialAction({
+    scopeKey: `${scopeKey}:${approveTarget?.id ?? ''}:approve`,
     run: (_args: void, idempotencyKey: string) => {
       if (!approveTarget) throw new Error('unreachable: guarded by the dialog');
       return approveRefund({
@@ -99,7 +130,8 @@ export function RefundsPage() {
     onSuccess: () => setApproveTarget(null),
   });
 
-  const settle = useGuardedAction({
+  const settle = useFinancialAction({
+    scopeKey: `${scopeKey}:${settleTarget?.id ?? ''}:settle`,
     run: (_args: void, idempotencyKey: string) => {
       if (!settleTarget) throw new Error('unreachable: guarded by the dialog');
       return settleRefund({
@@ -139,6 +171,35 @@ export function RefundsPage() {
         <StatusChip descriptor={describeStatus(refundStatusMeta, refund.status)} />
       ),
     },
+    {
+      id: 'food',
+      header: 'Food payment / hold',
+      render: (refund) => (
+        <Stack spacing={0.5}>
+          {refund.foodOrderId ? (
+            <Typography variant="body2">Order {refund.foodOrderId}</Typography>
+          ) : null}
+          {refund.shopId ? <Typography variant="caption">Shop {refund.shopId}</Typography> : null}
+          {refund.paymentAttemptId ? (
+            <Typography variant="caption">Payment {refund.paymentAttemptId}</Typography>
+          ) : null}
+          {refund.holdReason ? (
+            <Typography variant="body2" color="warning.main">
+              {refund.holdReason}
+            </Typography>
+          ) : null}
+          {refund.foodOrderId ? (
+            <Button
+              component={RouterLink}
+              size="small"
+              to={`/finance/payments?${new URLSearchParams({ foodOrderId: refund.foodOrderId, ...(refund.shopId ? { shopId: refund.shopId } : {}) })}`}
+            >
+              Food collection
+            </Button>
+          ) : null}
+        </Stack>
+      ),
+    },
     { id: 'reason', header: 'Reason', minWidth: 200, render: (refund) => refund.reason },
     {
       id: 'manual',
@@ -164,7 +225,7 @@ export function RefundsPage() {
           <Button
             size="small"
             variant="outlined"
-            disabled={refund.status !== 'REQUESTED'}
+            disabled={refund.status !== 'REQUESTED' || !hasCapability(session, 'refunds.approve')}
             onClick={() => setApproveTarget(refund)}
           >
             Approve
@@ -172,7 +233,10 @@ export function RefundsPage() {
           <Button
             size="small"
             variant="outlined"
-            disabled={!['APPROVED', 'PROCESSING'].includes(refund.status)}
+            disabled={
+              !['APPROVED', 'PROCESSING'].includes(refund.status) ||
+              !hasCapability(session, 'refunds.settle')
+            }
             onClick={() => setSettleTarget(refund)}
           >
             Settle
@@ -189,31 +253,58 @@ export function RefundsPage() {
         description="Request, approve and settle refunds against booking payments."
         crumbs={[{ label: 'Finance' }, { label: 'Refunds' }]}
         actions={
-          <Button variant="contained" onClick={() => setRequestOpen(true)}>
+          <Button
+            variant="contained"
+            disabled={!hasCapability(session, 'refunds.request')}
+            onClick={() => {
+              setRequestAttemptId(paymentAttemptId ?? '');
+              setRequestOpen(true);
+            }}
+          >
             Request refund
           </Button>
         }
       />
 
       <Stack spacing={2}>
-        <TextField
-          select
-          size="small"
-          label="Status"
-          value={status ?? ''}
-          onChange={(event) => {
-            setStatus(event.target.value || null);
-          }}
-          sx={{ minWidth: 220, maxWidth: 260 }}
-        >
-          <MenuItem value="">Any status</MenuItem>
-          {REFUND_STATUSES.map((value) => (
-            <MenuItem key={value} value={value}>
-              {describeStatus(refundStatusMeta, value).label}
-            </MenuItem>
-          ))}
-        </TextField>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+          <TextField
+            select
+            size="small"
+            label="Status"
+            value={status ?? ''}
+            onChange={(event) => {
+              setStatus(event.target.value || null);
+            }}
+            sx={{ minWidth: 220, maxWidth: 260 }}
+          >
+            <MenuItem value="">Any status</MenuItem>
+            {REFUND_STATUSES.map((value) => (
+              <MenuItem key={value} value={value}>
+                {describeStatus(refundStatusMeta, value).label}
+              </MenuItem>
+            ))}
+          </TextField>
 
+          <TextField
+            size="small"
+            label="Shop ID"
+            value={shopId ?? ''}
+            onChange={(event) => setShopId(event.target.value || null)}
+          />
+          <TextField
+            size="small"
+            label="Food order ID"
+            value={foodOrderId ?? ''}
+            onChange={(event) => setFoodOrderId(event.target.value || null)}
+          />
+          <TextField
+            size="small"
+            label="Payment attempt ID"
+            value={paymentAttemptId ?? ''}
+            onChange={(event) => setPaymentAttemptId(event.target.value || null)}
+          />
+        </Stack>
         <Alert severity="info">
           A refund is completed only when the server records it. Nothing on this page marks money as
           returned before the backend confirms the stage. The table shows up to the{' '}
@@ -224,7 +315,13 @@ export function RefundsPage() {
         <ResourceTable
           caption="Refunds"
           columns={columns}
-          rows={query.currentData?.items ?? []}
+          rows={
+            ['unauthenticated', 'forbidden', 'notFound'].includes(
+              (query.error as NormalizedApiError | undefined)?.kind ?? '',
+            )
+              ? []
+              : (query.currentData?.items ?? [])
+          }
           getRowId={(refund) => refund.id}
           isLoading={query.isLoading}
           isFetching={query.isFetching}
@@ -245,6 +342,7 @@ export function RefundsPage() {
         unconfirmed={request.unconfirmed}
         onRetryUnconfirmed={() => void request.retryUnconfirmed()}
         disabled={
+          !hasCapability(session, 'refunds.request') ||
           bookingId.trim() === '' ||
           Boolean(moneyFieldError(amount, true)) ||
           !isReasonValid(reason)
@@ -259,6 +357,13 @@ export function RefundsPage() {
           fullWidth
           required
         />
+        <TextField
+          label="Payment attempt identifier"
+          value={requestAttemptId}
+          onChange={(event) => setRequestAttemptId(event.target.value)}
+          fullWidth
+          helperText="Link the original collection when resolving a food payment exception."
+        />
         <MoneyField label="Refund amount" value={amount} onChange={setAmount} required />
         <ReasonField value={reason} onChange={setReason} />
       </FormDialog>
@@ -271,7 +376,7 @@ export function RefundsPage() {
         error={approve.error}
         unconfirmed={approve.unconfirmed}
         onRetryUnconfirmed={() => void approve.retryUnconfirmed()}
-        disabled={!isReasonValid(approveReason)}
+        disabled={!isReasonValid(approveReason) || !hasCapability(session, 'refunds.approve')}
         onClose={() => setApproveTarget(null)}
         onSubmit={() => void approve.submit()}
       >
@@ -297,7 +402,10 @@ export function RefundsPage() {
         error={settle.error}
         unconfirmed={settle.unconfirmed}
         onRetryUnconfirmed={() => void settle.retryUnconfirmed()}
-        disabled={settleStatus === 'FAILED' && failureReason.trim() === ''}
+        disabled={
+          !hasCapability(session, 'refunds.settle') ||
+          (settleStatus === 'FAILED' && failureReason.trim() === '')
+        }
         onClose={() => setSettleTarget(null)}
         onSubmit={() => void settle.submit()}
       >

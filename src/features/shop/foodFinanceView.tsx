@@ -51,6 +51,9 @@ export function FinanceBalanceSummary({ balance }: { balance: ShopFinanceBalance
     ['Adjustments', balance.adjustmentCents],
     ['Net owed', balance.balanceCents],
     ['Payable', balance.availableCents],
+    ...(balance.provisionalPendingCents === undefined
+      ? []
+      : [['Provisional online food credit', balance.provisionalPendingCents] as [string, number]]),
     ['Pending schedule', balance.pendingCents],
     ['Held earnings', balance.heldCents],
     ['Reserved in statements', balance.reservedCents],

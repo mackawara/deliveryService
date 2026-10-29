@@ -39,6 +39,8 @@ export interface AppConfig {
   enableMockApi: boolean;
   /** Enable only with the matching, deployed food-settlement API and approved policy. */
   enableFoodSettlements: boolean;
+  /** Independent, default-off EcoCash panel gate; backend provider readiness remains required. */
+  enableFoodEcoCash: boolean;
 }
 
 export const appConfig: AppConfig = {
@@ -50,6 +52,7 @@ export const appConfig: AppConfig = {
   googleMapsApiKey: readString(import.meta.env.VITE_GOOGLE_MAPS_API_KEY, ''),
   enableMockApi: readBoolean(import.meta.env.VITE_ENABLE_MOCK_API, false) && import.meta.env.DEV,
   enableFoodSettlements: readBoolean(import.meta.env.VITE_ENABLE_FOOD_SETTLEMENTS, false),
+  enableFoodEcoCash: readBoolean(import.meta.env.VITE_ENABLE_FOOD_ECOCASH, false),
 };
 
 /**

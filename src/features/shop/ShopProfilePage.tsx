@@ -36,6 +36,7 @@ import { PickupPicker } from './PickupPicker';
 import { validPickup } from './pickup';
 import { scheduleDraft, schedulePayload, scheduleLabel, validSchedule } from './settlement';
 import { ShopContactVerification } from './ShopContactVerification';
+import { OwnerCustomerPaymentsPanel } from './CustomerPaymentsPanel';
 
 function ProfileEditor({
   shopId,
@@ -309,6 +310,7 @@ export function ShopProfilePage() {
           </CardContent>
         </Card>
         <Stack spacing={3} sx={{ width: { xs: '100%', lg: 360 } }}>
+          <OwnerCustomerPaymentsPanel shopId={shopId} />
           <Card>
             <CardContent>
               <Stack spacing={2}>

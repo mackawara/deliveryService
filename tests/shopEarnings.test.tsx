@@ -13,7 +13,12 @@ import { ShopEarningsPage, hararePeriodInput } from '@/features/shop/ShopEarning
 import { ShopPayoutDetailsPage, validPayoutDetails } from '@/features/shop/ShopPayoutDetailsPage';
 import { ShopSettlementPage } from '@/features/shop/ShopSettlementPage';
 import { mockServer } from '@/mocks/server';
-import { foodDestination, foodEarnings, foodSettlement } from './foodFinanceFixture';
+import {
+  foodDestination,
+  foodEarningEntry,
+  foodEarnings,
+  foodSettlement,
+} from './foodFinanceFixture';
 import { renderRoutes } from './testUtils';
 
 const session: WireShopMe = {
@@ -84,6 +89,52 @@ afterEach(() => {
 });
 
 describe('owner earnings and payout safety', () => {
+  it('separates provisional online credit, payable funds and previously paid refund liability', async () => {
+    mockServer.use(
+      http.get('/api/v1/shop/shops/shop-1/earnings', () =>
+        HttpResponse.json({
+          ...foodEarnings,
+          items: [
+            {
+              ...foodEarningEntry,
+              _id: 'online-credit',
+              orderId: 'prepaid-order',
+              entryType: 'PROVISIONAL_CREDIT',
+              amountCents: 900,
+              provisionalCreditStatus: 'PENDING',
+              eligibility: 'PENDING',
+            },
+          ],
+          balance: {
+            ...foodEarnings.balance,
+            provisionalPendingCents: 900,
+            paidOnlineLiabilityCents: 450,
+            paymentExceptions: [
+              {
+                orderId: 'previously-paid-order',
+                paymentId: 'payment-1',
+                amountCents: 450,
+                reason: 'REFUND_COMPLETED',
+                alreadyPaid: true,
+              },
+            ],
+          },
+        }),
+      ),
+      http.get('/api/v1/shop/shops/shop-1/settlements', () =>
+        HttpResponse.json({ items: [], nextCursor: null }),
+      ),
+    );
+    showPage('earnings');
+    expect(
+      await screen.findByLabelText('Provisional online food credit: $9.00'),
+    ).toBeInTheDocument();
+    expect(screen.getByText('Provisional online credit')).toBeInTheDocument();
+    expect(screen.getByText(/Previously paid shop proceeds include/)).toHaveTextContent('$4.50');
+    expect(screen.getByText(/previously-paid-order: REFUND_COMPLETED/)).toBeInTheDocument();
+    // The row and separate server balance carry the same $9 without adding it to payable money.
+    expect(screen.getByLabelText('Payable: $10.80')).toBeInTheDocument();
+  });
   it('keeps disabled, unauthorized and revoked branches out of the financial query flow', async () => {
     appConfig.enableFoodSettlements = false;
     const view = showPage('earnings');
