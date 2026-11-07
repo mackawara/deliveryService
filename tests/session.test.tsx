@@ -62,7 +62,7 @@ describe('session lifecycle', () => {
   it('clears local data on sign-out even though the server confirmed it', async () => {
     resetMockState({ authenticated: true });
     const user = userEvent.setup();
-    const { store } = renderRoutes({ routes, initialEntries: ['/'] });
+    const { store } = renderRoutes({ routes, initialEntries: ['/dashboard'] });
 
     await screen.findByRole('heading', { name: 'Overview' });
     await user.click(screen.getByRole('button', { name: /Account menu/i }));
@@ -84,7 +84,7 @@ describe('session lifecycle', () => {
     );
 
     const user = userEvent.setup();
-    const { store } = renderRoutes({ routes, initialEntries: ['/'] });
+    const { store } = renderRoutes({ routes, initialEntries: ['/dashboard'] });
 
     await screen.findByRole('heading', { name: 'Overview' });
     await user.click(screen.getByRole('button', { name: /Account menu/i }));

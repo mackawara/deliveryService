@@ -19,6 +19,32 @@ Publish both initial images, run its `Deploy API` workflow once, then this one.
   file is the **container's** internal static server and must never replace the host
   Caddyfile.
 
+The container forwards the explicit public paths `/`, `/login`, `/signup`,
+`/shop-signup`, `/driver-signup`, `/biker-terms`, `/site/*`, `/shop/dashboard`,
+`/biker/dashboard` and `/operations[/...]` to `api:3000` on the existing delivery
+compose network. Fixed page entries also accept a trailing slash and retain their
+query string. `API_UPSTREAM` can override this address for an isolated test.
+The page assets remain owned by deliveryBooking; they are not copied into this
+repository. A dashboard image rollout therefore activates these routes without
+editing or reloading the shared host Caddyfile. Deploy the API with its public
+pages before rolling out this dashboard image.
+
+All other paths keep the React SPA fallback. Staff overview and its navigation
+links use `/dashboard`; booking, dispatch, finance and existing food-shop routes
+are retained. In particular, `/shop/login` and `/shop/signup` still use the food
+shop's existing account flow. A direct browser request to `/login` opens the shared
+delivery portal. Redirects within the staff SPA retain its native WhatsApp sign-in
+screen and return to the requested staff route, or `/dashboard` by default.
+
+The frontend listener must remain loopback-published as in the compose stack.
+Host Caddy is its trusted public edge: it replaces incoming client forwarding
+headers, and this internal proxy preserves that edge's `X-Forwarded-For`,
+`X-Forwarded-Proto` and public Host instead of appending another internal hop.
+This keeps the API's `TRUST_PROXY=1` client-address rate limits and HTTPS cookie
+handling intact. Do not publish this container directly to the internet with
+this forwarding policy. Container smoke tests exercise these header boundaries,
+public-page forwarding, retained SPA routes and upstream error propagation.
+
 ### Pipeline
 
 ```

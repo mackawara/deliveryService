@@ -159,7 +159,7 @@ export const routes = [
           </RequireAuth>
         ),
         children: [
-          { index: true, element: <OverviewPage /> },
+          { path: 'dashboard', element: <OverviewPage /> },
           { path: 'forbidden', element: <ForbiddenPage /> },
 
           {

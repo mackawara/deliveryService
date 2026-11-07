@@ -25,9 +25,10 @@ function signInAs(roles: Array<'operator' | 'finance' | 'admin'>, capabilities: 
 describe('role-scoped navigation and route guards', () => {
   it('shows a finance-only account its own section and nothing else', async () => {
     signInAs(['finance']);
-    renderRoutes({ routes, initialEntries: ['/'] });
+    renderRoutes({ routes, initialEntries: ['/dashboard'] });
 
     expect(await screen.findByRole('heading', { name: 'Overview' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/dashboard');
     // The Finance navigation group is present; Operations is not rendered at all.
     expect(screen.getAllByText('Finance').length).toBeGreaterThan(0);
     expect(screen.queryByText('Operations')).not.toBeInTheDocument();

@@ -3,7 +3,7 @@ import { rmSync } from 'node:fs';
 import { fileURLToPath, URL } from 'node:url';
 
 import react from '@vitejs/plugin-react';
-import { defineConfig, loadEnv, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin, type ProxyOptions } from 'vite';
 
 /**
  * Prints where `/api/v1` is forwarded under the dev server's own URLs, and names that
@@ -78,6 +78,31 @@ export default defineConfig(({ mode }) => {
     : 'default; set VITE_DEV_API_PROXY_TARGET to change it';
   let lastProxyHint = 0;
   const buildInfo = readBuildInfo();
+  // Exact public entries belong to deliveryBooking, while /shop/login and
+  // every other existing shop/staff dashboard route stay in this application.
+  // Mock mode is a standalone React test/demo environment without a backend.
+  const portalProxyPattern =
+    '^/(?:\\?.*|$|(?:login|signup|shop-signup|driver-signup|biker-terms|shop/dashboard|biker/dashboard)/?(?:\\?.*)?$|site/.*|operations(?:/.*|\\?.*|$))';
+  const proxies: Record<string, ProxyOptions> = {
+    '/api/v1': {
+      target: proxyTarget,
+      changeOrigin: false,
+      secure: false,
+      configure: (proxy) => {
+        // Vite logs each failure itself; this names the configured destination.
+        proxy.on('error', () => {
+          if (Date.now() - lastProxyHint < 5000) return;
+          lastProxyHint = Date.now();
+          console.warn(
+            `[api proxy] Could not reach ${proxyTarget} (${proxySource}). Is the backend running on that port?`,
+          );
+        });
+      },
+    },
+    ...(env.VITE_ENABLE_MOCK_API === 'true'
+      ? {}
+      : { [portalProxyPattern]: { target: proxyTarget, changeOrigin: false, secure: false } }),
+  };
 
   return {
     plugins: [react(), announceApiProxy(proxyTarget, proxySource), buildMetadata(buildInfo)],
@@ -89,27 +114,11 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       port: 5173,
-      proxy: {
-        '/api/v1': {
-          target: proxyTarget,
-          changeOrigin: false,
-          secure: false,
-          configure: (proxy) => {
-            // Vite logs each failure itself; this adds where it was going, at most every
-            // few seconds so a burst of failed requests prints one hint.
-            proxy.on('error', () => {
-              if (Date.now() - lastProxyHint < 5000) return;
-              lastProxyHint = Date.now();
-              console.warn(
-                `[api proxy] Could not reach ${proxyTarget} (${proxySource}). Is the backend running on that port?`,
-              );
-            });
-          },
-        },
-      },
+      proxy: proxies,
     },
     preview: {
       port: 4173,
+      proxy: proxies,
     },
     build: {
       outDir: 'dist',

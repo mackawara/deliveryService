@@ -27,8 +27,14 @@ cp .env.example .env     # public configuration only
 yarn dev
 ```
 
-The dev server proxies `/api/v1` to `VITE_DEV_API_PROXY_TARGET` (default
-`http://localhost:4400`), so the browser stays same-origin and the session cookie works.
+The dev and preview servers proxy `/api/v1` and the public delivery pages to
+`VITE_DEV_API_PROXY_TARGET` (default `http://localhost:4400`), so the browser stays
+same-origin and the session cookie works. `/` is the delivery homepage; staff overview
+is `/dashboard`. The existing food-shop `/shop/login` and `/shop/signup` routes stay
+in this React app. Direct visits to `/login` open the shared delivery portal;
+sign-in redirects within the staff SPA keep its native WhatsApp flow and return to
+the requested staff page, defaulting to `/dashboard`. Standalone `VITE_ENABLE_MOCK_API=true` demos and browser tests
+keep the React login locally and do not require a public-page backend.
 
 ### Running against the backend
 

@@ -44,7 +44,7 @@ export function ForbiddenPage() {
               An administrator can adjust roles and town access in Settings → Staff access.
             </Typography>
             <Stack direction="row" spacing={1}>
-              <Button component={RouterLink} to="/" variant="contained">
+              <Button component={RouterLink} to="/dashboard" variant="contained">
                 Go to overview
               </Button>
               <Button component={RouterLink} to="/settings/access" variant="outlined">

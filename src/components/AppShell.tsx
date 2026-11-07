@@ -68,7 +68,7 @@ function NavigationList({
   const location = useLocation();
 
   function isActive(path: string): boolean {
-    if (path === '/') return location.pathname === '/';
+    if (path === '/dashboard') return location.pathname === '/dashboard';
     return location.pathname === path || location.pathname.startsWith(`${path}/`);
   }
 
