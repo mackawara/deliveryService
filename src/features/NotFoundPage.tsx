@@ -13,7 +13,7 @@ export function NotFoundPage() {
         title="Page not found"
         description="That address is not part of the dashboard."
         action={
-          <Button component={RouterLink} to="/" variant="contained">
+          <Button component={RouterLink} to="/dashboard" variant="contained">
             Go to overview
           </Button>
         }

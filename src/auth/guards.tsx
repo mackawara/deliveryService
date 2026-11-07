@@ -70,7 +70,7 @@ export function RequireAccess({
 /** Keeps signed-in staff away from the login screen. */
 export function RedirectIfAuthenticated({ children }: { children: ReactNode }) {
   const { status } = useAuth();
-  if (status === 'authenticated') return <Navigate to="/" replace />;
+  if (status === 'authenticated') return <Navigate to="/dashboard" replace />;
   return <>{children}</>;
 }
 

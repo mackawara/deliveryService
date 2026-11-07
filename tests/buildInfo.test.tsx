@@ -11,7 +11,7 @@ import { readBuildInfo } from '../vite.config';
 describe('build identity', () => {
   it('shows the running version and revision in the navigation', async () => {
     resetMockState({ authenticated: true });
-    renderRoutes({ routes, initialEntries: ['/'] });
+    renderRoutes({ routes, initialEntries: ['/dashboard'] });
 
     const info = await screen.findByTestId('build-info');
     expect(info).toHaveTextContent(`Version ${buildInfo.version}`);

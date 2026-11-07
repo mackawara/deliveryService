@@ -2,7 +2,7 @@
  * Only a validated same-origin relative return path is preserved after sign-in
  * (specification section 5.1). Anything else falls back to the overview.
  */
-export const DEFAULT_RETURN_PATH = '/';
+export const DEFAULT_RETURN_PATH = '/dashboard';
 
 const UNSAFE_PREFIXES = ['//', '/\\', 'http:', 'https:', 'javascript:', 'data:'];
 
@@ -17,6 +17,7 @@ export function isSafeReturnPath(value: string | null | undefined): value is str
 }
 
 export function safeReturnPath(value: string | null | undefined): string {
+  if (value === '/' || value?.startsWith('/?')) return DEFAULT_RETURN_PATH;
   return isSafeReturnPath(value) ? value : DEFAULT_RETURN_PATH;
 }
 

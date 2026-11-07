@@ -16,6 +16,14 @@ async function requestCode(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('WhatsApp OTP sign-in', () => {
+  it('sends signed-in staff to the dashboard instead of the public homepage', async () => {
+    resetMockState({ authenticated: true });
+    renderRoutes({ routes, initialEntries: ['/login'] });
+
+    expect(await screen.findByRole('heading', { name: 'Overview' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/dashboard');
+  });
+
   it('acknowledges a request without disclosing whether the number is staff', async () => {
     resetMockState({ authenticated: false });
     const user = userEvent.setup();

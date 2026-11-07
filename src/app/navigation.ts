@@ -58,7 +58,7 @@ export const STAFF_MANAGE: AccessRequirement = {
 /** Shown above the groups: the overview is available to every authenticated staff member. */
 export const PRIMARY_ITEMS: NavItem[] = [
   {
-    path: '/',
+    path: '/dashboard',
     label: 'Overview',
     icon: DashboardIcon,
     group: 'operations',

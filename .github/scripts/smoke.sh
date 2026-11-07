@@ -32,8 +32,14 @@ check() {
 
 shell_served() {
   [ "$(get "${BASE}/" "${tmp}/index")" = 200 ] || { echo "/ is not 200"; return 1; }
-  grep -qi '<div id="root"' "${tmp}/index" || { echo "/ is not the app shell"; return 1; }
-  [ "$(get "${BASE}/zones" "${tmp}/deep")" = 200 ] || { echo "SPA deep link is not 200"; return 1; }
+  grep -q '/site/app.js' "${tmp}/index" || { echo "/ is not the public delivery homepage"; return 1; }
+  for path in /signup /driver-signup; do
+    [ "$(get "${BASE}${path}" "${tmp}/public")" = 200 ] || { echo "${path} is not 200"; return 1; }
+    grep -q '/site/app.js' "${tmp}/public" || { echo "${path} is not a public delivery page"; return 1; }
+  done
+  [ "$(get "${BASE}/dashboard" "${tmp}/deep")" = 200 ] || { echo "dashboard is not 200"; return 1; }
+  grep -qi '<div id="root"' "${tmp}/deep" || { echo "dashboard did not serve the React shell"; return 1; }
+  [ "$(get "${BASE}/bookings" "${tmp}/deep")" = 200 ] || { echo "SPA deep link is not 200"; return 1; }
   grep -qi '<div id="root"' "${tmp}/deep" || { echo "SPA deep link did not serve the shell"; return 1; }
   [ "$(get "${BASE}/assets/does-not-exist.js" "${tmp}/missing")" = 404 ] || { echo "a missing asset did not 404"; return 1; }
 }
@@ -58,7 +64,7 @@ api_errors_stay_api() {
   jq -e . "${tmp}/apierr" >/dev/null 2>&1 || { echo "unknown API path did not return JSON (the SPA page leaked through)"; return 1; }
 }
 
-check "dashboard serves the app, deep links, and 404s missing assets" shell_served
+check "public homepage, signup and dashboard routes are served correctly" shell_served
 check "dashboard reports ${VERSION}/${REVISION}" build_matches
 check "dashboard origin reaches a ready API" api_reachable
 check "API errors stay API responses" api_errors_stay_api

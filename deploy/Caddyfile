@@ -21,6 +21,23 @@
 		-Server
 	}
 
+	# Public pages are owned by the API. The host's established frontend route
+	# reaches this proxy after a dashboard image rollout; no edit to a shared
+	# host Caddyfile is required. Both containers share the delivery network.
+	@portal path / /login /login/ /signup /signup/ /shop-signup /shop-signup/ /driver-signup /driver-signup/ /biker-terms /biker-terms/ /site/* /shop/dashboard /shop/dashboard/ /biker/dashboard /biker/dashboard/ /operations /operations/*
+	handle @portal {
+		header Cache-Control "no-store"
+		reverse_proxy {$API_UPSTREAM:api:3000} {
+			# This listener is published on host loopback only. Host Caddy is the
+			# trusted public hop and has already replaced client-supplied forwarded
+			# headers. Preserve its client address and HTTPS scheme rather than
+			# adding this internal hop: the API deliberately uses TRUST_PROXY=1.
+			header_up X-Forwarded-For {http.request.header.X-Forwarded-For}
+			header_up X-Forwarded-Proto {http.request.header.X-Forwarded-Proto}
+			header_up X-Forwarded-Host {http.request.host}
+		}
+	}
+
 	# Backend routes belong to the API. Host Caddy sends them there before they
 	# can reach this server, so arriving here means the routing is wrong. Say so
 	# as an API-shaped error rather than answering with the app shell, which
