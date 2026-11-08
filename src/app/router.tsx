@@ -1,5 +1,5 @@
 import { Alert, Typography, Stack } from '@mui/material';
-import { Outlet, createBrowserRouter } from 'react-router-dom';
+import { Navigate, Outlet, createBrowserRouter } from 'react-router-dom';
 
 import { AuthProvider } from '@/auth/AuthProvider';
 import { ForbiddenPage } from '@/auth/ForbiddenPage';
@@ -76,6 +76,8 @@ export const routes = [
   {
     element: <RootLayout />,
     children: [
+      // Standalone mock mode serves React at /; deployed public roots are proxied.
+      { index: true, element: <Navigate to="/dashboard" replace /> },
       {
         path: '/login',
         element: (

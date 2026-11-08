@@ -24,7 +24,7 @@ BASE="http://127.0.0.1:${PORT}"
 tmp="$(mktemp -d)"
 
 cleanup() {
-  docker rm -f "${NAME}" "${UPSTREAM}" >/dev/null 2>&1 || true
+  docker rm -fv "${NAME}" "${UPSTREAM}" >/dev/null 2>&1 || true
   docker network rm "${NETWORK}" >/dev/null 2>&1 || true
   rm -rf "${tmp}"
 }
@@ -52,14 +52,20 @@ cat > "${tmp}/upstream.Caddyfile" <<'CADDY'
   respond "<!doctype html><main>Public delivery portal</main>" 200
 }
 CADDY
+chmod 644 "${tmp}/upstream.Caddyfile"
 docker network create "${NETWORK}" >/dev/null
+# These names exist only on the isolated test network, never an outbound proxy.
 docker run -d --name "${UPSTREAM}" --network "${NETWORK}" \
+  -e "NO_PROXY=${UPSTREAM},${NAME},localhost,127.0.0.1" \
+  -e "no_proxy=${UPSTREAM},${NAME},localhost,127.0.0.1" \
   --cap-drop ALL --security-opt no-new-privileges:true \
   -v "${tmp}/upstream.Caddyfile:/etc/caddy/Caddyfile:ro" "${IMAGE}" >/dev/null
 
 # Same hardening as the compose stack in deliveryBooking (deploy/docker-compose.yml).
 docker run -d --name "${NAME}" --network "${NETWORK}" -p "127.0.0.1:${PORT}:80" \
   -e "API_UPSTREAM=${UPSTREAM}:3000" \
+  -e "NO_PROXY=${UPSTREAM},${NAME},localhost,127.0.0.1" \
+  -e "no_proxy=${UPSTREAM},${NAME},localhost,127.0.0.1" \
   --cap-drop ALL --cap-add NET_BIND_SERVICE --security-opt no-new-privileges:true \
   "${IMAGE}" >/dev/null
 for _ in $(seq 1 30); do

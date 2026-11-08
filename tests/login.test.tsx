@@ -15,6 +15,26 @@ async function requestCode(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: /Send code on WhatsApp/i }));
 }
 
+describe('standalone frontend entry point', () => {
+  it('opens the dashboard for signed-in staff visiting the root', async () => {
+    resetMockState({ authenticated: true });
+    renderRoutes({ routes, initialEntries: ['/'] });
+
+    expect(await screen.findByRole('heading', { name: 'Overview' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Overview' })).toHaveAttribute('href', '/dashboard');
+  });
+
+  it('takes anonymous root visitors to sign-in', async () => {
+    resetMockState({ authenticated: false });
+    renderRoutes({ routes, initialEntries: ['/'] });
+
+    expect(
+      await screen.findByRole('button', { name: /Send code on WhatsApp/i }),
+    ).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'Overview' })).not.toBeInTheDocument();
+  });
+});
+
 describe('WhatsApp OTP sign-in', () => {
   it('sends signed-in staff to the dashboard instead of the public homepage', async () => {
     resetMockState({ authenticated: true });
