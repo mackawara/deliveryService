@@ -112,7 +112,13 @@ export interface WireCandidate {
   positionSource?: 'DRIVER_PIN' | 'OPERATOR_CONFIRMED';
   locationFresh: boolean;
   idleSeconds: number | null;
-  suitability: { fits: boolean; inspectionRequired: boolean; reasons: string[] };
+  suitability: {
+    fits: boolean;
+    inspectionRequired: boolean;
+    reasons: string[];
+    /** Server-confirmed parcel mismatch that an administrator may override. */
+    overrideAllowed?: boolean;
+  };
   presenceVersion: number;
 }
 

@@ -433,6 +433,22 @@ export function BookingDetailPage() {
                             ? ` · expires ${formatDateTime(assignment.offerExpiresAt)}`
                             : ''}
                         </Typography>
+                        {assignment.suitabilityOverride ? (
+                          <Alert severity="warning">
+                            <AlertTitle>Vehicle suitability overridden</AlertTitle>
+                            {assignment.suitabilityOverride.reason}
+                            <Typography variant="body2">
+                              Approved by{' '}
+                              {assignment.suitabilityOverride.approvedBy.label ??
+                                assignment.suitabilityOverride.approvedBy.id}{' '}
+                              · {formatDateTime(assignment.suitabilityOverride.approvedAt)}
+                            </Typography>
+                            <Typography variant="body2">
+                              Checks overridden:{' '}
+                              {assignment.suitabilityOverride.failedChecks.join(', ')}
+                            </Typography>
+                          </Alert>
+                        ) : null}
                         {assignment.custodyHandover ? (
                           <Typography variant="caption" color="text.secondary">
                             Custody handover recorded{' '}

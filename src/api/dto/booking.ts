@@ -244,6 +244,12 @@ export interface WireAssignment extends WireDocument, WireVersioned {
   releasedAt?: IsoDateTime;
   releaseReason?: string;
   completedAt?: IsoDateTime;
+  suitabilityOverride?: {
+    reason: string;
+    approvedBy: Actor;
+    approvedAt: IsoDateTime;
+    failedChecks: string[];
+  };
   custodyHandover?: {
     fromDriverId: string;
     toDriverId: string;
