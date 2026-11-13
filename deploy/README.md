@@ -30,11 +30,13 @@ editing or reloading the shared host Caddyfile. Deploy the API with its public
 pages before rolling out this dashboard image.
 
 All other paths keep the React SPA fallback. Staff overview and its navigation
-links use `/dashboard`; booking, dispatch, finance and existing food-shop routes
-are retained. In particular, `/shop/login` and `/shop/signup` still use the food
-shop's existing account flow. A direct browser request to `/login` opens the shared
-delivery portal. Redirects within the staff SPA retain its native WhatsApp sign-in
-screen and return to the requested staff route, or `/dashboard` by default.
+links use `/dashboard`; booking, dispatch, finance and food-shop routes are
+retained. This app has no login page of its own: `/login` is the one login, served
+by the API, for staff and shop owners alike. Whenever the app needs someone to sign
+in it does a full-page navigation to `/login?returnTo=…`, and the login returns
+them to that page when their role may open it. The old `/shop/login` and
+`/shop/signup` addresses stay in the SPA only to redirect there. Deploy the API
+with the one login (deliveryBooking#58 and #59) before rolling out this image.
 
 The frontend listener must remain loopback-published as in the compose stack.
 Host Caddy is its trusted public edge: it replaces incoming client forwarding

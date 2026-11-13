@@ -1,9 +1,8 @@
 /**
- * Authentication and staff DTOs.
+ * Session and staff DTOs (specification section 5.4).
  *
- * These describe the endpoints proposed in specification section 5.4. They do not
- * exist in the inspected API-key implementation and are listed as P0 backend work in
- * section 11; the frontend calls them through RTK Query exactly as specified.
+ * Signing in is done on the one login page outside this app; these describe what the
+ * dashboard reads once a session exists.
  */
 import type { IsoDateTime, WireVersioned } from '@/api/dto/common';
 import type { StaffRole } from '@/lib/permissions';
@@ -12,40 +11,22 @@ export interface WireCsrf {
   csrfToken: string;
 }
 
-export interface OtpRequestBody {
-  /** Normalized server-side to E.164; the client only shapes it for usability. */
-  phone: string;
-  /** Explicit opt-in captured on the login form. */
-  consent: boolean;
-  /** Makes a network retry idempotent so one tap never sends two messages. */
-  requestKey: string;
+/** Which of this browser's sessions is acting: staff in the admin shell, an owner in the shop shell. */
+export type SessionRole = 'staff' | 'owner';
+
+/** Where a signed-in browser may go. Staff and shop-owner sessions are separate. */
+export type AccessDestination = 'ADMIN' | 'SHOP';
+
+/** `GET /api/v1/auth/session`: empty when signed out, both for a dual-role number. */
+export interface WireAccess {
+  destinations: AccessDestination[];
 }
 
-/**
- * The same response shape is returned for unknown, disabled and eligible numbers, so
- * the interface can never disclose staff membership.
- */
+/** A code sent to confirm a number, e.g. a shop's contact number or a staff number change. */
 export interface WireOtpChallenge {
   challengeId: string;
   expiresAt: IsoDateTime;
   resendAt: IsoDateTime;
-}
-
-export interface OtpResendBody {
-  challengeId: string;
-  requestKey: string;
-}
-
-export interface OtpVerifyBody {
-  challengeId: string;
-  code: string;
-}
-
-export interface WireOtpVerified {
-  /** Rotated on login; it is not the session secret. */
-  csrfToken: string;
-  /** Present once the cookie is set, so the client can show expiry immediately. */
-  session?: WireSessionWindow;
 }
 
 export interface WireSessionWindow {

@@ -1,5 +1,5 @@
 import { baseApi } from '@/api/baseApi';
-import { clearShopCsrfToken, setShopCsrfToken } from '@/api/csrf';
+import { setShopCsrfToken } from '@/api/csrf';
 import { queryParams } from '@/api/adapters';
 import type {
   CreateItemBody,
@@ -19,14 +19,7 @@ import type {
   WireSettlementPolicy,
   WireTermsRequest,
 } from '@/api/dto/shop';
-import type {
-  OtpRequestBody,
-  OtpResendBody,
-  OtpVerifyBody,
-  WireCsrf,
-  WireOtpChallenge,
-  WireOtpVerified,
-} from '@/api/dto/session';
+import type { WireCsrf, WireOtpChallenge } from '@/api/dto/session';
 import { allOf, entityTag, listTag } from '@/api/tags';
 import { newIdempotencyKey } from '@/lib/idempotency';
 
@@ -47,29 +40,11 @@ export const shopApi = baseApi.injectEndpoints({
           const { data } = await queryFulfilled;
           setShopCsrfToken(data.csrfToken);
         } catch {
-          // The login form presents the connection error.
+          // The next state-changing request fetches it again.
         }
       },
     }),
 
-    requestShopOtp: build.mutation<WireOtpChallenge, OtpRequestBody>({
-      query: (body) => ({ url: '/shop/auth/otp/request', method: 'POST', body }),
-    }),
-    resendShopOtp: build.mutation<WireOtpChallenge, OtpResendBody>({
-      query: (body) => ({ url: '/shop/auth/otp/resend', method: 'POST', body }),
-    }),
-    verifyShopOtp: build.mutation<WireOtpVerified, OtpVerifyBody>({
-      query: (body) => ({ url: '/shop/auth/otp/verify', method: 'POST', body }),
-      async onQueryStarted(_arg, { queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          setShopCsrfToken(data.csrfToken);
-        } catch {
-          // Keep the pre-login token so an invalid code can be retried.
-        }
-      },
-      invalidatesTags: ['Shop'],
-    }),
     getShopMe: build.query<WireShopMe, void>({
       query: () => ({ url: '/shop/me' }),
       providesTags: ['Shop'],
@@ -77,17 +52,6 @@ export const shopApi = baseApi.injectEndpoints({
     shopActivity: build.mutation<WireShopMe['session'], void>({
       query: () => ({ url: '/shop/auth/session/activity', method: 'POST' }),
     }),
-    shopLogout: build.mutation<void, void>({
-      query: () => ({ url: '/shop/auth/logout', method: 'POST' }),
-      async onQueryStarted(_arg, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } finally {
-          clearShopCsrfToken();
-        }
-      },
-    }),
-
     listShopTowns: build.query<ShopTownChoice[], void>({
       query: () => ({ url: '/shop/towns' }),
       transformResponse: (response: { items: ShopTownChoice[] }) => response.items,
@@ -429,12 +393,8 @@ export const shopApi = baseApi.injectEndpoints({
 export const {
   useGetShopCsrfQuery,
   useLazyGetShopCsrfQuery,
-  useRequestShopOtpMutation,
-  useResendShopOtpMutation,
-  useVerifyShopOtpMutation,
   useGetShopMeQuery,
   useShopActivityMutation,
-  useShopLogoutMutation,
   useListShopTownsQuery,
   useRequestShopContactOtpMutation,
   useVerifyShopContactOtpMutation,

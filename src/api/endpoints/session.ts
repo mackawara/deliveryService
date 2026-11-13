@@ -1,26 +1,24 @@
 import { baseApi } from '@/api/baseApi';
-import { clearCsrfToken, setCsrfToken } from '@/api/csrf';
+import { getCsrfToken, getShopCsrfToken, setCsrfToken } from '@/api/csrf';
 import type {
-  OtpRequestBody,
-  OtpResendBody,
-  OtpVerifyBody,
+  SessionRole,
+  WireAccess,
   WireActivityResult,
   WireCsrf,
-  WireOtpChallenge,
-  WireOtpVerified,
   WireStaffSession,
 } from '@/api/dto/session';
 import type { StaffSession } from '@/lib/permissions';
 
 /**
- * WhatsApp OTP and session endpoints (specification section 5.4).
+ * Session endpoints (specification section 5.4).
  *
- * Authentication calls use RTK Query like every other request. OTP arguments are never
- * logged, and the login form keeps the code in local state rather than the store.
+ * Signing in happens on the one login page, which is served outside this app, so there
+ * are no code-request or verify calls here. This app reads who is signed in, keeps the
+ * session alive while it is used, and signs out.
  */
 export const sessionApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
-    /** Initializes or reuses the pre-login context and stores its CSRF token. */
+    /** Stores the CSRF token of the staff session, or a pre-login one when signed out. */
     getCsrf: build.query<WireCsrf, void>({
       query: () => ({ url: '/auth/csrf', headers: { 'Cache-Control': 'no-store' } }),
       async onQueryStarted(_arg, { queryFulfilled }) {
@@ -28,32 +26,24 @@ export const sessionApi = baseApi.injectEndpoints({
           const { data } = await queryFulfilled;
           setCsrfToken(data.csrfToken);
         } catch {
-          // The login form reports the failure; no token is kept.
+          // The next state-changing request fetches it again.
         }
       },
     }),
 
-    /** Generic 202 for unknown, disabled and eligible numbers alike. */
-    requestOtp: build.mutation<WireOtpChallenge, OtpRequestBody>({
-      query: (body) => ({ url: '/auth/otp/request', method: 'POST', body }),
-    }),
-
-    resendOtp: build.mutation<WireOtpChallenge, OtpResendBody>({
-      query: (body) => ({ url: '/auth/otp/resend', method: 'POST', body }),
-    }),
-
-    /** Consumes the challenge once, sets the session cookie and rotates the CSRF token. */
-    verifyOtp: build.mutation<WireOtpVerified, OtpVerifyBody>({
-      query: (body) => ({ url: '/auth/otp/verify', method: 'POST', body }),
-      async onQueryStarted(_arg, { queryFulfilled }) {
-        try {
-          const { data } = await queryFulfilled;
-          setCsrfToken(data.csrfToken);
-        } catch {
-          // A failed verification keeps the pre-login token; the form shows the error.
-        }
-      },
-      invalidatesTags: ['Session'],
+    /**
+     * "Who am I" across both roles: where this browser may go. Never a 401; a
+     * signed-out browser gets no destinations. It routes only — each API still checks
+     * its own session.
+     */
+    getAccess: build.query<WireAccess, void>({
+      query: () => ({ url: '/auth/session', headers: { 'Cache-Control': 'no-store' } }),
+      transformResponse: (response: Partial<WireAccess> | null): WireAccess => ({
+        destinations: (response?.destinations ?? []).filter(
+          (destination) => destination === 'ADMIN' || destination === 'SHOP',
+        ),
+      }),
+      providesTags: ['Session'],
     }),
 
     /** Current identity, permissions, town scope and session expiry. */
@@ -78,18 +68,19 @@ export const sessionApi = baseApi.injectEndpoints({
       query: () => ({ url: '/auth/session/activity', method: 'POST' }),
     }),
 
-    logout: build.mutation<void, void>({
-      query: () => ({ url: '/auth/logout', method: 'POST' }),
-      async onQueryStarted(_arg, { queryFulfilled }) {
-        try {
-          await queryFulfilled;
-        } catch {
-          // The caller reports an unconfirmed revocation; this handler only clears
-          // local data, so the rejection stops here.
-        } finally {
-          // Local data is cleared even when the remote revocation could not be confirmed.
-          clearCsrfToken();
-        }
+    /**
+     * The one sign-out: ends every session this browser holds, whichever shell asked.
+     * The request carries the CSRF token of the role that is signing out, read as the
+     * request is built, so the caller may clear local tokens straight afterwards.
+     */
+    logout: build.mutation<void, SessionRole>({
+      query: (role) => {
+        const token = role === 'owner' ? getShopCsrfToken() : getCsrfToken();
+        return {
+          url: '/auth/logout',
+          method: 'POST',
+          headers: token ? { 'X-CSRF-Token': token } : undefined,
+        };
       },
     }),
   }),
@@ -97,10 +88,7 @@ export const sessionApi = baseApi.injectEndpoints({
 
 export const {
   useGetCsrfQuery,
-  useLazyGetCsrfQuery,
-  useRequestOtpMutation,
-  useResendOtpMutation,
-  useVerifyOtpMutation,
+  useGetAccessQuery,
   useGetMeQuery,
   useRecordActivityMutation,
   useLogoutMutation,

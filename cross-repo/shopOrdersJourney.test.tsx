@@ -13,6 +13,7 @@ import { mockServer } from '@/mocks/server';
 import { OwnerAuthProvider } from '@/auth/OwnerAuthProvider';
 import { ShopOrdersPage } from '@/features/shop/ShopOrdersPage';
 import { renderRoutes } from '../tests/testUtils';
+import { signInOwner } from './ownerLogin';
 
 // This bridge forwards requests and cookies unchanged to a real local Express app.
 // No shop, terms, image or command response is mocked. All infrastructure stays in memory.
@@ -91,24 +92,7 @@ describe('dashboard + API cross-channel order management', () => {
   it.each(['dashboard-first', 'whatsapp-first'])(
     'runs %s through the actual shop UI, shared WhatsApp bot, rider and delivery services',
     async (combination) => {
-      await store.dispatch(shopApi.endpoints.getShopCsrf.initiate()).unwrap();
-      const challenge = await store
-        .dispatch(
-          shopApi.endpoints.requestShopOtp.initiate({
-            phone: '0772555001',
-            consent: true,
-            requestKey: crypto.randomUUID(),
-          }),
-        )
-        .unwrap();
-      await store
-        .dispatch(
-          shopApi.endpoints.verifyShopOtp.initiate({
-            challengeId: challenge.challengeId,
-            code: await code(),
-          }),
-        )
-        .unwrap();
+      await signInOwner(store, '0772555001', code);
       const me = await store.dispatch(shopApi.endpoints.getShopMe.initiate()).unwrap();
       const { services, repositories } = world.harness.context;
       const shop = world.seeded.pizzaInn;

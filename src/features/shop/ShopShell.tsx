@@ -1,4 +1,5 @@
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import PaymentsIcon from '@mui/icons-material/Payments';
@@ -23,9 +24,11 @@ import { useTheme } from '@mui/material/styles';
 import { useEffect, useState } from 'react';
 import { Link as RouterLink, Outlet, useLocation, useNavigate, useParams } from 'react-router-dom';
 
+import { useGetAccessQuery } from '@/api/endpoints/session';
 import { useListShopsQuery } from '@/api/endpoints/shop';
 import { baseApi } from '@/api/baseApi';
 import { useAppDispatch } from '@/app/hooks';
+import { ADMIN_HOME } from '@/auth/returnPath';
 import { useOwnerAuth } from '@/auth/useOwnerAuth';
 import { ApiError } from '@/components/ApiError';
 import { appConfig } from '@/config';
@@ -116,8 +119,10 @@ export function ShopShell() {
   const { session, signOut, signingOut } = useOwnerAuth();
   const shops = useListShopsQuery(
     { limit: 100 },
-    { skip: !session, pollingInterval: 5000, skipPollingIfUnfocused: true },
+    // Polling stops as soon as a sign-out starts, not when it finishes.
+    { skip: !session || signingOut, pollingInterval: 5000, skipPollingIfUnfocused: true },
   );
+  const access = useGetAccessQuery(undefined, { skip: !session || signingOut });
   const current = shops.currentData?.items.find(
     (shop) =>
       shop._id === shopId &&
@@ -178,6 +183,17 @@ export function ShopShell() {
       <Box sx={{ flexGrow: 1 }} />
       <Divider />
       <List dense sx={{ p: 1 }}>
+        {/* A number that is also on the service team changes sides without signing out. */}
+        {access.data?.destinations.includes('ADMIN') ? (
+          <ListItem disablePadding>
+            <ListItemButton component={RouterLink} to={ADMIN_HOME}>
+              <ListItemIcon sx={{ minWidth: 38 }}>
+                <AdminPanelSettingsIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText primary="Switch to admin" />
+            </ListItemButton>
+          </ListItem>
+        ) : null}
         <ListItem disablePadding>
           <ListItemButton onClick={() => void signOut()} disabled={signingOut}>
             <ListItemIcon sx={{ minWidth: 38 }}>

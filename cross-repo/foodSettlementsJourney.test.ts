@@ -10,6 +10,7 @@ import { sessionApi } from '@/api/endpoints/session';
 import { shopApi } from '@/api/endpoints/shop';
 import { createAppStore } from '@/app/store';
 import { mockServer } from '@/mocks/server';
+import { signInOwner } from './ownerLogin';
 
 type StaffRole = 'admin' | 'finance' | 'operator';
 const PERIOD = { from: '2026-09-20T22:00:00.000Z', to: '2026-09-21T22:00:00.000Z' };
@@ -154,28 +155,13 @@ describe('paired food settlement and rider cash contract', () => {
       .unwrap();
   }
   async function loginOwner(phone = '0772555001') {
-    await store.dispatch(shopApi.endpoints.getShopCsrf.initiate()).unwrap();
-    const challenge = await store
-      .dispatch(
-        shopApi.endpoints.requestShopOtp.initiate({
-          phone,
-          consent: true,
-          requestKey: crypto.randomUUID(),
-        }),
-      )
-      .unwrap();
-    await world.harness.context.services.otp.settled();
-    const delivery = world.harness.whatsapp.sent.at(-1)!.body as {
-      template: { components: { parameters: { text: string }[] }[] };
-    };
-    await store
-      .dispatch(
-        shopApi.endpoints.verifyShopOtp.initiate({
-          challengeId: challenge.challengeId,
-          code: delivery.template.components[0].parameters[0].text,
-        }),
-      )
-      .unwrap();
+    await signInOwner(store, phone, async () => {
+      await world.harness.context.services.otp.settled();
+      const delivery = world.harness.whatsapp.sent.at(-1)!.body as {
+        template: { components: { parameters: { text: string }[] }[] };
+      };
+      return delivery.template.components[0].parameters[0].text;
+    });
     return store.dispatch(shopApi.endpoints.getShopMe.initiate()).unwrap();
   }
   async function membership(ownerId: string, branchId: string) {

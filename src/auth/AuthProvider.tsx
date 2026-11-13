@@ -1,19 +1,15 @@
-import { createContext, useCallback, useEffect, useMemo, type ReactNode } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { createContext, useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useLocation } from 'react-router-dom';
 
 import { baseApi } from '@/api/baseApi';
 import { clearCsrfToken } from '@/api/csrf';
-import { useGetCsrfQuery, useGetMeQuery, useLogoutMutation } from '@/api/endpoints/session';
+import { useGetCsrfQuery, useGetMeQuery } from '@/api/endpoints/session';
 import type { NormalizedApiError } from '@/api/errors';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
-import { uiCleared } from '@/app/uiSlice';
-import { loginUrlFor } from '@/auth/returnPath';
-import {
-  sessionCleared,
-  sessionTransitionHandled,
-  signOutCompleted,
-  signOutStarted,
-} from '@/auth/sessionSlice';
+import { SIGNED_OUT_PATH, loginUrlFor } from '@/auth/returnPath';
+import { sessionExpired, sessionTransitionHandled } from '@/auth/sessionSlice';
+import { useSignOut } from '@/auth/useSignOut';
+import { externalNavigation } from '@/lib/externalNavigation';
 import type { StaffSession } from '@/lib/permissions';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous';
@@ -30,99 +26,81 @@ export interface AuthContextValue {
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
 
-/** How long sign-out waits for the server to confirm before reporting it as unconfirmed. */
-const REVOCATION_WAIT_MS = 2000;
-
 /**
- * Bootstraps the CSRF context and the signed-in identity, and owns the single login
- * transition when a session expires (specification sections 5.3 and 6).
+ * Bootstraps the staff CSRF context and identity, and owns the single move to the
+ * login page when a staff session expires (specification sections 5.3 and 6).
+ *
+ * This app has no login page of its own: the one login is served outside it, so
+ * leaving for it is a full-page navigation.
  */
 export function AuthProvider({ children }: { children: ReactNode }) {
   const dispatch = useAppDispatch();
-  const navigate = useNavigate();
   const location = useLocation();
   const expired = useAppSelector((state) => state.session.expired);
   const transitionHandled = useAppSelector((state) => state.session.transitionHandled);
   const signingOut = useAppSelector((state) => state.session.signingOut);
   const locallySignedOut = useAppSelector((state) => state.session.locallySignedOut);
+  const { signOut: signOutEverywhere } = useSignOut();
 
-  // The pre-login CSRF context is needed before any state-changing request, including
-  // the OTP endpoints themselves.
-  useGetCsrfQuery();
+  // Needed before any state-changing staff request.
+  useGetCsrfQuery(undefined, { skip: signingOut || locallySignedOut });
 
+  // After a deliberate sign-out the identity is not read again, so a session the
+  // server could not confirm as revoked is never restored.
   const meQuery = useGetMeQuery(undefined, { skip: expired || signingOut || locallySignedOut });
-  const [logout] = useLogoutMutation();
 
   const error = meQuery.error as NormalizedApiError | undefined;
-  const status: AuthStatus = expired
-    ? 'anonymous'
-    : locallySignedOut
-      ? location.pathname === '/signed-out'
-        ? 'anonymous'
-        : 'loading'
-      : meQuery.data
-        ? 'authenticated'
-        : meQuery.isLoading || meQuery.isUninitialized
-          ? 'loading'
-          : 'anonymous';
+  const unauthenticated = error?.kind === 'unauthenticated';
+
+  // Staff who were signed in and whose identity is now refused have had their session
+  // expire, even when no other request has failed yet. Decided while rendering, so the
+  // guard never treats them as a visitor who was never signed in.
+  const [hadSession, setHadSession] = useState(false);
+  if (meQuery.data && !unauthenticated && !hadSession) setHadSession(true);
+  const sessionLost = hadSession && unauthenticated && !expired && !signingOut && !locallySignedOut;
+  useEffect(() => {
+    if (sessionLost) dispatch(sessionExpired());
+  }, [sessionLost, dispatch]);
+
+  const status: AuthStatus =
+    expired || locallySignedOut
+      ? 'anonymous'
+      : sessionLost
+        ? 'loading'
+        : meQuery.data && !unauthenticated
+          ? 'authenticated'
+          : meQuery.isLoading || meQuery.isUninitialized
+            ? 'loading'
+            : 'anonymous';
 
   // One transition for concurrent unauthenticated failures: stop protected polling by
-  // clearing the cache, then return to the login page.
+  // clearing the cache, then leave for the login page, remembering this page.
   useEffect(() => {
     if (!expired || transitionHandled) return;
-    const target = loginUrlFor(location.pathname, location.search, 'expired');
-    dispatch(sessionTransitionHandled({ returnPath: location.pathname + location.search }));
+    dispatch(sessionTransitionHandled());
     clearCsrfToken();
     dispatch(baseApi.util.resetApiState());
-    navigate(target, { replace: true });
-  }, [expired, transitionHandled, dispatch, navigate, location.pathname, location.search]);
+    externalNavigation.assign(loginUrlFor(location.pathname, location.search, 'expired'));
+  }, [expired, transitionHandled, dispatch, location.pathname, location.search]);
 
   // Reset only after protected route consumers have unmounted. Resetting while they
   // are mounted lets their active subscriptions immediately repopulate the cache.
   useEffect(() => {
-    if (!locallySignedOut || location.pathname !== '/signed-out') return;
+    if (!locallySignedOut || location.pathname !== SIGNED_OUT_PATH) return;
     dispatch(baseApi.util.resetApiState());
   }, [locallySignedOut, location.pathname, dispatch]);
 
   const refresh = useCallback(() => {
-    if (expired || locallySignedOut || meQuery.isUninitialized) {
-      dispatch(sessionCleared());
-      return;
-    }
+    if (expired || locallySignedOut || meQuery.isUninitialized) return;
     void meQuery.refetch();
-  }, [dispatch, expired, locallySignedOut, meQuery]);
+  }, [expired, locallySignedOut, meQuery]);
 
-  const signOut = useCallback(async () => {
-    dispatch(signOutStarted());
-    const revocation = logout()
-      .unwrap()
-      .then(() => 'revoked' as const)
-      .catch(() => 'failed' as const);
-
-    // Local identity state is cleared straight away.
-    clearCsrfToken();
-    dispatch(uiCleared());
-
-    // Wait briefly for the server to confirm the revocation — bounded, so a hanging
-    // server never traps the user on this screen. Resetting the query cache or
-    // navigating first would abort the request and leave the session live.
-    const outcome = await Promise.race([
-      revocation,
-      new Promise<'pending'>((resolve) => {
-        window.setTimeout(() => resolve('pending'), REVOCATION_WAIT_MS);
-      }),
-    ]);
-
-    navigate(outcome === 'revoked' ? '/signed-out' : '/signed-out?remote=unconfirmed', {
-      replace: true,
-    });
-    dispatch(signOutCompleted());
-  }, [dispatch, logout, navigate]);
+  const signOut = useCallback(() => signOutEverywhere('staff'), [signOutEverywhere]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       status,
-      session: meQuery.data ?? null,
+      session: status === 'authenticated' ? (meQuery.data ?? null) : null,
       error,
       refresh,
       signOut,

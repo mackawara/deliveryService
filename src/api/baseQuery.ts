@@ -9,75 +9,43 @@ import { getCsrfToken, getShopCsrfToken, setCsrfToken, setShopCsrfToken } from '
 import { normalizeApiError, type NormalizedApiError } from '@/api/errors';
 import { appConfig } from '@/config';
 
-/** Endpoints that own their own 401 presentation and must not trigger a session transition. */
-const AUTH_ENDPOINTS = new Set([
+/**
+ * Session probes own their 401: an unauthenticated answer is how they report "signed
+ * out", so it must not start a session-expired transition.
+ */
+const SESSION_PROBES = new Set([
   'getCsrf',
-  'requestOtp',
-  'resendOtp',
-  'verifyOtp',
-  'logout',
+  'getAccess',
   'getMe',
+  'logout',
   'getShopCsrf',
-  'requestShopOtp',
-  'requestShopContactOtp',
-  'verifyShopContactOtp',
-  'resendShopOtp',
-  'verifyShopOtp',
   'getShopMe',
-  'shopLogout',
 ]);
 
-const SHOP_ENDPOINTS = new Set([
-  'getShopFoodEarnings',
-  'listShopFoodSettlements',
-  'getShopFoodSettlement',
-  'getShopPayoutDetails',
-  'updateShopPayoutDetails',
-  'exportShopFoodEarnings',
-  'exportShopFoodSettlement',
-  'listShopOrders',
-  'getShopOrder',
-  'commandShopOrder',
-  'getShopCsrf',
-  'requestShopOtp',
-  'requestShopContactOtp',
-  'verifyShopContactOtp',
-  'resendShopOtp',
-  'verifyShopOtp',
-  'getShopMe',
-  'shopActivity',
-  'shopLogout',
-  'listShopTowns',
-  'listShops',
-  'getShop',
-  'createShop',
-  'updateShop',
-  'listShopItems',
-  'createShopItem',
-  'updateShopItem',
-  'archiveShopItem',
-  'listPackingProfiles',
-  'getShopTerms',
-  'requestShopTerms',
-  'uploadShopImage',
-  'listShopClaims',
-  'submitShopClaim',
-]);
+/**
+ * A shop-owner request is recognised by its path, not by a list of endpoint names:
+ * everything under `/shop` belongs to the owner session. A new owner endpoint is then
+ * covered without anyone remembering to register it, and an owner whose session ends
+ * can never be sent through the staff transition.
+ */
+export function isShopRequest(args: string | FetchArgs): boolean {
+  const url = typeof args === 'string' ? args : args.url;
+  const path = url.split('?')[0] ?? '';
+  return path === '/shop' || path.startsWith('/shop/');
+}
 
-// Owner authorization failures must not sign a staff operator out of the dashboard.
-for (const endpoint of SHOP_ENDPOINTS) AUTH_ENDPOINTS.add(endpoint);
+function hasCsrfHeader(args: string | FetchArgs): boolean {
+  if (typeof args === 'string' || !args.headers) return false;
+  return new Headers(args.headers as HeadersInit).has('X-CSRF-Token');
+}
 
 const rawBaseQuery = fetchBaseQuery({
   baseUrl: appConfig.apiBaseUrl,
-  // The browser sends the HttpOnly session cookie; no bearer token or staff API key
+  // The browser sends the HttpOnly session cookies; no bearer token or staff API key
   // is ever stored in Redux or browser storage (specification section 5.3).
   credentials: 'include',
   timeout: 30_000,
-  prepareHeaders: (headers, api) => {
-    if (api.type === 'mutation' && !headers.has('X-CSRF-Token')) {
-      const token = SHOP_ENDPOINTS.has(api.endpoint) ? getShopCsrfToken() : getCsrfToken();
-      if (token) headers.set('X-CSRF-Token', token);
-    }
+  prepareHeaders: (headers) => {
     if (!headers.has('Accept')) headers.set('Accept', 'application/json');
     return headers;
   },
@@ -157,28 +125,37 @@ export const appBaseQuery: BaseQueryFn<
   {},
   FetchBaseQueryMeta
 > = async (args, api, extraOptions) => {
-  // Only a missing token is awaited. With one held, the request starts synchronously and
-  // reads the token at once; sign-out relies on that, since it clears the token straight
-  // after starting the logout request. A failed fetch leaves the token unset, and the
-  // request then fails with the server's own answer, which the caller reports.
-  if (api.type === 'mutation') {
-    if (SHOP_ENDPOINTS.has(api.endpoint)) {
+  const shop = isShopRequest(args);
+  let request = args;
+  // Staff and owner sessions have separate CSRF tokens; the path decides which one a
+  // state-changing request carries. A request that names its own token keeps it.
+  if (api.type === 'mutation' && !hasCsrfHeader(args)) {
+    // Only a missing token is awaited. With one held, the request is built synchronously.
+    // A failed fetch leaves the token unset, and the request then fails with the
+    // server's own answer, which the caller reports.
+    if (shop) {
       if (!getShopCsrfToken()) await ensureShopCsrfToken(api, extraOptions);
     } else if (!getCsrfToken()) {
       await ensureCsrfToken(api, extraOptions);
     }
+    const token = shop ? getShopCsrfToken() : getCsrfToken();
+    if (token) {
+      const base: FetchArgs = typeof args === 'string' ? { url: args } : args;
+      const headers = new Headers(base.headers as HeadersInit | undefined);
+      headers.set('X-CSRF-Token', token);
+      request = { ...base, headers };
+    }
   }
-  const result = await rawBaseQuery(args, api, extraOptions);
+  const result = await rawBaseQuery(request, api, extraOptions);
 
   if (result.error) {
     const normalized = normalizeApiError(result.error, result.meta);
-    if (
-      SHOP_ENDPOINTS.has(api.endpoint) &&
-      !['getShopMe', 'shopLogout'].includes(api.endpoint) &&
-      ['unauthenticated', 'forbidden'].includes(normalized.kind)
-    )
-      setTimeout(onOwnerAccessExpired, 0);
-    if (normalized.kind === 'unauthenticated' && !AUTH_ENDPOINTS.has(api.endpoint)) {
+    const probe = SESSION_PROBES.has(api.endpoint);
+    if (shop) {
+      // An owner's lost session or revoked branch access never signs staff out.
+      if (!probe && ['unauthenticated', 'forbidden'].includes(normalized.kind))
+        setTimeout(onOwnerAccessExpired, 0);
+    } else if (!probe && normalized.kind === 'unauthenticated') {
       onSessionExpired();
     }
     return { error: normalized, meta: result.meta };

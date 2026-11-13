@@ -1,9 +1,10 @@
 import '@testing-library/jest-dom/vitest';
 
 import { cleanup, configure } from '@testing-library/react';
-import { afterAll, afterEach, beforeAll, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, vi } from 'vitest';
 
 import { clearCsrfToken, clearShopCsrfToken } from '@/api/csrf';
+import { externalNavigation } from '@/lib/externalNavigation';
 import { resetMockState } from '@/mocks/handlers';
 import { mockServer } from '@/mocks/server';
 
@@ -30,6 +31,14 @@ configure({ asyncUtilTimeout: 10_000 });
 
 beforeAll(() => {
   mockServer.listen({ onUnhandledRequest: 'error' });
+});
+
+// jsdom does not navigate. Leaving the app for the login page is observed instead:
+// `expect(externalNavigation.replace).toHaveBeenCalledWith('/login?…')`.
+beforeEach(() => {
+  vi.spyOn(externalNavigation, 'assign').mockImplementation(() => {});
+  vi.spyOn(externalNavigation, 'replace').mockImplementation(() => {});
+  vi.spyOn(externalNavigation, 'reload').mockImplementation(() => {});
 });
 
 afterEach(() => {
