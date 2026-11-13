@@ -21,6 +21,7 @@ import { mockServer } from '@/mocks/server';
 import { ShopProfilePage } from '@/features/shop/ShopProfilePage';
 import { schedulePayload } from '@/features/shop/settlement';
 import { renderRoutes } from '../tests/testUtils';
+import { signInOwner } from './ownerLogin';
 
 // This bridge forwards requests and cookies unchanged to a real local Express app.
 // No shop, terms, image or command response is mocked. All infrastructure stays in memory.
@@ -114,24 +115,7 @@ describe('dashboard + API Order Food journey', () => {
 
   it('verifies an owner and branch contact, preserves approval on opening, and orders the same photographed catalogue through explicit acceptance and READY', async () => {
     const user = userEvent.setup();
-    await store.dispatch(shopApi.endpoints.getShopCsrf.initiate()).unwrap();
-    const login = await store
-      .dispatch(
-        shopApi.endpoints.requestShopOtp.initiate({
-          phone: '0772555001',
-          consent: true,
-          requestKey: crypto.randomUUID(),
-        }),
-      )
-      .unwrap();
-    await store
-      .dispatch(
-        shopApi.endpoints.verifyShopOtp.initiate({
-          challengeId: login.challengeId,
-          code: await code(),
-        }),
-      )
-      .unwrap();
+    await signInOwner(store, '0772555001', code);
     const me = await store.dispatch(shopApi.endpoints.getShopMe.initiate()).unwrap();
     expect(me.owner.id).toBeTruthy();
     const towns = await store.dispatch(shopApi.endpoints.listShopTowns.initiate()).unwrap();

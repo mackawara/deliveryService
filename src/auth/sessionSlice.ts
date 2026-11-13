@@ -3,28 +3,36 @@ import { createSlice, type PayloadAction } from '@reduxjs/toolkit';
 /**
  * Session transition state (specification section 6).
  *
- * The signed-in identity itself lives in the `/me` query cache. This slice only tracks
- * the transition, so concurrent 401s produce exactly one move to the login page.
+ * The signed-in identities themselves live in the `/admin/me` and `/shop/me` query
+ * caches. This slice only tracks transitions that both shells must agree on: a session
+ * that expired, and a deliberate sign-out, which ends every session the browser holds.
  */
 export interface SessionState {
-  /** Raised by the base query when a protected request was rejected as unauthenticated. */
+  /** Raised by the base query when a protected staff request was rejected as unauthenticated. */
   expired: boolean;
-  /** Set once the transition has been performed, so it is not repeated. */
+  /** Set once the move to the login page has been started, so it is not repeated. */
   transitionHandled: boolean;
-  /** Validated same-origin relative path to return to after signing in. */
-  returnPath: string | null;
-  /** True while a deliberate sign-out is in progress. */
+  /** Raised when a shop owner who was signed in is no longer. */
+  ownerExpired: boolean;
+  /** True from the moment a deliberate sign-out starts: identity polling stops at once. */
   signingOut: boolean;
-  /** Prevents `/me` from restoring a session after local sign-out. */
+  /**
+   * Latched by a deliberate sign-out. While set, neither `/admin/me` nor `/shop/me` is
+   * read, so a session the server could not confirm as revoked is never restored. It
+   * clears only when the page loads afresh, which is what signing in again does.
+   */
   locallySignedOut: boolean;
+  /** True when the server did not confirm that the sessions were ended. */
+  signOutUnconfirmed: boolean;
 }
 
 const initialState: SessionState = {
   expired: false,
   transitionHandled: false,
-  returnPath: null,
+  ownerExpired: false,
   signingOut: false,
   locallySignedOut: false,
+  signOutUnconfirmed: false,
 };
 
 const sessionSlice = createSlice({
@@ -32,28 +40,29 @@ const sessionSlice = createSlice({
   initialState,
   reducers: {
     sessionExpired(state) {
-      // Idempotent: many failing requests still describe one expiry.
-      if (!state.expired) {
+      // Idempotent: many failing requests still describe one expiry. A deliberate
+      // sign-out already explains the 401s that follow it.
+      if (!state.expired && !state.signingOut && !state.locallySignedOut) {
         state.expired = true;
         state.transitionHandled = false;
       }
     },
-    sessionTransitionHandled(state, action: PayloadAction<{ returnPath: string | null }>) {
+    sessionTransitionHandled(state) {
       state.transitionHandled = true;
-      state.returnPath = action.payload.returnPath;
+    },
+    ownerSessionExpired(state) {
+      if (!state.signingOut && !state.locallySignedOut) state.ownerExpired = true;
     },
     signOutStarted(state) {
       state.signingOut = true;
     },
-    signOutCompleted(state) {
+    signOutCompleted(state, action: PayloadAction<{ confirmed: boolean }>) {
       state.signingOut = false;
       state.locallySignedOut = true;
+      state.signOutUnconfirmed = !action.payload.confirmed;
       state.expired = false;
       state.transitionHandled = false;
-      state.returnPath = null;
-    },
-    sessionCleared() {
-      return { ...initialState };
+      state.ownerExpired = false;
     },
   },
 });
@@ -61,8 +70,8 @@ const sessionSlice = createSlice({
 export const {
   sessionExpired,
   sessionTransitionHandled,
+  ownerSessionExpired,
   signOutStarted,
   signOutCompleted,
-  sessionCleared,
 } = sessionSlice.actions;
 export const sessionReducer = sessionSlice.reducer;

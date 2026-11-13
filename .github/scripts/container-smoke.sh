@@ -89,7 +89,7 @@ done
 header content-security-policy | grep -q "frame-ancestors 'none'" || fail "frame-ancestors must be enforced by the HTTP header"
 header server | grep -q . && fail "the Server header must be removed"
 
-for path in /login /login/ /signup /signup/ /shop-signup /shop-signup/ /driver-signup /driver-signup/ /biker-terms /biker-terms/ /site/app.js /shop/dashboard /shop/dashboard/ /biker/dashboard /biker/dashboard/ /operations /operations/ /operations/applications '/?from=campaign' '/login/?returnTo=%2Fbookings' '/signup/?from=homepage' '/driver-signup/?from=homepage'; do
+for path in /login /login/ /signup /signup/ /shop-signup /shop-signup/ /driver-signup /driver-signup/ /biker-login /biker-login/ /biker-terms /biker-terms/ /site/app.js /biker/dashboard /biker/dashboard/ /operations /operations/ /operations/applications '/?from=campaign' '/login/?returnTo=%2Fbookings' '/login?intent=shop' '/signup/?from=homepage' '/driver-signup/?from=homepage'; do
   request "${path}"
   [ "${code}" = 200 ] && grep -q 'Public delivery portal' "${tmp}/b" || fail "public ${path} was not proxied (${code})"
 done
@@ -104,7 +104,7 @@ request /login -H 'Host: delivery.example.test' -H 'X-Forwarded-For: 198.51.100.
 [ "$(header x-seen-host)" = delivery.example.test ] || fail "public Host was changed"
 [ "$(header x-seen-origin)" = https://delivery.example.test ] || fail "login Origin was changed"
 
-for path in /dashboard /bookings /configuration/towns /shop/login /shop/signup /shop/example/catalogue /login-extra /signup-extra /shop/dashboard-extra /operations-extra; do
+for path in /dashboard /bookings /configuration/towns /shop /shop/login /shop/signup /shop/dashboard /shop/example/catalogue /signed-out /login-extra /signup-extra /shop/dashboard-extra /operations-extra; do
   request "${path}"
   [ "${code}" = 200 ] && grep -qi '<div id="root"' "${tmp}/b" || fail "dashboard ${path} did not serve the app shell (${code})"
 done

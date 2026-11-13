@@ -27,8 +27,8 @@ export default defineConfig({
   ],
   webServer: {
     command: './node_modules/.bin/vite --host 127.0.0.1 --port 5177 --strictPort',
-    // Probe a frontend-owned page; the public root now requires the API.
-    url: 'http://127.0.0.1:5177/shop/login',
+    // Probe a frontend-owned page; the public root and the login require the API.
+    url: 'http://127.0.0.1:5177/signed-out',
     reuseExistingServer: false,
     env: { VITE_ENABLE_MOCK_API: 'false', VITE_ENABLE_FOOD_SETTLEMENTS: 'true' },
   },

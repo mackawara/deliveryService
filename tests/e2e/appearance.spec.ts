@@ -1,14 +1,9 @@
 import { expect, test } from '@playwright/test';
 
-const MOCK_CODE = '123456';
+import { signIn } from './mockSignIn';
 
 test.beforeEach(async ({ page }) => {
-  await page.goto('/login');
-  await page.getByRole('textbox', { name: /WhatsApp number/i }).fill('772000001');
-  await page.getByRole('checkbox', { name: /Send a login code/i }).check();
-  await page.getByRole('button', { name: /Send code on WhatsApp/i }).click();
-  await page.getByRole('textbox', { name: /Verification code/i }).fill(MOCK_CODE);
-  await page.getByRole('button', { name: /Verify & sign in/i }).click();
+  await signIn(page);
   await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
 });
 

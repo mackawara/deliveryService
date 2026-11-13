@@ -9,27 +9,21 @@ import { setOwnerAccessExpiryListener, setSessionExpiryListener } from '@/api/ba
 import { sessionExpired, sessionReducer } from '@/auth/sessionSlice';
 import { uiReducer } from '@/app/uiSlice';
 
-/** Authentication endpoints whose arguments and results must never reach dev tooling. */
+/** Endpoints whose arguments and results must never reach dev tooling. */
 const SENSITIVE_ENDPOINTS = new Set([
   'updateShopPayoutDetails',
   'revealFoodSettlementDestination',
   'recordFoodSettlementPaid',
   'recordRiderCashHandIn',
   'resolveCashDiscrepancy',
-  'requestOtp',
-  'resendOtp',
-  'verifyOtp',
   'getCsrf',
   'verifyStaffPhoneChange',
   'getShopCsrf',
   'listShopOrders',
   'getShopOrder',
   'commandShopOrder',
-  'requestShopOtp',
   'requestShopContactOtp',
   'verifyShopContactOtp',
-  'resendShopOtp',
-  'verifyShopOtp',
 ]);
 
 const REDACTED = '[redacted]';
@@ -80,7 +74,7 @@ export function createAppStore() {
     store.dispatch(baseApi.util.resetApiState());
   });
 
-  // One login transition for concurrent unauthenticated failures.
+  // One move to the login page for concurrent unauthenticated staff failures.
   setSessionExpiryListener(() => {
     store.dispatch(sessionExpired());
   });

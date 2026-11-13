@@ -1,19 +1,14 @@
 import { Alert, Typography, Stack } from '@mui/material';
-import { Navigate, Outlet, createBrowserRouter } from 'react-router-dom';
+import { Navigate, Outlet, createBrowserRouter, type RouteObject } from 'react-router-dom';
 
 import { AuthProvider } from '@/auth/AuthProvider';
 import { ForbiddenPage } from '@/auth/ForbiddenPage';
-import { LoginPage } from '@/auth/LoginPage';
 import { SignedOutPage } from '@/auth/SignedOutPage';
-import {
-  RedirectIfAuthenticated,
-  RedirectIfShopAuthenticated,
-  RequireAccess,
-  RequireAuth,
-  RequireShopAuth,
-} from '@/auth/guards';
+import { LegacyLoginRedirect, RequireAccess, RequireAuth, RequireShopAuth } from '@/auth/guards';
+import { useBackForwardCacheGuard } from '@/auth/useBackForwardCacheGuard';
 import { OwnerAuthProvider } from '@/auth/OwnerAuthProvider';
 import { AppShell } from '@/components/AppShell';
+import { appConfig } from '@/config';
 import { ADMIN_ONLY, AUDIT_READ, CONFIG_READ, FINANCE_ONLY, OPERATOR_ONLY } from '@/app/navigation';
 import { NotFoundPage } from '@/features/NotFoundPage';
 import { AlertsPage } from '@/features/alerts/AlertsPage';
@@ -44,7 +39,6 @@ import { AppearancePage } from '@/features/settings/AppearancePage';
 import { AdminShopsPage } from '@/features/shop/AdminShopsPage';
 import { ShopCataloguePage } from '@/features/shop/ShopCataloguePage';
 import { ShopHomePage } from '@/features/shop/ShopHomePage';
-import { ShopLoginPage } from '@/features/shop/ShopLoginPage';
 import { ShopProfilePage } from '@/features/shop/ShopProfilePage';
 import { ShopSetupPage } from '@/features/shop/ShopSetupPage';
 import { ShopOrdersPage, ShopOrdersEntry } from '@/features/shop/ShopOrdersPage';
@@ -59,6 +53,7 @@ import { FOOD_SETTLEMENTS_READ } from '@/lib/foodSettlementAccess';
 
 /** Providers that need router context (navigation, location) sit inside the router. */
 function RootLayout() {
+  useBackForwardCacheGuard();
   return (
     <AuthProvider>
       <Outlet />
@@ -67,26 +62,40 @@ function RootLayout() {
 }
 
 /**
+ * `import.meta.env.DEV` is replaced with `false` in a production build, so the stand-in
+ * and its import are dropped from the bundle rather than merely being unreachable.
+ */
+const mockLoginRoutes: RouteObject[] =
+  import.meta.env.DEV && appConfig.enableMockApi
+    ? [
+        {
+          path: '/login',
+          lazy: async () => ({ Component: (await import('@/mocks/MockLoginPage')).MockLoginPage }),
+        },
+      ]
+    : [];
+
+/**
  * Route table (specification section 3).
  *
  * Every guarded route repeats its requirement, so a direct URL is checked even when the
  * navigation item is hidden. A data router is used so unsaved-changes blocking works.
  */
-export const routes = [
+export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
     children: [
       // Standalone mock mode serves React at /; deployed public roots are proxied.
       { index: true, element: <Navigate to="/dashboard" replace /> },
-      {
-        path: '/login',
-        element: (
-          <RedirectIfAuthenticated>
-            <LoginPage />
-          </RedirectIfAuthenticated>
-        ),
-      },
+      // There is no login page in this app: the one login is served outside it. In
+      // mock mode nothing serves that address, so a development-only stand-in does.
+      ...mockLoginRoutes,
       { path: '/signed-out', element: <SignedOutPage /> },
+      // Old links keep working: they lead to the one login.
+      { path: 'shop/login', element: <LegacyLoginRedirect /> },
+      { path: 'shop/signup', element: <LegacyLoginRedirect intent="shop" /> },
+      // The read-only shop page the home page used to open is retired.
+      { path: 'shop/dashboard', element: <Navigate to="/shop" replace /> },
       {
         element: (
           <OwnerAuthProvider>
@@ -94,22 +103,6 @@ export const routes = [
           </OwnerAuthProvider>
         ),
         children: [
-          {
-            path: 'shop/login',
-            element: (
-              <RedirectIfShopAuthenticated>
-                <ShopLoginPage />
-              </RedirectIfShopAuthenticated>
-            ),
-          },
-          {
-            path: 'shop/signup',
-            element: (
-              <RedirectIfShopAuthenticated>
-                <ShopLoginPage mode="signup" />
-              </RedirectIfShopAuthenticated>
-            ),
-          },
           {
             element: (
               <RequireShopAuth>

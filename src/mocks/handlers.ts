@@ -10,6 +10,7 @@ import * as fixtures from '@/mocks/fixtures';
  * tested before the backend work lands. It is never enabled in a production build.
  */
 const BASE = '/api/v1';
+const SHOP_CSRF = 'mock-shop-csrf-authenticated';
 
 interface Challenge {
   challengeId: string;
@@ -20,9 +21,16 @@ interface Challenge {
   consumed: boolean;
 }
 
+/** Session cookies the mock API sets, standing in for the real HttpOnly ones. */
+const STAFF_COOKIE = 'mock_session';
+const OWNER_COOKIE = 'mock_shop_session';
+
 const state = {
   csrfToken: 'mock-csrf-pre-login',
+  /** A staff session, in test runs. */
   authenticated: false,
+  /** A shop-owner session, in test runs. */
+  owner: false,
   /**
    * Browser runs keep the session in a cookie so a reload behaves like the real
    * server-managed session. Test runs drive the flag directly through `resetMockState`,
@@ -36,9 +44,10 @@ const state = {
 };
 
 /** Resets mock state between tests. */
-export function resetMockState(options: { authenticated?: boolean } = {}): void {
+export function resetMockState(options: { authenticated?: boolean; owner?: boolean } = {}): void {
   state.csrfToken = 'mock-csrf-pre-login';
   state.authenticated = options.authenticated ?? false;
+  state.owner = options.owner ?? false;
   state.cookieSessionsEnabled = false;
   state.challenges.clear();
   state.requestKeys.clear();
@@ -79,18 +88,59 @@ function page<T>(items: T[], url: URL): { items: T[]; limit: number; skip: numbe
 }
 
 /**
- * The mock session survives a page reload through a cookie, the way the real
- * server-managed session cookie does. In-memory state covers the node test server,
- * where handlers are reset between tests.
+ * The mock sessions survive a page reload through cookies, the way the real
+ * server-managed session cookies do. Browser runs read only the cookies, so ending a
+ * session there is exactly a cleared cookie; in-memory flags cover the node test
+ * server, where handlers are reset between tests.
  */
-function hasSessionCookie(cookies: Record<string, string>): boolean {
+function staffSignedIn(cookies: Record<string, string>): boolean {
   // Service workers cannot read the Cookie header, so MSW hands parsed cookies to the
   // resolver instead.
-  return state.cookieSessionsEnabled && cookies.mock_session === '1';
+  return state.cookieSessionsEnabled ? cookies[STAFF_COOKIE] === '1' : state.authenticated;
+}
+
+function ownerSignedIn(cookies: Record<string, string>): boolean {
+  return state.cookieSessionsEnabled ? cookies[OWNER_COOKIE] === '1' : state.owner;
 }
 
 function requireSession(cookies: Record<string, string>): Response | null {
-  return state.authenticated || hasSessionCookie(cookies) ? null : unauthenticated();
+  return staffSignedIn(cookies) ? null : unauthenticated();
+}
+
+function sessionWindow() {
+  return {
+    expiresAt: new Date(state.sessionExpiresAt).toISOString(),
+    idleExpiresAt: new Date(state.idleExpiresAt).toISOString(),
+  };
+}
+
+function setCookie(name: string, signedIn: boolean): string {
+  return signedIn ? `${name}=1; Path=/; SameSite=Lax` : `${name}=; Path=/; Max-Age=0; SameSite=Lax`;
+}
+
+/** Sets or clears both session cookies. MSW accepts repeated `Set-Cookie` headers. */
+function sessionCookies(staff: boolean, owner: boolean): Headers {
+  const headers = new Headers();
+  headers.append('Set-Cookie', setCookie(STAFF_COOKIE, staff));
+  headers.append('Set-Cookie', setCookie(OWNER_COOKIE, owner));
+  return headers;
+}
+
+/**
+ * Which roles a number holds in the mock API, by its last digit, so development and
+ * browser tests can sign in as each kind of person: 2 is a shop owner, 3 is both staff
+ * and a shop owner, anything else is staff.
+ */
+export function mockRolesFor(phone: string): { staff: boolean; owner: boolean } {
+  const lastDigit = phone.replace(/\D/g, '').slice(-1);
+  return { staff: lastDigit !== '2', owner: lastDigit === '2' || lastDigit === '3' };
+}
+
+function accessFor(staff: boolean, owner: boolean) {
+  return {
+    destinations: [...(staff ? ['ADMIN'] : []), ...(owner ? ['SHOP'] : [])],
+    homes: { ...(staff ? { ADMIN: '/dashboard' } : {}), ...(owner ? { SHOP: '/shop/setup' } : {}) },
+  };
 }
 
 export const handlers: HttpHandler[] = [
@@ -221,51 +271,101 @@ export const handlers: HttpHandler[] = [
 
     // Consume once; a replay cannot issue another session.
     challenge.consumed = true;
-    state.authenticated = true;
+    // One login: the number decides which sessions start, replacing any held before.
+    const roles = mockRolesFor(challenge.phone);
+    state.authenticated = roles.staff;
+    state.owner = roles.owner;
     state.csrfToken = 'mock-csrf-authenticated';
     refreshSessionWindow();
     return HttpResponse.json(
       {
-        csrfToken: state.csrfToken,
-        session: {
-          expiresAt: new Date(state.sessionExpiresAt).toISOString(),
-          idleExpiresAt: new Date(state.idleExpiresAt).toISOString(),
-        },
+        ...accessFor(roles.staff, roles.owner),
+        ...(roles.staff ? { staff: { csrfToken: state.csrfToken, session: sessionWindow() } } : {}),
+        ...(roles.owner
+          ? { shop: { csrfToken: SHOP_CSRF, session: sessionWindow(), created: false } }
+          : {}),
       },
-      { headers: { 'Set-Cookie': 'mock_session=1; Path=/; SameSite=Lax' } },
+      { headers: sessionCookies(roles.staff, roles.owner) },
     );
   }),
 
+  // "Who am I" for both roles. Never a 401.
+  http.get(`${BASE}/auth/session`, ({ cookies }) =>
+    HttpResponse.json({
+      ...accessFor(staffSignedIn(cookies), ownerSignedIn(cookies)),
+      biker: false,
+    }),
+  ),
+
   http.post(`${BASE}/auth/session/activity`, ({ cookies }) => {
-    if (!state.authenticated && !hasSessionCookie(cookies)) return unauthenticated();
+    if (!staffSignedIn(cookies)) return unauthenticated();
     state.idleExpiresAt = Date.now() + 30 * 60_000;
-    return HttpResponse.json({
-      session: {
-        expiresAt: new Date(state.sessionExpiresAt).toISOString(),
-        idleExpiresAt: new Date(state.idleExpiresAt).toISOString(),
-      },
-    });
+    return HttpResponse.json({ session: sessionWindow() });
   }),
 
+  // The one sign-out: ends the staff and the shop-owner session together.
   http.post(`${BASE}/auth/logout`, () => {
     state.authenticated = false;
+    state.owner = false;
     state.csrfToken = 'mock-csrf-pre-login';
+    return new HttpResponse(null, { status: 204, headers: sessionCookies(false, false) });
+  }),
+
+  // Mock-only control, for browser tests: ends one session the way an expiry would.
+  http.post(`${BASE}/__mock/expire`, ({ request, cookies }) => {
+    const role = new URL(request.url).searchParams.get('role');
+    if (role === 'owner') state.owner = false;
+    else state.authenticated = false;
     return new HttpResponse(null, {
       status: 204,
-      headers: { 'Set-Cookie': 'mock_session=; Path=/; Max-Age=0; SameSite=Lax' },
+      headers: sessionCookies(
+        role === 'owner' ? staffSignedIn(cookies) : false,
+        role === 'owner' ? false : ownerSignedIn(cookies),
+      ),
     });
   }),
 
   http.get(`${BASE}/admin/me`, ({ cookies }) => {
-    if (!state.authenticated && !hasSessionCookie(cookies)) return unauthenticated();
+    if (!staffSignedIn(cookies)) return unauthenticated();
+    return HttpResponse.json({ ...fixtures.staffSession, session: sessionWindow() });
+  }),
+
+  // -- shop owner ----------------------------------------------------------
+  // Just enough for the owner shell: a signed-in owner who has no branch yet.
+  http.get(`${BASE}/shop/auth/csrf`, ({ cookies }) =>
+    HttpResponse.json({ csrfToken: ownerSignedIn(cookies) ? SHOP_CSRF : 'mock-shop-csrf-pre' }),
+  ),
+
+  http.get(`${BASE}/shop/me`, ({ cookies }) => {
+    if (!ownerSignedIn(cookies)) return unauthenticated();
     return HttpResponse.json({
-      ...fixtures.staffSession,
-      session: {
-        expiresAt: new Date(state.sessionExpiresAt).toISOString(),
-        idleExpiresAt: new Date(state.idleExpiresAt).toISOString(),
-      },
+      owner: { id: 'mock-owner', phone: '+263772000002', version: 1 },
+      memberships: [],
+      capabilities: ['shop:create', 'shop:claim', 'catalogue:manage', 'terms:request'],
+      session: sessionWindow(),
     });
   }),
+
+  http.post(`${BASE}/shop/auth/session/activity`, ({ cookies }) => {
+    if (!ownerSignedIn(cookies)) return unauthenticated();
+    return HttpResponse.json({ session: sessionWindow() });
+  }),
+
+  http.get(`${BASE}/shop/shops`, ({ request, cookies }) =>
+    ownerSignedIn(cookies) ? HttpResponse.json(page([], new URL(request.url))) : unauthenticated(),
+  ),
+
+  http.get(`${BASE}/shop/towns`, ({ cookies }) =>
+    ownerSignedIn(cookies)
+      ? HttpResponse.json({
+          items: fixtures.towns.map((town) => ({
+            _id: town._id,
+            name: town.name,
+            serviceArea: town.serviceArea,
+          })),
+        })
+      : unauthenticated(),
+  ),
 
   // -- staff ---------------------------------------------------------------
   http.get(

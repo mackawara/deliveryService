@@ -46,7 +46,10 @@ async function fixture(page: Page) {
               isOpen: true,
             })),
       });
-    if (path === '/api/v1/shop/auth/logout') {
+    if (path === '/api/v1/auth/session')
+      return json({ destinations: state.authenticated ? ['SHOP'] : [], homes: {}, biker: false });
+    // The one sign-out ends every session the browser holds.
+    if (path === '/api/v1/auth/logout') {
       state.authenticated = false;
       return route.fulfill({ status: 204 });
     }
@@ -134,7 +137,8 @@ test('polling announces arrivals, branch switch clears reviewed data, and sign-o
   if (await page.getByRole('button', { name: 'Open shop navigation' }).isVisible())
     await page.getByRole('button', { name: 'Open shop navigation' }).click();
   await page.getByRole('button', { name: 'Sign out', exact: true }).click();
-  await expect(page).toHaveURL(/shop\/login/);
+  await expect(page).toHaveURL(/\/signed-out$/);
+  await expect(page.getByRole('heading', { name: 'You are signed out' })).toBeVisible();
   await expect(page.getByText('Original pizza snapshot')).toHaveCount(0);
 });
 
