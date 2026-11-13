@@ -1,6 +1,7 @@
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
 import SearchIcon from '@mui/icons-material/Search';
+import StorefrontIcon from '@mui/icons-material/Storefront';
 import AppBar from '@mui/material/AppBar';
 import Box from '@mui/material/Box';
 import Divider from '@mui/material/Divider';
@@ -25,6 +26,7 @@ import { useTheme } from '@mui/material/styles';
 import { useState } from 'react';
 import { Link as RouterLink, Outlet, useLocation } from 'react-router-dom';
 
+import { useGetAccessQuery } from '@/api/endpoints/session';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { ALL_TOWNS, useTownScope } from '@/app/useTownScope';
 import {
@@ -36,6 +38,7 @@ import {
   type NavItem,
 } from '@/app/navigation';
 import { navigationToggled } from '@/app/uiSlice';
+import { SHOP_HOME } from '@/auth/returnPath';
 import { useActivitySignal } from '@/auth/useActivitySignal';
 import { useAuth } from '@/auth/useAuth';
 import { ConnectionStatus } from '@/components/ConnectionStatus';
@@ -149,6 +152,7 @@ function NavigationList({
 
 function ProfileMenu() {
   const { session, signOut, signingOut } = useAuth();
+  const access = useGetAccessQuery(undefined, { skip: !session || signingOut });
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
 
   if (!session) return null;
@@ -204,6 +208,15 @@ function ProfileMenu() {
           Appearance
         </MenuItem>
         <Divider />
+        {/* A number that is also a shop owner changes sides without signing out. */}
+        {access.data?.destinations.includes('SHOP') ? (
+          <MenuItem component={RouterLink} to={SHOP_HOME} onClick={() => setAnchor(null)}>
+            <ListItemIcon>
+              <StorefrontIcon fontSize="small" />
+            </ListItemIcon>
+            Switch to my shop
+          </MenuItem>
+        ) : null}
         <MenuItem
           onClick={() => {
             setAnchor(null);

@@ -45,9 +45,10 @@ server {
     add_header Cache-Control "no-store" always;
   }
 
-  # The public delivery pages are owned by deliveryBooking. Keep this matcher
-  # explicit: existing /shop/login, /shop/signup and dashboard routes stay React.
-  location ~ ^/(?:$|(?:login|signup|shop-signup|driver-signup|biker-terms|shop/dashboard|biker/dashboard)/?$|site/|operations(?:/|$)) {
+  # The public delivery pages, including the one login at /login, are owned by
+  # deliveryBooking. Keep this matcher explicit: every /shop/... and dashboard
+  # route stays React, which redirects old sign-in links to /login itself.
+  location ~ ^/(?:$|(?:login|signup|shop-signup|driver-signup|biker-login|biker-terms|biker/dashboard)/?$|site/|operations(?:/|$)) {
     proxy_pass http://127.0.0.1:3333;
     proxy_http_version 1.1;
     proxy_set_header Host $host;

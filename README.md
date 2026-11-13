@@ -9,7 +9,8 @@ application that talks to the `deliveryBooking` backend's staff API.
 
 - **UI:** React 19 with TypeScript, MUI components and a centralized theme layer
 - **Data:** one Redux Toolkit Query API, split into feature endpoint modules
-- **Auth:** WhatsApp OTP for pre-registered staff with server-managed cookie sessions
+- **Auth:** one WhatsApp-code login, served by the API, for staff and shop owners; this
+  app has no login page, only server-managed cookie sessions and one sign-out
 - **Package manager:** Yarn 4 (pinned in `packageManager`, `yarn.lock` committed)
 - **Devices:** desktop and tablet, touch and keyboard
 - **Money:** USD, stored and transmitted as integer cents
@@ -30,11 +31,13 @@ yarn dev
 The dev and preview servers proxy `/api/v1` and the public delivery pages to
 `VITE_DEV_API_PROXY_TARGET` (default `http://localhost:4400`), so the browser stays
 same-origin and the session cookie works. `/` is the delivery homepage; staff overview
-is `/dashboard`. The existing food-shop `/shop/login` and `/shop/signup` routes stay
-in this React app. Direct visits to `/login` open the shared delivery portal;
-sign-in redirects within the staff SPA keep its native WhatsApp flow and return to
-the requested staff page, defaulting to `/dashboard`. Standalone `VITE_ENABLE_MOCK_API=true` demos and browser tests
-keep the React login locally and do not require a public-page backend.
+is `/dashboard` and the shop owner's pages are under `/shop`. `/login` is the one
+login, served by the backend: this app has no login page of its own. Whenever someone
+needs to sign in, the app does a full-page navigation to `/login?returnTo=…` and the
+login returns them to that page when their role may open it. The old `/shop/login`
+and `/shop/signup` links redirect there. Standalone `VITE_ENABLE_MOCK_API=true` demos
+and browser tests have no backend to serve `/login`, so a development-only stand-in
+(`src/mocks/MockLoginPage.tsx`) answers that address instead.
 
 ### Running against the backend
 
@@ -46,7 +49,7 @@ the proxy port with a first administrator:
 BOOTSTRAP_ADMIN_PHONE=0772000001 PORT=4400 yarn dev
 ```
 
-Sign in here with that number. Without an approved WhatsApp authentication template
+Open `/login` and sign in with that number. Without an approved WhatsApp authentication template
 configured on the server, the code is written to the server log as
 `auth.otp.development_code` (development only). The administrator adds everyone else in
 **Settings → Access & staff**, and sets up the first town from **Towns → Add town**;
@@ -109,8 +112,11 @@ served by an in-browser mock:
 VITE_ENABLE_MOCK_API=true yarn dev
 ```
 
-Sign in with any number and the code `123456`. The mock is a development and test
-dependency; a production build drops it from the bundle entirely.
+Sign in at `/login` with the code `123456`. The number picks the account: one ending
+in 2 is a shop owner, one ending in 3 is both staff and a shop owner (and is asked
+where to go), any other number is staff. The mock, including its stand-in login page,
+is a development and test dependency; a production build drops it from the bundle
+entirely.
 
 ## Scripts
 
@@ -137,13 +143,13 @@ fails the build.
 src/
   app/          store, router, navigation model, shared UI state, town scope
   api/          baseApi, base query, DTOs, adapters, tags, feature endpoint modules
-  auth/         OTP screens, CSRF and session handling, route guards
+  auth/         CSRF and session handling, the one sign-out, route guards
   components/   AppShell, ResourceTable, StatusChip, Money, dialogs and other shared parts
   features/     bookings, dispatch, fleet, customers, enquiries, finance, restrictions,
                 configuration, alerts, audit, overview, settings
   lib/          money, dates, permissions, phone, idempotency and URL-state helpers
   theme/        semantic tokens, brand presets, theme factory, component overrides
-  mocks/        MSW handlers and fixtures typed against the DTOs
+  mocks/        MSW handlers and fixtures typed against the DTOs, and the stand-in login
 tests/          component and integration suites, plus tests/e2e for Playwright
 deploy/         reference nginx configuration and deployment notes
 ```
@@ -155,7 +161,7 @@ Public values only; see `.env.example`.
 | Variable                     | Default                 | Meaning                                       |
 | ---------------------------- | ----------------------- | --------------------------------------------- |
 | `VITE_API_BASE_URL`          | `/api/v1`               | Base URL for every delivery-service request   |
-| `VITE_DEFAULT_PHONE_COUNTRY` | `+263`                  | Country code pre-selected on the login form   |
+| `VITE_DEFAULT_PHONE_COUNTRY` | `+263`                  | Unused since the login moved to the API       |
 | `VITE_DEFAULT_THEME`         | `orchid`                | Default brand preset; a saved preference wins |
 | `VITE_APP_LABEL`             | `Delivery Dashboard`    | Product label in the shell and document title |
 | `VITE_DEFAULT_TIMEZONE`      | `Africa/Harare`         | Timezone used to render API timestamps        |
@@ -181,10 +187,25 @@ readable. Dark mode is a separate future setting, not the black-and-white brand.
 
 ## Authentication
 
-Staff sign in with a one-time code delivered to their registered WhatsApp number. The
-server sets an opaque `Secure; HttpOnly; SameSite=Lax` session cookie; no bearer token
-or staff API key is ever stored in Redux or browser storage. Mutations carry a CSRF
-token that rotates on login, and OTP arguments are redacted from Redux DevTools.
+Staff and shop owners sign in on the one login page (`/login`, served by the API) with
+a one-time code delivered to their WhatsApp number. The server sets an opaque
+`Secure; HttpOnly; SameSite=Lax` session cookie per role; no bearer token or staff API
+key is ever stored in Redux or browser storage. Staff and shop-owner sessions are
+separate, each with its own CSRF token: a request under `/shop` carries the owner's,
+every other request the staff one.
+
+- **Signed out.** A visitor with no session for the page they opened is sent to
+  `/login?returnTo=…`. Someone signed in as the other role is taken to their own home
+  instead: a shop owner who opens an admin address goes to their shop, and staff who
+  open a shop address go to the admin dashboard.
+- **Both roles.** A number that is staff and a shop owner gets a "Switch to my shop" /
+  "Switch to admin" link in each shell.
+- **Session expiry.** Either shell ends at `/login?returnTo=…&reason=expired` and
+  returns to the same page after signing in.
+- **Sign-out.** One sign-out for both shells ends every session the browser holds and
+  lands on `/signed-out`. It waits briefly for the server to confirm. If it cannot, the
+  page says the sign-out was not confirmed and offers "Try again"; the session is not
+  restored by a later identity poll. Browser Back from there never shows cached data.
 
 Session inactivity is extended only by real user interaction through a throttled
 activity signal — background polling never keeps a session alive.
@@ -227,10 +248,13 @@ the interface until the endpoints exist, rather than inventing data:
 ## Testing
 
 - **Component and integration** (`yarn test`): money parsing in cents, permissions,
-  theme switching and persistence, WCAG contrast for both presets, the OTP journey,
-  role-scoped routing, cache invalidation, session expiry and sign-out, the booking
+  theme switching and persistence, WCAG contrast for both presets, the redirects to the
+  one login, role-scoped routing, cache invalidation, session expiry and sign-out for
+  staff and shop owners (success, failure, timeout, already signed out), the booking
   queue, and the dispatch offer including its idempotency header.
-- **End-to-end** (`yarn test:e2e`): sign-in, deep-link reload, sign-out, theme switching,
+- **End-to-end** (`yarn test:e2e`): sign-in for each kind of account, deep-link reload,
+  sign-out then refresh, wrong-role addresses, the dual-role switch, expiry in each
+  shell, theme switching,
   the tablet dispatch layout and dialog handling, at 1440×900, 1280×800, 1024×768 and
   768×1024.
 

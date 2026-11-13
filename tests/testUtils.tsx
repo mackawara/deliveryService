@@ -38,10 +38,14 @@ export function renderRoutes({
   routes,
   initialEntries = ['/'],
   store = createAppStore(),
-}: RenderRouteOptions): RenderResult & { store: AppStore } {
+}: RenderRouteOptions): RenderResult & {
+  store: AppStore;
+  router: ReturnType<typeof createMemoryRouter>;
+} {
   const router = createMemoryRouter(routes, { initialEntries });
   return {
     store,
+    router,
     ...render(
       <Provider store={store}>
         <ThemeController>
