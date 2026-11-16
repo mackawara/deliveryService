@@ -26,7 +26,8 @@
 	# reaches this proxy after a dashboard image rollout; no edit to a shared
 	# host Caddyfile is required. Both containers share the delivery network.
 	# /signup and /shop-signup stay here so the API can redirect them to /login.
-	@portal path / /login /login/ /signup /signup/ /shop-signup /shop-signup/ /driver-signup /driver-signup/ /biker-login /biker-login/ /biker-terms /biker-terms/ /site/* /biker/dashboard /biker/dashboard/ /operations /operations/*
+	# The root address is not in this list: / is this app's own landing page.
+	@portal path /login /login/ /signup /signup/ /shop-signup /shop-signup/ /driver-signup /driver-signup/ /biker-login /biker-login/ /biker-terms /biker-terms/ /site/* /biker/dashboard /biker/dashboard/ /operations /operations/*
 	handle @portal {
 		header Cache-Control "no-store"
 		reverse_proxy {$API_UPSTREAM:api:3000} {

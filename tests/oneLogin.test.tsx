@@ -51,7 +51,6 @@ describe('no login form in this app', () => {
 
   it.each([
     ['/bookings?status=CONFIRMED', '/login?returnTo=%2Fbookings%3Fstatus%3DCONFIRMED'],
-    ['/', '/login?returnTo=%2Fdashboard'],
     ['/shop/branch-1/orders', '/login?returnTo=%2Fshop%2Fbranch-1%2Forders'],
     ['/shop', '/login?returnTo=%2Fshop'],
   ])('sends a signed-out visitor at %s to the one login and back', async (address, expected) => {

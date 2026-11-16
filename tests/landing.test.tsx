@@ -9,7 +9,7 @@ import { renderRoutes } from './testUtils';
 describe('landing page', () => {
   it('is open to a signed-out visitor and links to the shop and the one login', async () => {
     resetMockState();
-    renderRoutes({ routes, initialEntries: ['/welcome'] });
+    renderRoutes({ routes, initialEntries: ['/'] });
 
     expect(await screen.findByRole('heading', { level: 1 })).toHaveTextContent(
       /From the shop counter/i,
@@ -32,10 +32,18 @@ describe('landing page', () => {
 
   it('explains the four steps of an order with a picture of the route', async () => {
     resetMockState();
-    renderRoutes({ routes, initialEntries: ['/welcome'] });
+    renderRoutes({ routes, initialEntries: ['/'] });
 
     expect(await screen.findByRole('heading', { name: 'How it works' })).toBeInTheDocument();
     expect(screen.getAllByRole('listitem')).toHaveLength(4);
     expect(screen.getByRole('img', { name: /route from a shop/i })).toBeInTheDocument();
+  });
+
+  it('still answers at its first address', async () => {
+    resetMockState();
+    const { router } = renderRoutes({ routes, initialEntries: ['/welcome'] });
+
+    expect(await screen.findByRole('heading', { name: 'How it works' })).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/');
   });
 });

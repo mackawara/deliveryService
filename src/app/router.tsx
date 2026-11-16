@@ -86,13 +86,14 @@ export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
     children: [
-      // Standalone mock mode serves React at /; deployed public roots are proxied.
-      { index: true, element: <Navigate to="/dashboard" replace /> },
+      // Public introduction to the service, with the way in for shops and staff. The
+      // other public pages (the one login, sign-up) are proxied to the API.
+      { index: true, element: <LandingPage /> },
+      // The landing page's first address.
+      { path: '/welcome', element: <Navigate to="/" replace /> },
       // There is no login page in this app: the one login is served outside it. In
       // mock mode nothing serves that address, so a development-only stand-in does.
       ...mockLoginRoutes,
-      // Public introduction to the service, with the way in for shops and staff.
-      { path: '/welcome', element: <LandingPage /> },
       { path: '/signed-out', element: <SignedOutPage /> },
       // Old links keep working: they lead to the one login.
       { path: 'shop/login', element: <LegacyLoginRedirect /> },

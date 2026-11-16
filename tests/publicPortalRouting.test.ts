@@ -100,7 +100,6 @@ afterAll(async () => {
 
 describe.each(['development', 'preview'])('%s public portal routing', (server) => {
   it.each([
-    '/',
     '/login',
     '/login/',
     '/signup',
@@ -127,7 +126,6 @@ describe.each(['development', 'preview'])('%s public portal routing', (server) =
   });
 
   it.each([
-    '/?from=campaign',
     '/login?returnTo=%2Fbookings%3Fstatus%3DCONFIRMED',
     '/login/?returnTo=%2Fbookings',
     '/login?intent=shop',
@@ -149,6 +147,8 @@ describe.each(['development', 'preview'])('%s public portal routing', (server) =
   });
 
   it.each([
+    '/',
+    '/?from=campaign',
     '/dashboard',
     '/bookings',
     '/configuration/towns',
