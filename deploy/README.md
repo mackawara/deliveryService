@@ -19,7 +19,8 @@ Publish both initial images, run its `Deploy API` workflow once, then this one.
   file is the **container's** internal static server and must never replace the host
   Caddyfile.
 
-The container forwards the explicit public paths `/`, `/login`, `/signup`,
+The container serves this app's landing page at `/` and forwards the explicit
+public paths `/login`, `/signup`,
 `/shop-signup`, `/driver-signup`, `/biker-terms`, `/site/*`, `/shop/dashboard`,
 `/biker/dashboard` and `/operations[/...]` to `api:3000` on the existing delivery
 compose network. Fixed page entries also accept a trailing slash and retain their

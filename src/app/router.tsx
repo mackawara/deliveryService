@@ -11,6 +11,7 @@ import { AppShell } from '@/components/AppShell';
 import { appConfig } from '@/config';
 import { ADMIN_ONLY, AUDIT_READ, CONFIG_READ, FINANCE_ONLY, OPERATOR_ONLY } from '@/app/navigation';
 import { NotFoundPage } from '@/features/NotFoundPage';
+import { LandingPage } from '@/features/landing/LandingPage';
 import { AlertsPage } from '@/features/alerts/AlertsPage';
 import { AuditPage } from '@/features/audit/AuditPage';
 import { BookingDetailPage } from '@/features/bookings/BookingDetailPage';
@@ -85,8 +86,11 @@ export const routes: RouteObject[] = [
   {
     element: <RootLayout />,
     children: [
-      // Standalone mock mode serves React at /; deployed public roots are proxied.
-      { index: true, element: <Navigate to="/dashboard" replace /> },
+      // Public introduction to the service, with the way in for shops and staff. The
+      // other public pages (the one login, sign-up) are proxied to the API.
+      { index: true, element: <LandingPage /> },
+      // The landing page's first address.
+      { path: '/welcome', element: <Navigate to="/" replace /> },
       // There is no login page in this app: the one login is served outside it. In
       // mock mode nothing serves that address, so a development-only stand-in does.
       ...mockLoginRoutes,

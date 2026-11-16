@@ -30,8 +30,9 @@ yarn dev
 
 The dev and preview servers proxy `/api/v1` and the public delivery pages to
 `VITE_DEV_API_PROXY_TARGET` (default `http://localhost:4400`), so the browser stays
-same-origin and the session cookie works. `/` is the delivery homepage; staff overview
-is `/dashboard` and the shop owner's pages are under `/shop`. `/login` is the one
+same-origin and the session cookie works. `/` is this app's own public landing page: an
+animated walk through how an order moves, with links to the shop pages and the login.
+Staff overview is `/dashboard` and the shop owner's pages are under `/shop`. `/login` is the one
 login, served by the backend: this app has no login page of its own. Whenever someone
 needs to sign in, the app does a full-page navigation to `/login?returnTo=…` and the
 login returns them to that page when their role may open it. The old `/shop/login`

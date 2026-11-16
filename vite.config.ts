@@ -79,11 +79,12 @@ export default defineConfig(({ mode }) => {
   let lastProxyHint = 0;
   const buildInfo = readBuildInfo();
   // Exact public entries belong to deliveryBooking, including the one login at
-  // /login; every shop/staff dashboard route stays in this application. Mock mode
+  // /login; the landing page at / and every shop/staff dashboard route stay in
+  // this application. Mock mode
   // is a standalone React test/demo environment without a backend, so there a
   // development-only stand-in answers /login (src/mocks/MockLoginPage.tsx).
   const portalProxyPattern =
-    '^/(?:\\?.*|$|(?:login|signup|shop-signup|driver-signup|biker-login|biker-terms|biker/dashboard)/?(?:\\?.*)?$|site/.*|operations(?:/.*|\\?.*|$))';
+    '^/(?:(?:login|signup|shop-signup|driver-signup|biker-login|biker-terms|biker/dashboard)/?(?:\\?.*)?$|site/.*|operations(?:/.*|\\?.*|$))';
   const proxies: Record<string, ProxyOptions> = {
     '/api/v1': {
       target: proxyTarget,

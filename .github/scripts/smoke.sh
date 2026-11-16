@@ -32,7 +32,7 @@ check() {
 
 shell_served() {
   [ "$(get "${BASE}/" "${tmp}/index")" = 200 ] || { echo "/ is not 200"; return 1; }
-  grep -q '/site/app.js' "${tmp}/index" || { echo "/ is not the public delivery homepage"; return 1; }
+  grep -qi '<div id="root"' "${tmp}/index" || { echo "/ did not serve the landing page's React shell"; return 1; }
   for path in /signup /driver-signup; do
     [ "$(get "${BASE}${path}" "${tmp}/public")" = 200 ] || { echo "${path} is not 200"; return 1; }
     grep -q '/site/app.js' "${tmp}/public" || { echo "${path} is not a public delivery page"; return 1; }
@@ -64,7 +64,7 @@ api_errors_stay_api() {
   jq -e . "${tmp}/apierr" >/dev/null 2>&1 || { echo "unknown API path did not return JSON (the SPA page leaked through)"; return 1; }
 }
 
-check "public homepage, signup and dashboard routes are served correctly" shell_served
+check "landing page, signup and dashboard routes are served correctly" shell_served
 check "dashboard reports ${VERSION}/${REVISION}" build_matches
 check "dashboard origin reaches a ready API" api_reachable
 check "API errors stay API responses" api_errors_stay_api
