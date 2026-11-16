@@ -9,6 +9,12 @@ async function openShopNavigation(page: Page): Promise<void> {
   if (await toggle.isVisible()) await toggle.click();
 }
 
+/** Below the desktop width the staff navigation sits in a drawer that must be opened. */
+async function openNavigation(page: Page): Promise<void> {
+  const toggle = page.getByRole('button', { name: 'Open navigation', exact: true });
+  if (await toggle.isVisible()) await toggle.click();
+}
+
 test.describe('staff', () => {
   test('sign in through the one login and reach the overview', async ({ page }) => {
     await signIn(page);
@@ -56,11 +62,13 @@ test.describe('staff', () => {
   }) => {
     await signIn(page);
     await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
+    await openNavigation(page);
     await page.getByRole('link', { name: 'Bookings' }).click();
     await expect(page.getByRole('heading', { name: 'Bookings' })).toBeVisible();
 
     await expireSession(page, 'staff');
     // The next protected request finds out.
+    await openNavigation(page);
     await page.getByRole('link', { name: 'Drivers' }).click();
 
     await expect(page).toHaveURL(/\/login\?returnTo=%2Fdrivers&reason=expired$/);
