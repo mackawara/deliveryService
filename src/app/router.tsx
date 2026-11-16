@@ -11,6 +11,7 @@ import { AppShell } from '@/components/AppShell';
 import { appConfig } from '@/config';
 import { ADMIN_ONLY, AUDIT_READ, CONFIG_READ, FINANCE_ONLY, OPERATOR_ONLY } from '@/app/navigation';
 import { NotFoundPage } from '@/features/NotFoundPage';
+import { LandingPage } from '@/features/landing/LandingPage';
 import { AlertsPage } from '@/features/alerts/AlertsPage';
 import { AuditPage } from '@/features/audit/AuditPage';
 import { BookingDetailPage } from '@/features/bookings/BookingDetailPage';
@@ -90,6 +91,8 @@ export const routes: RouteObject[] = [
       // There is no login page in this app: the one login is served outside it. In
       // mock mode nothing serves that address, so a development-only stand-in does.
       ...mockLoginRoutes,
+      // Public introduction to the service, with the way in for shops and staff.
+      { path: '/welcome', element: <LandingPage /> },
       { path: '/signed-out', element: <SignedOutPage /> },
       // Old links keep working: they lead to the one login.
       { path: 'shop/login', element: <LegacyLoginRedirect /> },
