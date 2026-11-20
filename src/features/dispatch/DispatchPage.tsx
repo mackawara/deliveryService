@@ -23,6 +23,7 @@ import {
 } from '@/api/endpoints/dispatch';
 import type { NormalizedApiError } from '@/api/errors';
 import { POLLING, polled } from '@/api/polling';
+import { useHasAccess } from '@/auth/useAuth';
 import { ApiError } from '@/components/ApiError';
 import { EmptyState } from '@/components/EmptyState';
 import { FormDialog } from '@/components/FormDialog';
@@ -49,16 +50,53 @@ import { useQueryParam } from '@/lib/useUrlState';
  * "Awaiting driver acceptance" until refreshed server state confirms acceptance.
  */
 export function DispatchPage() {
+  const [selectedId, setSelectedId] = useQueryParam('booking');
+  // A booking change also starts a fresh selection and reason capture, including URL navigation.
+  return (
+    <DispatchWorkspace
+      key={selectedId ?? 'queue'}
+      selectedId={selectedId}
+      setSelectedId={setSelectedId}
+    />
+  );
+}
+
+function DispatchWorkspace({
+  selectedId,
+  setSelectedId,
+}: {
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+}) {
   const theme = useTheme();
   const wide = useMediaQuery(theme.breakpoints.up('lg'));
   const { townId } = useTownScope();
+  const canOverrideSuitability = useHasAccess({ anyRole: ['admin'] });
 
-  const [selectedId, setSelectedId] = useQueryParam('booking');
   const [selectedCandidate, setSelectedCandidate] = useState<WireCandidate | null>(null);
   const [offerDialogOpen, setOfferDialogOpen] = useState(false);
   const [reassignDialogOpen, setReassignDialogOpen] = useState(false);
   const [reassignReason, setReassignReason] = useState('');
   const [custodyNote, setCustodyNote] = useState('');
+  const [suitabilityOverrideReason, setSuitabilityOverrideReason] = useState('');
+  const [inspectionReason, setInspectionReason] = useState('');
+  const needsSuitabilityOverride = selectedCandidate?.suitability.fits === false;
+  const suitabilityOverrideValid =
+    !needsSuitabilityOverride ||
+    (canOverrideSuitability &&
+      selectedCandidate?.suitability.overrideAllowed === true &&
+      isReasonValid(suitabilityOverrideReason));
+  const needsInspectionReason =
+    selectedCandidate?.suitability.inspectionRequired === true && !needsSuitabilityOverride;
+  function selectCandidate(candidate: WireCandidate) {
+    setSelectedCandidate(candidate);
+    setSuitabilityOverrideReason('');
+    setInspectionReason('');
+    setReassignReason('');
+    setCustodyNote('');
+    offer.reset();
+    reassign.reset();
+  }
 
   const queue = useListBookingsQuery(
     { townId, status: 'READY_FOR_DISPATCH', limit: 50 },
@@ -89,16 +127,37 @@ export function DispatchPage() {
   const offerRemaining = useCountdown(
     activeAssignment?.state === 'OFFERED' ? activeAssignment.offerExpiresAt : null,
   );
+  const collected = booking
+    ? ['COLLECTED', 'IN_TRANSIT', 'AT_DROPOFF'].includes(booking.status)
+    : false;
+  const selectionValid = Boolean(booking && booking.id === selectedId && selectedCandidate);
+  const offerValid =
+    selectionValid &&
+    !activeAssignment &&
+    suitabilityOverrideValid &&
+    (!needsInspectionReason || isReasonValid(inspectionReason));
+  const reassignValid =
+    selectionValid &&
+    Boolean(activeAssignment) &&
+    suitabilityOverrideValid &&
+    isReasonValid(reassignReason) &&
+    (!collected || isReasonValid(custodyNote));
 
   const offer = useGuardedAction({
     allowUnconfirmedRetry: true,
     run: (_args: void, idempotencyKey: string) => {
-      if (!booking || !selectedCandidate) throw new Error('unreachable: guarded by the dialog');
+      if (!booking || !selectedCandidate || !offerValid)
+        throw new Error('unreachable: guarded by the dialog');
       return createOffer({
         bookingId: booking.id,
         driverId: selectedCandidate.driverId,
         vehicleId: selectedCandidate.vehicleId,
         expectedVersion: booking.version,
+        ...(needsSuitabilityOverride
+          ? { suitabilityOverrideReason: suitabilityOverrideReason.trim() }
+          : needsInspectionReason
+            ? { overrideReason: inspectionReason.trim() }
+            : {}),
         idempotencyKey,
       }).unwrap();
     },
@@ -115,12 +174,16 @@ export function DispatchPage() {
 
   const reassign = useGuardedAction({
     run: (_args: void, idempotencyKey: string) => {
-      if (!booking || !selectedCandidate) throw new Error('unreachable: guarded by the dialog');
+      if (!booking || !selectedCandidate || !reassignValid)
+        throw new Error('unreachable: guarded by the dialog');
       return createReassignment({
         bookingId: booking.id,
         driverId: selectedCandidate.driverId,
         vehicleId: selectedCandidate.vehicleId,
         reason: reassignReason.trim(),
+        ...(needsSuitabilityOverride
+          ? { suitabilityOverrideReason: suitabilityOverrideReason.trim() }
+          : {}),
         custodyHandoverNote: custodyNote.trim() || undefined,
         expectedVersion: booking.version,
         idempotencyKey,
@@ -138,9 +201,23 @@ export function DispatchPage() {
   });
 
   const queueItems = [...(queue.data?.items ?? []), ...(awaiting.data?.items ?? [])];
-  const collected = booking
-    ? ['COLLECTED', 'IN_TRANSIT', 'AT_DROPOFF'].includes(booking.status)
-    : false;
+
+  const suitabilityOverrideFields = needsSuitabilityOverride ? (
+    <>
+      <Alert severity="warning">
+        This vehicle does not meet the package requirements:{' '}
+        {selectedCandidate.suitability.reasons.join(' · ')}. An administrator must record why this
+        vehicle can be used for this load.
+      </Alert>
+      <ReasonField
+        label="Vehicle suitability override reason"
+        value={suitabilityOverrideReason}
+        onChange={setSuitabilityOverrideReason}
+        disabled={offer.pending || reassign.pending}
+        helperText="Explain the checked load and vehicle suitability. Recorded in the audit trail. At least three characters."
+      />
+    </>
+  ) : null;
 
   const queuePanel = (
     <Section
@@ -240,6 +317,19 @@ export function DispatchPage() {
               value: booking.parcel.specialHandling.join(', ') || 'None',
             },
             {
+              label: 'Total load weight',
+              value:
+                booking.vehicleRequirement.totalWeightKg === undefined
+                  ? 'Unknown'
+                  : `${booking.vehicleRequirement.totalWeightKg} kg`,
+            },
+            {
+              label: 'Largest item dimensions',
+              value: booking.vehicleRequirement.largestItemDimensionsCm
+                ? `${booking.vehicleRequirement.largestItemDimensionsCm.lengthCm} × ${booking.vehicleRequirement.largestItemDimensionsCm.widthCm} × ${booking.vehicleRequirement.largestItemDimensionsCm.heightCm} cm`
+                : 'Unknown',
+            },
+            {
               label: 'Accepted price',
               value: <Money cents={booking.acceptedQuote?.totalCents ?? null} emphasis />,
             },
@@ -296,7 +386,9 @@ export function DispatchPage() {
           <CandidateList
             result={candidates.data}
             selectedDriverId={selectedCandidate?.driverId ?? null}
-            onSelect={setSelectedCandidate}
+            selectedVehicleId={selectedCandidate?.vehicleId ?? null}
+            onSelect={selectCandidate}
+            canOverrideSuitability={canOverrideSuitability}
             disabled={offer.pending || reassign.pending}
           />
           <Divider />
@@ -367,7 +459,10 @@ export function DispatchPage() {
         unconfirmed={offer.unconfirmed}
         onRetryUnconfirmed={() => void offer.retryUnconfirmed()}
         onClose={() => setOfferDialogOpen(false)}
-        onSubmit={() => void offer.submit()}
+        disabled={!offerValid}
+        onSubmit={() => {
+          if (offerValid) void offer.submit();
+        }}
       >
         <KeyValue
           columns={1}
@@ -388,6 +483,16 @@ export function DispatchPage() {
             },
           ]}
         />
+        {suitabilityOverrideFields}
+        {needsInspectionReason ? (
+          <ReasonField
+            label="Packing inspection reason"
+            value={inspectionReason}
+            onChange={setInspectionReason}
+            disabled={offer.pending}
+            helperText="Record the packing inspection that confirms this load can be carried. At least three characters."
+          />
+        ) : null}
       </FormDialog>
 
       <FormDialog
@@ -399,9 +504,11 @@ export function DispatchPage() {
         error={reassign.error}
         unconfirmed={reassign.unconfirmed}
         onRetryUnconfirmed={() => void reassign.retryUnconfirmed()}
-        disabled={!isReasonValid(reassignReason) || (collected && custodyNote.trim().length < 3)}
+        disabled={!reassignValid}
         onClose={() => setReassignDialogOpen(false)}
-        onSubmit={() => void reassign.submit()}
+        onSubmit={() => {
+          if (reassignValid) void reassign.submit();
+        }}
       >
         <KeyValue
           columns={1}
@@ -415,6 +522,7 @@ export function DispatchPage() {
             },
           ]}
         />
+        {suitabilityOverrideFields}
         <ReasonField value={reassignReason} onChange={setReassignReason} />
         <TextField
           label="Custody handover note"

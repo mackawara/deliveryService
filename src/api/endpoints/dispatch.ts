@@ -31,6 +31,7 @@ export const dispatchApi = baseApi.injectEndpoints({
         vehicleId: string;
         expectedVersion?: number;
         overrideReason?: string;
+        suitabilityOverrideReason?: string;
         idempotencyKey: string;
       }
     >({
@@ -59,6 +60,7 @@ export const dispatchApi = baseApi.injectEndpoints({
         driverId: string;
         vehicleId: string;
         reason: string;
+        suitabilityOverrideReason?: string;
         custodyHandoverNote?: string;
         expectedVersion?: number;
         idempotencyKey: string;
