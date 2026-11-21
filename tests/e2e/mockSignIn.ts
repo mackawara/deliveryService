@@ -38,3 +38,13 @@ export async function expireSession(page: Page, role: 'staff' | 'owner'): Promis
     await fetch(`/api/v1/__mock/expire?role=${expiredRole}`, { method: 'POST' });
   }, role);
 }
+
+/**
+ * Follows a link in the staff navigation. Below the desktop breakpoint the navigation
+ * is a drawer behind "Open navigation", so open it first when that button is shown.
+ */
+export async function openNavigationLink(page: Page, name: string): Promise<void> {
+  const toggle = page.getByRole('button', { name: 'Open navigation' });
+  if (await toggle.isVisible()) await toggle.click();
+  await page.getByRole('link', { name }).click();
+}
