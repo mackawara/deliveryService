@@ -149,6 +149,9 @@ jobs:
       - name: Shop earnings and settlement phone and desktop workflows
         run: yarn test:food-settlements:e2e
 
+      - name: Simple shop setup first run at phone size
+        run: yarn test:simple-shop:e2e
+
       - name: Upload Playwright report
         if: ${{ !cancelled() }}
         uses: actions/upload-artifact@v4

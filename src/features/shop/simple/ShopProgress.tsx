@@ -53,6 +53,7 @@ export function ShopProgress({ shop }: { shop: WireShop }) {
                 key={step.key}
                 aria-current={step === next ? 'step' : undefined}
                 sx={{
+                  position: 'relative',
                   display: 'flex',
                   alignItems: 'center',
                   gap: 0.5,
@@ -113,10 +114,16 @@ export function ShopProgress({ shop }: { shop: WireShop }) {
   );
 }
 
+// Anchored inside its step, so it can never widen the page on a phone.
 const visuallyHidden = {
   position: 'absolute',
+  top: 0,
+  left: 0,
   width: 1,
   height: 1,
+  margin: '-1px',
+  padding: 0,
+  border: 0,
   overflow: 'hidden',
   clip: 'rect(0 0 0 0)',
   whiteSpace: 'nowrap',

@@ -64,7 +64,7 @@ function ShopNavigation({ shopId, close }: { shopId?: string; close?: () => void
             ]
           : []),
         {
-          label: 'Profile',
+          label: simple() ? 'Your shop' : 'Profile',
           path: `/shop/${shopId}/profile`,
           icon: <AccountCircleIcon fontSize="small" />,
         },
@@ -306,7 +306,7 @@ export function ShopShell() {
         {!signingOut && (!shopId || !!current) ? (
           <Outlet />
         ) : (
-          <Typography>Checking branch access…</Typography>
+          <Typography>{simple() ? 'Checking your shop…' : 'Checking branch access…'}</Typography>
         )}
       </Box>
     </Box>
