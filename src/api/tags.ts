@@ -30,6 +30,8 @@ export const TAG_TYPES = [
   'ShopMembership',
   'ShopClaim',
   'ShopTerms',
+  'ShopReadiness',
+  'FoodTownSettings',
   'PackingProfile',
   'FoodSettlement',
   'FoodBalance',

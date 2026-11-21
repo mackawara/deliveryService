@@ -4,6 +4,12 @@ import { queryParams } from '@/api/adapters';
 import type {
   CreateItemBody,
   CreateShopBody,
+  CreateSimpleShopBody,
+  PickupBody,
+  WireCurrentShopTerms,
+  WireDeliverySize,
+  WireFoodTownSettings,
+  WireShopOverview,
   ShopCommandArgs,
   ShopTownChoice,
   ShopPage,
@@ -29,6 +35,18 @@ const commandHeaders = (key?: string): Record<string, string> => ({
 
 function pageParams(limit = 25, skip = 0) {
   return queryParams({ limit, skip });
+}
+
+/** Readiness and suggestions change whenever the shop, its pin or its items change. */
+const readinessTag = (shopId: string) => listTag('ShopReadiness', shopId);
+
+/** An API without the issue 34 lists still renders: missing lists read as empty. */
+function overview(response: Partial<WireShopOverview> & { shop: WireShop }): WireShopOverview {
+  return {
+    shop: response.shop,
+    readiness: response.readiness ?? [],
+    suggestions: response.suggestions ?? [],
+  };
 }
 
 export const shopApi = baseApi.injectEndpoints({
@@ -123,6 +141,47 @@ export const shopApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, args) => [
         entityTag('Shop', args.shopId),
         listTag('Shop', 'owner'),
+        readinessTag(args.shopId),
+      ],
+    }),
+
+    // -- issue 34: two-input signup, terms agreement, readiness and suggestions --
+    getCurrentShopTerms: build.query<WireCurrentShopTerms | null, void>({
+      query: () => ({ url: '/shop/terms', headers: { 'Cache-Control': 'no-store' } }),
+      transformResponse: (response: { terms: WireCurrentShopTerms | null }) =>
+        response.terms ?? null,
+      providesTags: [listTag('ShopTerms', 'current')],
+    }),
+    createSimpleShop: build.mutation<WireShop, CreateSimpleShopBody & ShopCommandArgs>({
+      query: ({ idempotencyKey, ...body }) => ({
+        url: '/shop/shops',
+        method: 'POST',
+        body,
+        headers: commandHeaders(idempotencyKey),
+      }),
+      transformResponse: (response: { shop: WireShop }) => response.shop,
+      invalidatesTags: [listTag('Shop', 'owner'), allOf('Shop')],
+    }),
+    getShopOverview: build.query<WireShopOverview, string>({
+      query: (shopId) => ({ url: `/shop/shops/${shopId}` }),
+      transformResponse: overview,
+      providesTags: (_result, _error, shopId) => [entityTag('Shop', shopId), readinessTag(shopId)],
+    }),
+    agreeShopTerms: build.mutation<
+      WireShop,
+      { shopId: string; termsVersion: string; expectedVersion: number } & ShopCommandArgs
+    >({
+      query: ({ shopId, idempotencyKey, ...body }) => ({
+        url: `/shop/shops/${shopId}/terms-agreement`,
+        method: 'POST',
+        body,
+        headers: commandHeaders(idempotencyKey),
+      }),
+      transformResponse: (response: { shop: WireShop }) => response.shop,
+      invalidatesTags: (_result, _error, args) => [
+        entityTag('Shop', args.shopId),
+        listTag('Shop', 'owner'),
+        readinessTag(args.shopId),
       ],
     }),
 
@@ -150,7 +209,10 @@ export const shopApi = baseApi.injectEndpoints({
         headers: commandHeaders(idempotencyKey),
       }),
       transformResponse: (response: { item: WireFoodItem }) => response.item,
-      invalidatesTags: (_result, _error, args) => [listTag('ShopItem', args.shopId)],
+      invalidatesTags: (_result, _error, args) => [
+        listTag('ShopItem', args.shopId),
+        readinessTag(args.shopId),
+      ],
     }),
     updateShopItem: build.mutation<
       WireFoodItem,
@@ -166,6 +228,7 @@ export const shopApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, args) => [
         entityTag('ShopItem', args.itemId),
         listTag('ShopItem', args.shopId),
+        readinessTag(args.shopId),
       ],
     }),
     archiveShopItem: build.mutation<
@@ -182,6 +245,7 @@ export const shopApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, args) => [
         entityTag('ShopItem', args.itemId),
         listTag('ShopItem', args.shopId),
+        readinessTag(args.shopId),
       ],
     }),
     listPackingProfiles: build.query<WirePackingProfile[], string>({
@@ -230,6 +294,7 @@ export const shopApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, args) => [
         entityTag('Shop', args.shopId),
         listTag('Shop', 'owner'),
+        readinessTag(args.shopId),
         ...(args.itemId
           ? [entityTag('ShopItem', args.itemId), listTag('ShopItem', args.shopId)]
           : []),
@@ -271,7 +336,78 @@ export const shopApi = baseApi.injectEndpoints({
     }),
     getAdminShop: build.query<WireShopDetail, string>({
       query: (shopId) => ({ url: `/admin/food/shops/${shopId}` }),
-      providesTags: (_result, _error, shopId) => [entityTag('Shop', shopId)],
+      providesTags: (_result, _error, shopId) => [entityTag('Shop', shopId), readinessTag(shopId)],
+    }),
+    listAdminShopItems: build.query<
+      ShopPage<WireFoodItem>,
+      { shopId: string; limit?: number; skip?: number }
+    >({
+      query: ({ shopId, limit, skip }) => ({
+        url: `/admin/food/shops/${shopId}/items`,
+        params: pageParams(limit ?? 100, skip),
+      }),
+      providesTags: (result, _error, args) => [
+        listTag('ShopItem', 'admin', args.shopId),
+        ...(result?.items ?? []).map((item) => entityTag('ShopItem', item._id)),
+      ],
+    }),
+    setAdminShopPickup: build.mutation<
+      WireShop,
+      { shopId: string; expectedVersion: number; pickup: PickupBody } & ShopCommandArgs
+    >({
+      query: ({ shopId, idempotencyKey, ...body }) => ({
+        url: `/admin/food/shops/${shopId}/pickup`,
+        method: 'PUT',
+        body,
+        headers: commandHeaders(idempotencyKey),
+      }),
+      transformResponse: (response: { shop: WireShop }) => response.shop,
+      invalidatesTags: (_result, _error, args) => [
+        entityTag('Shop', args.shopId),
+        listTag('Shop', 'admin'),
+        readinessTag(args.shopId),
+      ],
+    }),
+    setAdminItemDeliverySize: build.mutation<
+      WireFoodItem,
+      {
+        shopId: string;
+        itemId: string;
+        expectedVersion: number;
+        /** `null` returns the item to the standard bike-sized unit. */
+        deliverySize: WireDeliverySize | null;
+      } & ShopCommandArgs
+    >({
+      query: ({ shopId, itemId, idempotencyKey, ...body }) => ({
+        url: `/admin/food/shops/${shopId}/items/${itemId}/delivery-size`,
+        method: 'PUT',
+        body,
+        headers: commandHeaders(idempotencyKey),
+      }),
+      transformResponse: (response: { item: WireFoodItem }) => response.item,
+      invalidatesTags: (_result, _error, args) => [
+        entityTag('ShopItem', args.itemId),
+        listTag('ShopItem', 'admin', args.shopId),
+        listTag('ShopItem', args.shopId),
+      ],
+    }),
+    getFoodTownSettings: build.query<WireFoodTownSettings, string>({
+      query: (townId) => ({ url: `/admin/food/towns/${townId}/settings` }),
+      transformResponse: (response: { settings: WireFoodTownSettings }) => response.settings,
+      providesTags: (_result, _error, townId) => [entityTag('FoodTownSettings', townId)],
+    }),
+    updateFoodTownSettings: build.mutation<
+      WireFoodTownSettings,
+      { townId: string; expectedVersion: number; bigOrderItemThreshold: number } & ShopCommandArgs
+    >({
+      query: ({ townId, idempotencyKey, ...body }) => ({
+        url: `/admin/food/towns/${townId}/settings`,
+        method: 'PATCH',
+        body,
+        headers: commandHeaders(idempotencyKey),
+      }),
+      transformResponse: (response: { settings: WireFoodTownSettings }) => response.settings,
+      invalidatesTags: (_result, _error, args) => [entityTag('FoodTownSettings', args.townId)],
     }),
     reviewAdminShop: build.mutation<
       WireShop,
@@ -294,6 +430,7 @@ export const shopApi = baseApi.injectEndpoints({
       invalidatesTags: (_result, _error, args) => [
         entityTag('Shop', args.shopId),
         listTag('Shop', 'admin'),
+        readinessTag(args.shopId),
       ],
     }),
     proposeAdminTerms: build.mutation<
@@ -402,6 +539,10 @@ export const {
   useGetShopQuery,
   useCreateShopMutation,
   useUpdateShopMutation,
+  useGetCurrentShopTermsQuery,
+  useCreateSimpleShopMutation,
+  useGetShopOverviewQuery,
+  useAgreeShopTermsMutation,
   useListShopItemsQuery,
   useCreateShopItemMutation,
   useUpdateShopItemMutation,
@@ -414,6 +555,11 @@ export const {
   useSubmitShopClaimMutation,
   useListAdminShopsQuery,
   useGetAdminShopQuery,
+  useListAdminShopItemsQuery,
+  useSetAdminShopPickupMutation,
+  useSetAdminItemDeliverySizeMutation,
+  useGetFoodTownSettingsQuery,
+  useUpdateFoodTownSettingsMutation,
   useReviewAdminShopMutation,
   useProposeAdminTermsMutation,
   useListAdminClaimsQuery,

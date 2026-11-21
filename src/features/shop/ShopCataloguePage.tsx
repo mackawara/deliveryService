@@ -36,7 +36,12 @@ import { ApiError } from '@/components/ApiError';
 import { EmptyState } from '@/components/EmptyState';
 import { PageHeader } from '@/components/PageHeader';
 import { newIdempotencyKey } from '@/lib/idempotency';
-import { centsToUsd, itemImage, readImageBase64 } from '@/features/shop/shopUtils';
+import {
+  centsToUsd,
+  deliverySizeLabel,
+  itemImage,
+  readImageBase64,
+} from '@/features/shop/shopUtils';
 
 interface ItemFormProps {
   item?: WireFoodItem;
@@ -51,15 +56,25 @@ function ItemForm({ item, profiles, pending, onClose, onSubmit }: ItemFormProps)
   const [description, setDescription] = useState(item?.description ?? '');
   const [category, setCategory] = useState(item?.category ?? '');
   const [price, setPrice] = useState(item ? (item.priceCents / 100).toFixed(2) : '');
-  const [weight, setWeight] = useState(item ? String(item.deliverySize.weightGrams) : '');
-  const [length, setLength] = useState(item ? String(item.deliverySize.dimensionsCm.length) : '');
-  const [width, setWidth] = useState(item ? String(item.deliverySize.dimensionsCm.width) : '');
-  const [height, setHeight] = useState(item ? String(item.deliverySize.dimensionsCm.height) : '');
+  const [weight, setWeight] = useState(
+    item?.deliverySize ? String(item.deliverySize.weightGrams) : '',
+  );
+  const [length, setLength] = useState(
+    item?.deliverySize ? String(item.deliverySize.dimensionsCm.length) : '',
+  );
+  const [width, setWidth] = useState(
+    item?.deliverySize ? String(item.deliverySize.dimensionsCm.width) : '',
+  );
+  const [height, setHeight] = useState(
+    item?.deliverySize ? String(item.deliverySize.dimensionsCm.height) : '',
+  );
   const [profileVersion, setProfileVersion] = useState(
-    item ? String(item.deliverySize.profileVersion) : String(profiles[0]?.profileVersion ?? ''),
+    item?.deliverySize
+      ? String(item.deliverySize.profileVersion)
+      : String(profiles[0]?.profileVersion ?? ''),
   );
   const [capacityUnits, setCapacityUnits] = useState(
-    item?.deliverySize.capacityUnits === undefined ? '' : String(item.deliverySize.capacityUnits),
+    item?.deliverySize?.capacityUnits === undefined ? '' : String(item.deliverySize.capacityUnits),
   );
   const [inStock, setInStock] = useState(item?.inStock ?? true);
   const [displayOrder, setDisplayOrder] = useState(item ? String(item.displayOrder) : '0');
@@ -413,13 +428,11 @@ export function ShopCataloguePage() {
                     <Typography variant="h3">{item.name}</Typography>
                     <Typography variant="body2" color="text.secondary">
                       {item.category || 'Uncategorised'} · {centsToUsd(item.priceCents)} ·{' '}
-                      {item.deliverySize.weightGrams}g · {item.deliverySize.dimensionsCm.length}×
-                      {item.deliverySize.dimensionsCm.width}×{item.deliverySize.dimensionsCm.height}
-                      cm
+                      {deliverySizeLabel(item)}
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      {item.inStock ? 'In stock' : 'Out of stock'} · {item.status} · profile v
-                      {item.deliverySize.profileVersion}
+                      {item.inStock ? 'In stock' : 'Out of stock'} · {item.status}
+                      {item.deliverySize ? ` · profile v${item.deliverySize.profileVersion}` : ''}
                     </Typography>
                   </Stack>
                   <Stack direction="row" spacing={1}>

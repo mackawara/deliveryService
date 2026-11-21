@@ -41,6 +41,11 @@ export interface AppConfig {
   enableFoodSettlements: boolean;
   /** Independent, default-off EcoCash panel gate; backend provider readiness remains required. */
   enableFoodEcoCash: boolean;
+  /**
+   * Two-input shop signup, simple item form, readiness and suggestions (issue 34).
+   * Enable only with the matching deployed API (deliveryBooking issue 60).
+   */
+  enableSimpleShopSetup: boolean;
 }
 
 export const appConfig: AppConfig = {
@@ -53,6 +58,7 @@ export const appConfig: AppConfig = {
   enableMockApi: readBoolean(import.meta.env.VITE_ENABLE_MOCK_API, false) && import.meta.env.DEV,
   enableFoodSettlements: readBoolean(import.meta.env.VITE_ENABLE_FOOD_SETTLEMENTS, false),
   enableFoodEcoCash: readBoolean(import.meta.env.VITE_ENABLE_FOOD_ECOCASH, false),
+  enableSimpleShopSetup: readBoolean(import.meta.env.VITE_ENABLE_SIMPLE_SHOP_SETUP, false),
 };
 
 /**

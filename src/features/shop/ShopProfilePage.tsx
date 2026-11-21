@@ -51,9 +51,9 @@ function ProfileEditor({
   const [name, setName] = useState(record.name);
   const [branchName, setBranchName] = useState(record.branchName ?? '');
   const [phone, setPhone] = useState(record.contactPhone);
-  const [address, setAddress] = useState(record.pickup.addressLine);
-  const [lat, setLat] = useState(String(record.pickup.point.coordinates[1]));
-  const [lng, setLng] = useState(String(record.pickup.point.coordinates[0]));
+  const [address, setAddress] = useState(record.pickup?.addressLine ?? '');
+  const [lat, setLat] = useState(record.pickup ? String(record.pickup.point.coordinates[1]) : '');
+  const [lng, setLng] = useState(record.pickup ? String(record.pickup.point.coordinates[0]) : '');
   const towns = useListShopTownsQuery();
   const [error, setError] = useState<NormalizedApiError>();
 
