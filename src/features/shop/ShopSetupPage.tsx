@@ -5,6 +5,7 @@ import Button from '@mui/material/Button';
 import Card from '@mui/material/Card';
 import CardContent from '@mui/material/CardContent';
 import Divider from '@mui/material/Divider';
+import Link from '@mui/material/Link';
 import MenuItem from '@mui/material/MenuItem';
 import Stack from '@mui/material/Stack';
 import TextField from '@mui/material/TextField';
@@ -162,6 +163,9 @@ function SetupForm({ ownerId }: { ownerId: string }) {
               Your draft is saved in this browser tab for seven days. Codes and consent are never
               saved in drafts.
             </Typography>
+            <Link href="/terms" target="_blank" rel="noopener noreferrer">
+              Read the shop terms and conditions (opens in a new tab)
+            </Link>
             <Button onClick={() => setDraft(emptyDraft())}>Clear setup draft</Button>
             <TextField
               fullWidth
