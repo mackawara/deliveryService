@@ -35,7 +35,7 @@ import { SimpleItemForm, type ItemValues } from './SimpleItemForm';
 
 export interface SimpleCataloguePageProps {
   /** Called after every successful save, for the issue 34 follow-up prompts. */
-  onItemSaved?: (item: WireFoodItem) => void;
+  onItemSaved?: (item: WireFoodItem, context: { addAnother: boolean }) => void;
   /** Rendered above the list, for the "Make your shop better" card. */
   aside?: ReactNode;
 }
@@ -101,7 +101,7 @@ export function SimpleCataloguePage({ onItemSaved, aside }: SimpleCataloguePageP
       if (photo) saved = await attachPhoto(saved, photo);
       dispatch(noticeShown({ tone: 'success', message: `${saved.name} saved.` }));
       setDialog(addAnother ? { mode: 'new', key: Date.now() } : null);
-      onItemSaved?.(saved);
+      onItemSaved?.(saved, { addAnother });
     } catch (caught) {
       setFormError(caught as NormalizedApiError);
       // The item itself may be saved even though the photo failed: show it in the list.
@@ -138,7 +138,7 @@ export function SimpleCataloguePage({ onItemSaved, aside }: SimpleCataloguePageP
   const addPhoto = (item: WireFoodItem, file: File) =>
     rowCommand(item, async () => {
       const updated = await attachPhoto(item, file);
-      onItemSaved?.(updated);
+      onItemSaved?.(updated, { addAnother: false });
     });
 
   async function remove(item: WireFoodItem) {

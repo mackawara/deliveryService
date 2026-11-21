@@ -43,7 +43,7 @@ import { ShopProfilePage } from '@/features/shop/ShopProfilePage';
 import { ShopSetupPage } from '@/features/shop/ShopSetupPage';
 import { SimpleShopSetupPage } from '@/features/shop/simple/SimpleShopSetupPage';
 import { ShopPinPage } from '@/features/shop/simple/ShopPinPage';
-import { SimpleCataloguePage } from '@/features/shop/simple/SimpleCataloguePage';
+import { SimpleCatalogueWithPrompts } from '@/features/shop/simple/CataloguePrompts';
 import { ShopOrdersPage, ShopOrdersEntry } from '@/features/shop/ShopOrdersPage';
 import { ShopShell } from '@/features/shop/ShopShell';
 import { ShopEarningsPage } from '@/features/shop/ShopEarningsPage';
@@ -161,7 +161,7 @@ export const routes: RouteObject[] = [
               {
                 path: 'shop/:shopId/catalogue',
                 element: appConfig.enableSimpleShopSetup ? (
-                  <SimpleCataloguePage />
+                  <SimpleCatalogueWithPrompts />
                 ) : (
                   <ShopCataloguePage />
                 ),

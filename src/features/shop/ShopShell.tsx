@@ -33,6 +33,7 @@ import { ADMIN_HOME } from '@/auth/returnPath';
 import { useOwnerAuth } from '@/auth/useOwnerAuth';
 import { ApiError } from '@/components/ApiError';
 import { appConfig } from '@/config';
+import { ShopProgress } from './simple/ShopProgress';
 import { ShopReminders } from './simple/ShopReminders';
 
 const DRAWER_WIDTH = 248;
@@ -288,7 +289,12 @@ export function ShopShell() {
         {shops.error ? (
           <ApiError error={shops.error as never} onRetry={() => void shops.refetch()} />
         ) : null}
-        {simple() && current ? <ShopReminders shop={current} /> : null}
+        {simple() && current ? (
+          <>
+            <ShopReminders shop={current} />
+            <ShopProgress shop={current} />
+          </>
+        ) : null}
         {!simple() && current && current.approvalState !== 'APPROVED' ? (
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="warning.main">
