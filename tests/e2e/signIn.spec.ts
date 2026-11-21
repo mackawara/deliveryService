@@ -1,6 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 
-import { expireSession, signIn, submitCode } from './mockSignIn';
+import { expireSession, openNavigationLink, signIn, submitCode } from './mockSignIn';
 
 const OWNER_HOME = 'Set up a branch';
 
@@ -56,12 +56,12 @@ test.describe('staff', () => {
   }) => {
     await signIn(page);
     await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
-    await page.getByRole('link', { name: 'Bookings' }).click();
+    await openNavigationLink(page, 'Bookings');
     await expect(page.getByRole('heading', { name: 'Bookings' })).toBeVisible();
 
     await expireSession(page, 'staff');
     // The next protected request finds out.
-    await page.getByRole('link', { name: 'Drivers' }).click();
+    await openNavigationLink(page, 'Drivers');
 
     await expect(page).toHaveURL(/\/login\?returnTo=%2Fdrivers&reason=expired$/);
     await expect(page.getByText(/Your session ended/i)).toBeVisible();
