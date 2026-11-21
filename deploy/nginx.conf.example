@@ -48,7 +48,7 @@ server {
   # The public delivery pages, including the one login at /login, are owned by
   # deliveryBooking. Keep this matcher explicit: every /shop/... and dashboard
   # route stays React, which redirects old sign-in links to /login itself.
-  location ~ ^/(?:$|(?:login|signup|shop-signup|driver-signup|biker-login|biker-terms|biker/dashboard)/?$|site/|operations(?:/|$)) {
+  location ~ ^/(?:$|(?:login|signup|shop-signup|driver-signup|biker-login|terms|biker-terms|biker/dashboard)/?$|site/|operations(?:/|$)) {
     proxy_pass http://127.0.0.1:3333;
     proxy_http_version 1.1;
     proxy_set_header Host $host;
