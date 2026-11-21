@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { WireShop } from '@/api/dto/shop';
 import { SimpleShopProfilePage } from '@/features/shop/simple/SimpleShopProfilePage';
 import { mockServer } from '@/mocks/server';
-import { PICKUP, simpleShop } from './simpleShopFixture';
+import { PICKUP, THUMBNAIL, simpleShop } from './simpleShopFixture';
 import { asOwner, withSimpleSetupFlag } from './simpleShopTestUtils';
 import { renderRoutes } from './testUtils';
 
@@ -81,5 +81,42 @@ describe('simple shop profile (issue 34)', () => {
     await waitFor(() =>
       expect(bodies).toEqual([{ expectedVersion: 1, contactPhone: '+263772999999' }]),
     );
+  });
+
+  it('saves a shop photo', async () => {
+    const user = userEvent.setup();
+    const uploads: unknown[] = [];
+    mount(simpleShop(verified));
+    mockServer.use(
+      http.post('/api/v1/shop/shops/shop-new/images', async ({ request }) => {
+        uploads.push(await request.json());
+        return HttpResponse.json({
+          mediaId: 'm',
+          thumbnail: THUMBNAIL,
+          base64: 'AAAA',
+          version: 2,
+        });
+      }),
+    );
+    await user.upload(
+      await screen.findByLabelText('Shop photo'),
+      new File([new Uint8Array([137, 80, 78, 71])], 'shop.png', { type: 'image/png' }),
+    );
+    await waitFor(() => expect(uploads).toEqual([expect.objectContaining({ expectedVersion: 1 })]));
+  });
+
+  it('offers a retry when the shop cannot be loaded', async () => {
+    mockServer.use(
+      http.get('/api/v1/shop/shops/shop-new', () =>
+        HttpResponse.json({ code: 'SERVER', message: 'Down', correlationId: 'c' }, { status: 503 }),
+      ),
+    );
+    renderRoutes({
+      routes: [{ path: '/shop/:shopId/profile', element: asOwner(<SimpleShopProfilePage />) }],
+      initialEntries: ['/shop/shop-new/profile'],
+    });
+    expect(
+      await screen.findByRole('button', { name: 'Try again' }, { timeout: 15_000 }),
+    ).toBeInTheDocument();
   });
 });
