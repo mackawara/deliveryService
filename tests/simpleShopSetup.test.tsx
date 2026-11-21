@@ -9,7 +9,7 @@ import { ShopReminders } from '@/features/shop/simple/ShopReminders';
 import { SimpleShopSetupPage } from '@/features/shop/simple/SimpleShopSetupPage';
 import { mockServer } from '@/mocks/server';
 import { PICKUP, SIMPLE_TERMS, simpleShop } from './simpleShopFixture';
-import { AsOwner, serveTowns, withSimpleSetupFlag } from './simpleShopTestUtils';
+import { asOwner, serveTowns, withSimpleSetupFlag } from './simpleShopTestUtils';
 import { renderRoutes } from './testUtils';
 
 vi.mock('@/lib/googleMaps', () => ({ loadGoogleMaps: () => Promise.reject(new Error('offline')) }));
@@ -25,11 +25,7 @@ function mountSetup(another = false) {
     routes: [
       {
         path: '/shop/setup',
-        element: (
-          <AsOwner>
-            <SimpleShopSetupPage another={another} />
-          </AsOwner>
-        ),
+        element: asOwner(<SimpleShopSetupPage another={another} />),
       },
       { path: '/shop/:shopId/pin', element: <p>Pin page</p> },
     ],

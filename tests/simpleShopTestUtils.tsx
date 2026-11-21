@@ -29,7 +29,8 @@ export function ownerSession(ownerId = 'owner-a', shopIds: string[] = []): Owner
   } as OwnerAuthContextValue;
 }
 
-export function AsOwner({ children, ownerId }: { children: ReactNode; ownerId?: string }) {
+/** Wraps a screen in a signed-in owner session. */
+export function asOwner(children: ReactNode, ownerId?: string) {
   return (
     <OwnerAuthContext.Provider value={ownerSession(ownerId)}>{children}</OwnerAuthContext.Provider>
   );
