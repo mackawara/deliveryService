@@ -80,6 +80,7 @@ function CatalogueWithPrompts({ shopId }: { shopId: string }) {
           <ShopBetterCard
             shopId={shopId}
             suggestions={suggestions}
+            loadedItemIds={new Set((items.data?.items ?? []).map((entry) => entry._id))}
             onOpen={(suggestion) => setPrompt({ kind: 'open', suggestion })}
           />
         }
@@ -104,10 +105,13 @@ function CatalogueWithPrompts({ shopId }: { shopId: string }) {
 function ShopBetterCard({
   shopId,
   suggestions,
+  loadedItemIds,
   onOpen,
 }: {
   shopId: string;
   suggestions: WireSuggestion[];
+  /** Only an item the page has loaded can be fixed in place (the list holds 100). */
+  loadedItemIds: Set<string>;
   onOpen: (suggestion: WireSuggestion) => void;
 }) {
   const groups = groupSuggestions(suggestions);
@@ -123,7 +127,9 @@ function ShopBetterCard({
         </Stack>
         <List dense disablePadding>
           {groups.map((group) => {
-            const first = group.entries[0];
+            const first = group.entries.find(
+              (entry) => entry.itemId && loadedItemIds.has(entry.itemId),
+            );
             const toPin = group.code === 'ADD_PICKUP_PIN' || group.code === 'ADD_PICKUP_ADDRESS';
             return (
               <ListItem
@@ -138,7 +144,7 @@ function ShopBetterCard({
                     >
                       Open map
                     </Button>
-                  ) : first.itemId ? (
+                  ) : first ? (
                     <Button onClick={() => onOpen(first)} sx={{ minHeight: 44 }}>
                       Fix one
                     </Button>

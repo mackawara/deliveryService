@@ -26,9 +26,13 @@ import { useGuardedAction } from '@/lib/useGuardedAction';
 import { ClaimShopCard } from './ClaimShopCard';
 
 interface Draft {
+  /** Kept with an unchanged draft, so retrying after a lost response cannot create twice. */
+  createKey: string;
   name: string;
   townId: string;
 }
+
+const emptyDraft = (): Draft => ({ createKey: crypto.randomUUID(), name: '', townId: '' });
 
 const DRAFT_DAYS = 7;
 
@@ -43,11 +47,16 @@ function readDraft(key: string): Draft {
       typeof saved.value?.name === 'string' &&
       typeof saved.value?.townId === 'string'
     )
-      return { name: saved.value.name, townId: saved.value.townId };
+      return {
+        createKey:
+          typeof saved.value.createKey === 'string' ? saved.value.createKey : crypto.randomUUID(),
+        name: saved.value.name,
+        townId: saved.value.townId,
+      };
   } catch {
     /* A broken draft starts empty. */
   }
-  return { name: '', townId: '' };
+  return emptyDraft();
 }
 
 /** Two inputs and a tick (issue 34). `another` adds the pilot-shop claim for extra shops. */
@@ -76,13 +85,14 @@ function SetupForm({ ownerId, another }: { ownerId: string; another: boolean }) 
   }, [draft, draftKey]);
 
   const create = useGuardedAction({
-    run: (_: undefined, key: string) =>
+    // The draft's key, not a fresh one: the same signup always carries the same key.
+    run: () =>
       createShop({
         name: draft.name.trim(),
         townId: draft.townId,
         termsVersion: terms.data!.version,
         agreeToTerms: true,
-        idempotencyKey: key,
+        idempotencyKey: draft.createKey,
       }).unwrap(),
     successMessage: 'Your shop is created.',
     onSuccess: (shop) => {
@@ -94,6 +104,10 @@ function SetupForm({ ownerId, another }: { ownerId: string; another: boolean }) 
       navigate(`/shop/${shop._id}/pin`);
     },
   });
+
+  /** A changed signup is a different command, so it gets a new key. */
+  const edit = (change: Partial<Omit<Draft, 'createKey'>>) =>
+    setDraft((current) => ({ ...current, ...change, createKey: crypto.randomUUID() }));
 
   const townKnown = towns.data?.some((town) => town._id === draft.townId) ?? false;
   const ready = Boolean(draft.name.trim()) && townKnown && agreed && Boolean(terms.data);
@@ -133,7 +147,7 @@ function SetupForm({ ownerId, another }: { ownerId: string; another: boolean }) 
                 required
                 label="Shop name"
                 value={draft.name}
-                onChange={(event) => setDraft({ ...draft, name: event.target.value })}
+                onChange={(event) => edit({ name: event.target.value })}
                 slotProps={{ htmlInput: { maxLength: 100, autoComplete: 'organization' } }}
               />
               {towns.error ? (
@@ -150,7 +164,7 @@ function SetupForm({ ownerId, another }: { ownerId: string; another: boolean }) 
                 select
                 label="Town"
                 value={townKnown ? draft.townId : ''}
-                onChange={(event) => setDraft({ ...draft, townId: event.target.value })}
+                onChange={(event) => edit({ townId: event.target.value })}
                 disabled={towns.isLoading || !towns.data?.length}
               >
                 {(towns.data ?? []).map((town) => (
