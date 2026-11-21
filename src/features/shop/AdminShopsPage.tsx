@@ -37,7 +37,7 @@ import { AdminCustomerPaymentsPanel } from './CustomerPaymentsPanel';
 function ReviewDialog({ shop, onClose }: { shop: WireShop; onClose: () => void }) {
   const [decision, setDecision] = useState<'APPROVED' | 'REJECTED' | 'SUSPENDED'>('APPROVED');
   const [reason, setReason] = useState('');
-  const [zoneCode, setZoneCode] = useState(shop.pickup.zoneCode);
+  const [zoneCode, setZoneCode] = useState(shop.pickup?.zoneCode ?? '');
   const [minMinutes, setMinMinutes] = useState('20');
   const [maxMinutes, setMaxMinutes] = useState('35');
   const [review, state] = useReviewAdminShopMutation();
@@ -261,7 +261,10 @@ function DetailCard({
                 {shop.branchName ? ` · ${shop.branchName}` : ''}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                {shop.contactPhone} · {shop.pickup.addressLine} · zone {shop.pickup.zoneCode}
+                {shop.contactPhone} ·{' '}
+                {shop.pickup
+                  ? `${shop.pickup.addressLine} · zone ${shop.pickup.zoneCode}`
+                  : 'No pickup pin yet'}
               </Typography>
             </Stack>
             <Chip

@@ -58,7 +58,8 @@ export interface WireShop extends WireDocument, WireVersioned {
   branchName?: string;
   contactPhone: string;
   townId: string;
-  pickup: WirePickup;
+  /** Absent until the owner (or an admin) sets the pin: it never blocks signup (issue 34). */
+  pickup?: WirePickup;
   status: ShopStatus;
   approvalState: ShopApprovalState;
   ownerManaged: boolean;
@@ -75,6 +76,51 @@ export interface WireShop extends WireDocument, WireVersioned {
   requestedSettlement?: ShopSchedule;
   approvalReason?: string;
   approvalUpdatedAt?: IsoDateTime;
+  /** The public /terms version the owner agreed to, and when (issue 34). */
+  termsAgreement?: WireTermsAgreement;
+}
+
+export interface WireTermsAgreement {
+  version: string;
+  agreedAt: IsoDateTime;
+}
+
+/** The public shop terms currently in force; `null` closes shop signup. */
+export interface WireCurrentShopTerms {
+  version: string;
+  url: string;
+}
+
+/** Known approval checks. Unknown codes from a newer API still render by their reason. */
+export type ShopReadinessCode = 'PICKUP_POINT' | 'VISIBLE_ITEM' | 'TERMS_AGREED';
+
+export interface WireReadinessCheck {
+  code: ShopReadinessCode | (string & {});
+  done: boolean;
+  /** Plain words for the owner or admin, written by the API. */
+  reason: string;
+}
+
+/** Known optional improvements. Unknown codes still render by their message. */
+export type ShopSuggestionCode =
+  | 'ADD_PICKUP_PIN'
+  | 'ADD_PICKUP_ADDRESS'
+  | 'ADD_ITEM_PHOTO'
+  | 'ADD_ITEM_DESCRIPTION'
+  | 'ADD_ITEM_CATEGORY';
+
+export interface WireSuggestion {
+  code: ShopSuggestionCode | (string & {});
+  /** Present when the suggestion is about one item. */
+  itemId?: string;
+  message: string;
+}
+
+/** `GET /shop/shops/:id` with the issue 34 lists. */
+export interface WireShopOverview {
+  shop: WireShop;
+  readiness: WireReadinessCheck[];
+  suggestions: WireSuggestion[];
 }
 
 export interface WireMembership extends WireVersioned {
@@ -92,6 +138,7 @@ export interface WireDimensions {
   height: number;
 }
 
+/** Explicit size; absent means one standard bike-sized unit (issue 34). */
 export interface WireDeliverySize {
   weightGrams: number;
   dimensionsCm: WireDimensions;
@@ -108,7 +155,7 @@ export interface WireFoodItem extends WireDocument, WireVersioned {
   displayOrder: number;
   inStock: boolean;
   status: ShopItemStatus;
-  deliverySize: WireDeliverySize;
+  deliverySize?: WireDeliverySize;
   thumbnail?: WireThumbnail;
   thumbnailBase64?: string;
 }
@@ -153,6 +200,9 @@ export interface WireShopDetail {
   memberships: WireMembership[];
   terms: WireSettlementPolicy[];
   requests: WireTermsRequest[];
+  /** Present once the issue 34 API is deployed. */
+  readiness?: WireReadinessCheck[];
+  suggestions?: WireSuggestion[];
 }
 
 export interface ShopPage<T> {
@@ -168,6 +218,14 @@ export interface CreateShopBody {
   townId: string;
   pickup: { lat: number; lng: number; address: string };
   requestedSettlement: ShopSchedule;
+}
+
+/** Issue 34 signup: the login number becomes the verified contact. */
+export interface CreateSimpleShopBody {
+  name: string;
+  townId: string;
+  termsVersion: string;
+  agreeToTerms: true;
 }
 
 export interface UpdateShopBody {
@@ -186,7 +244,8 @@ export interface CreateItemBody {
   priceCents: number;
   displayOrder?: number;
   inStock?: boolean;
-  deliverySize: WireDeliverySize;
+  /** Optional since issue 34: food is assumed to fit on a bike. */
+  deliverySize?: WireDeliverySize;
 }
 
 export interface UpdateItemBody {
@@ -199,6 +258,20 @@ export interface UpdateItemBody {
   inStock?: boolean;
   deliverySize?: WireDeliverySize;
   status?: ShopItemStatus;
+}
+
+export interface PickupBody {
+  lat: number;
+  lng: number;
+  address: string;
+}
+
+/** Town food settings an admin controls (issue 34). */
+export interface WireFoodTownSettings {
+  townId: string;
+  /** Orders with more items than this are held for an operator. Default 10. */
+  bigOrderItemThreshold: number;
+  version: number;
 }
 
 export interface ShopCommandArgs {

@@ -20,7 +20,7 @@ Publish both initial images, run its `Deploy API` workflow once, then this one.
   Caddyfile.
 
 The container forwards the explicit public paths `/`, `/login`, `/signup`,
-`/shop-signup`, `/driver-signup`, `/biker-terms`, `/site/*`, `/shop/dashboard`,
+`/shop-signup`, `/terms`, `/driver-signup`, `/biker-terms`, `/site/*`, `/shop/dashboard`,
 `/biker/dashboard` and `/operations[/...]` to `api:3000` on the existing delivery
 compose network. Fixed page entries also accept a trailing slash and retain their
 query string. `API_UPSTREAM` can override this address for an isolated test.
@@ -113,6 +113,7 @@ one needs a new commit and image — published tags are never rebuilt):
 | variable | `VITE_GOOGLE_MAPS_API_KEY`                                                                    | browser Maps key, see below                                                                                                                                  |
 | variable | `VITE_ENABLE_FOOD_SETTLEMENTS`                                                                | defaults to `false`; enable only with the matching deployed API and agreed financial policy; see [settlement rollout](../docs/food-settlements-dashboard.md) |
 | variable | `VITE_ENABLE_FOOD_ECOCASH`                                                                    | defaults to `false`; enable only after API/provider USD pilot verification; see [EcoCash rollout](../docs/food-ecocash-dashboard.md)                         |
+| variable | `VITE_ENABLE_SIMPLE_SHOP_SETUP`                                                               | defaults to `false`; enable only with the deliveryBooking issue 60 API deployed; see [simple shop setup](../docs/shop-simple-setup-contract.md)              |
 | variable | `VITE_APP_LABEL`, `VITE_DEFAULT_THEME`, `VITE_DEFAULT_PHONE_COUNTRY`, `VITE_DEFAULT_TIMEZONE` | optional                                                                                                                                                     |
 | variable | `PUBLIC_BASE_URL`                                                                             | `https://delivery.ventawifi.com` (smoke checks)                                                                                                              |
 | variable | `DEPLOY_PATH`                                                                                 | optional, default `/home/ubuntu/repos/delivery`                                                                                                              |

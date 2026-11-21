@@ -80,7 +80,7 @@ describe('shop form regressions', () => {
       phone: shop.contactPhone,
       lat: '-18.4200',
       lng: '26.4500',
-      address: shop.pickup.addressLine,
+      address: shop.pickup!.addressLine,
     };
     expect(profilePatch(shop, draft)).toEqual({});
     expect(profilePatch(shop, { ...draft, name: 'Lunch Spot New', branchName: '' })).toEqual({

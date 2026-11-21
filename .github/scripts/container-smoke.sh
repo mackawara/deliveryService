@@ -89,7 +89,7 @@ done
 header content-security-policy | grep -q "frame-ancestors 'none'" || fail "frame-ancestors must be enforced by the HTTP header"
 header server | grep -q . && fail "the Server header must be removed"
 
-for path in /login /login/ /signup /signup/ /shop-signup /shop-signup/ /driver-signup /driver-signup/ /biker-login /biker-login/ /biker-terms /biker-terms/ /site/app.js /biker/dashboard /biker/dashboard/ /operations /operations/ /operations/applications '/?from=campaign' '/login/?returnTo=%2Fbookings' '/login?intent=shop' '/signup/?from=homepage' '/driver-signup/?from=homepage'; do
+for path in /login /login/ /signup /signup/ /shop-signup /shop-signup/ /driver-signup /driver-signup/ /biker-login /biker-login/ /terms /terms/ /biker-terms /biker-terms/ /site/app.js /biker/dashboard /biker/dashboard/ /operations /operations/ /operations/applications '/?from=campaign' '/login/?returnTo=%2Fbookings' '/login?intent=shop' '/signup/?from=homepage' '/driver-signup/?from=homepage'; do
   request "${path}"
   [ "${code}" = 200 ] && grep -q 'Public delivery portal' "${tmp}/b" || fail "public ${path} was not proxied (${code})"
 done

@@ -35,6 +35,19 @@ export function currentProposal(
 ): WireSettlementPolicy | undefined {
   return terms.find((terms) => terms._id === shop.proposedTermsId);
 }
+/** A shop may have no pin yet (issue 34); an empty pin draft is then no change. */
+function pickupChanged(
+  record: WireShop,
+  draft: { lat: string; lng: string; address: string },
+): boolean {
+  if (!record.pickup) return Boolean(draft.lat.trim() || draft.lng.trim());
+  return (
+    Number(draft.lat) !== record.pickup.point.coordinates[1] ||
+    Number(draft.lng) !== record.pickup.point.coordinates[0] ||
+    draft.address.trim() !== record.pickup.addressLine
+  );
+}
+
 export function profilePatch(
   record: WireShop,
   draft: {
@@ -52,12 +65,18 @@ export function profilePatch(
       ? { branchName: draft.branchName.trim() }
       : {}),
     ...(draft.phone.trim() !== record.contactPhone ? { contactPhone: draft.phone.trim() } : {}),
-    ...(Number(draft.lat) !== record.pickup.point.coordinates[1] ||
-    Number(draft.lng) !== record.pickup.point.coordinates[0] ||
-    draft.address.trim() !== record.pickup.addressLine
+    ...(pickupChanged(record, draft)
       ? {
           pickup: { lat: Number(draft.lat), lng: Number(draft.lng), address: draft.address.trim() },
         }
       : {}),
   };
+}
+
+/** An item with no explicit size counts as one standard bike-sized unit (issue 34). */
+export function deliverySizeLabel(item: Pick<WireFoodItem, 'deliverySize'>): string {
+  const size = item.deliverySize;
+  if (!size) return 'Bike-sized';
+  const { length, width, height } = size.dimensionsCm;
+  return `${size.weightGrams}g · ${length}×${width}×${height}cm`;
 }

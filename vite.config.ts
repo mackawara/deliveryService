@@ -83,7 +83,7 @@ export default defineConfig(({ mode }) => {
   // is a standalone React test/demo environment without a backend, so there a
   // development-only stand-in answers /login (src/mocks/MockLoginPage.tsx).
   const portalProxyPattern =
-    '^/(?:\\?.*|$|(?:login|signup|shop-signup|driver-signup|biker-login|biker-terms|biker/dashboard)/?(?:\\?.*)?$|site/.*|operations(?:/.*|\\?.*|$))';
+    '^/(?:\\?.*|$|(?:login|signup|shop-signup|driver-signup|biker-login|terms|biker-terms|biker/dashboard)/?(?:\\?.*)?$|site/.*|operations(?:/.*|\\?.*|$))';
   const proxies: Record<string, ProxyOptions> = {
     '/api/v1': {
       target: proxyTarget,
