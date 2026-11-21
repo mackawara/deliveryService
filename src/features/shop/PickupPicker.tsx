@@ -15,10 +15,13 @@ export function PickupPicker({
   value,
   onChange,
   town,
+  addressRequired = true,
 }: {
   value: PickupDraft;
   onChange: (value: PickupDraft) => void;
   town?: ShopTownChoice;
+  /** The simple setup asks for the address but never requires it (issue 34). */
+  addressRequired?: boolean;
 }) {
   const container = useRef<HTMLDivElement>(null);
   const mapRef = useRef<google.maps.Map | null>(null);
@@ -196,7 +199,7 @@ export function PickupPicker({
         </Typography>
       )}
       <TextField
-        required
+        required={addressRequired}
         fullWidth
         label="Short pickup address"
         value={value.address}
