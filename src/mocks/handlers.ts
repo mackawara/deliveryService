@@ -1,6 +1,12 @@
 import { HttpResponse, http, type HttpHandler } from 'msw';
 
 import * as fixtures from '@/mocks/fixtures';
+import {
+  resetSimpleShopMock,
+  simpleShopHandlers,
+  simpleShopList,
+  simpleShopMemberships,
+} from '@/mocks/simpleShop';
 
 /**
  * Mock delivery-service API for development and tests.
@@ -51,6 +57,7 @@ export function resetMockState(options: { authenticated?: boolean; owner?: boole
   state.cookieSessionsEnabled = false;
   state.challenges.clear();
   state.requestKeys.clear();
+  resetSimpleShopMock();
   refreshSessionWindow();
 }
 
@@ -340,7 +347,8 @@ export const handlers: HttpHandler[] = [
     if (!ownerSignedIn(cookies)) return unauthenticated();
     return HttpResponse.json({
       owner: { id: 'mock-owner', phone: '+263772000002', version: 1 },
-      memberships: [],
+      // Shops created through the simple setup mock (issue 34); none at first.
+      memberships: simpleShopMemberships(),
       capabilities: ['shop:create', 'shop:claim', 'catalogue:manage', 'terms:request'],
       session: sessionWindow(),
     });
@@ -352,7 +360,9 @@ export const handlers: HttpHandler[] = [
   }),
 
   http.get(`${BASE}/shop/shops`, ({ request, cookies }) =>
-    ownerSignedIn(cookies) ? HttpResponse.json(page([], new URL(request.url))) : unauthenticated(),
+    ownerSignedIn(cookies)
+      ? HttpResponse.json(page(simpleShopList(), new URL(request.url)))
+      : unauthenticated(),
   ),
 
   http.get(`${BASE}/shop/towns`, ({ cookies }) =>
@@ -365,6 +375,11 @@ export const handlers: HttpHandler[] = [
           })),
         })
       : unauthenticated(),
+  ),
+
+  ...simpleShopHandlers(
+    (cookies) => (ownerSignedIn(cookies) ? null : unauthenticated()),
+    (cookies) => requireSession(cookies),
   ),
 
   // -- staff ---------------------------------------------------------------

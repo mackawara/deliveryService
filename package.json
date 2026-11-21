@@ -30,7 +30,8 @@
     "typecheck:cross-repo": "tsc --noEmit -p tsconfig.cross-repo.json",
     "test:food-settlements:api": "vitest run --config vitest.food-settlements.config.ts",
     "typecheck:food-settlements:api": "tsc --noEmit -p tsconfig.food-settlements.json",
-    "test:food-settlements:e2e": "playwright test --config playwright.food-settlements.config.ts"
+    "test:food-settlements:e2e": "playwright test --config playwright.food-settlements.config.ts",
+    "test:simple-shop:e2e": "playwright test --config playwright.simple-shop.config.ts"
   },
   "dependencies": {
     "@emotion/react": "11.14.0",
