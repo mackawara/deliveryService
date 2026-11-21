@@ -33,6 +33,8 @@ import { ApiError } from '@/components/ApiError';
 import { PageHeader } from '@/components/PageHeader';
 import { newIdempotencyKey } from '@/lib/idempotency';
 import { AdminCustomerPaymentsPanel } from './CustomerPaymentsPanel';
+import { BigOrderSettingCard, SimpleAdminShopCard } from './simple/AdminSimpleShops';
+import { appConfig } from '@/config';
 
 function ReviewDialog({ shop, onClose }: { shop: WireShop; onClose: () => void }) {
   const [decision, setDecision] = useState<'APPROVED' | 'REJECTED' | 'SUSPENDED'>('APPROVED');
@@ -384,6 +386,7 @@ export function AdminShopsPage() {
               </MenuItem>
             ))}
           </TextField>
+          {appConfig.enableSimpleShopSetup ? <BigOrderSettingCard /> : null}
           {shops.error ? (
             <ApiError
               error={shops.error as NormalizedApiError}
@@ -391,14 +394,23 @@ export function AdminShopsPage() {
             />
           ) : null}
           <Stack spacing={1.5}>
-            {(shops.data?.items ?? []).map((shop) => (
-              <DetailCard
-                key={shop._id}
-                shop={shop}
-                onReview={() => setSelected(shop)}
-                onTerms={() => setTermsShop(shop)}
-              />
-            ))}
+            {(shops.data?.items ?? []).map((shop) =>
+              appConfig.enableSimpleShopSetup ? (
+                <SimpleAdminShopCard
+                  key={shop._id}
+                  shop={shop}
+                  onOtherDecision={() => setSelected(shop)}
+                  onTerms={() => setTermsShop(shop)}
+                />
+              ) : (
+                <DetailCard
+                  key={shop._id}
+                  shop={shop}
+                  onReview={() => setSelected(shop)}
+                  onTerms={() => setTermsShop(shop)}
+                />
+              ),
+            )}
             {!shops.data?.items.length && !shops.isLoading ? (
               <Alert severity="info">No shops in this queue.</Alert>
             ) : null}
