@@ -9,6 +9,12 @@ async function openShopNavigation(page: Page): Promise<void> {
   if (await toggle.isVisible()) await toggle.click();
 }
 
+async function followStaffLink(page: Page, name: string): Promise<void> {
+  const toggle = page.getByRole('button', { name: 'Open navigation', exact: true });
+  if (await toggle.isVisible()) await toggle.click();
+  await page.getByRole('link', { name, exact: true }).click();
+}
+
 test.describe('staff', () => {
   test('sign in through the one login and reach the overview', async ({ page }) => {
     await signIn(page);
@@ -56,12 +62,12 @@ test.describe('staff', () => {
   }) => {
     await signIn(page);
     await expect(page.getByRole('heading', { name: 'Overview' })).toBeVisible();
-    await page.getByRole('link', { name: 'Bookings' }).click();
+    await followStaffLink(page, 'Bookings');
     await expect(page.getByRole('heading', { name: 'Bookings' })).toBeVisible();
 
     await expireSession(page, 'staff');
     // The next protected request finds out.
-    await page.getByRole('link', { name: 'Drivers' }).click();
+    await followStaffLink(page, 'Drivers');
 
     await expect(page).toHaveURL(/\/login\?returnTo=%2Fdrivers&reason=expired$/);
     await expect(page.getByText(/Your session ended/i)).toBeVisible();
@@ -90,6 +96,9 @@ test.describe('shop owner', () => {
     await signIn(page, 'owner');
     await expect(page.getByRole('heading', { name: OWNER_HOME })).toBeVisible();
     await expect(page).toHaveURL(/\/shop\/setup$/);
+    const terms = page.getByRole('link', { name: /Read the shop terms and conditions/ });
+    await expect(terms).toHaveAttribute('href', '/terms');
+    await expect(terms).toHaveAttribute('target', '_blank');
   });
 
   test('sign out, refresh, reopen: still signed out each time', async ({ page }) => {
