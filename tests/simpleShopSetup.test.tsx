@@ -77,6 +77,40 @@ describe('two-input shop signup (issue 34)', () => {
     expect(sessionStorage.getItem('shop-setup:v2:owner-a')).toBeNull();
   });
 
+  it('retries an unchanged signup with the same key, and a changed one with a new key', async () => {
+    const user = userEvent.setup();
+    serveTerms();
+    const keys: (string | null)[] = [];
+    mockServer.use(
+      http.post('/api/v1/shop/shops', ({ request }) => {
+        keys.push(request.headers.get('idempotency-key'));
+        return HttpResponse.json(
+          { code: 'SERVER', message: 'Try again.', correlationId: 'c' },
+          { status: 503 },
+        );
+      }),
+    );
+    const first = mountSetup();
+    await user.type(await screen.findByLabelText(/Shop name/), 'Mama Rudo Kitchen');
+    await user.click(screen.getByLabelText(/Town/));
+    await user.click(await screen.findByRole('option', { name: 'Hwange' }));
+    await user.click(screen.getByRole('checkbox', { name: /I agree/ }));
+    await user.click(screen.getByRole('button', { name: 'Create my shop' }));
+    await waitFor(() => expect(keys).toHaveLength(1));
+    // A reload keeps the key with the unchanged draft.
+    first.unmount();
+    mountSetup();
+    await user.click(await screen.findByRole('checkbox', { name: /I agree/ }));
+    await user.click(screen.getByRole('button', { name: 'Create my shop' }));
+    await waitFor(() => expect(keys).toHaveLength(2));
+    expect(keys[1]).toBe(keys[0]);
+
+    await user.type(screen.getByLabelText(/Shop name/), ' Two');
+    await user.click(screen.getByRole('button', { name: 'Create my shop' }));
+    await waitFor(() => expect(keys).toHaveLength(3));
+    expect(keys[2]).not.toBe(keys[0]);
+  });
+
   it('keeps typed input across a reload but never the terms tick', async () => {
     const user = userEvent.setup();
     serveTerms();
