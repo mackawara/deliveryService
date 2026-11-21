@@ -41,6 +41,8 @@ import { ShopCataloguePage } from '@/features/shop/ShopCataloguePage';
 import { ShopHomePage } from '@/features/shop/ShopHomePage';
 import { ShopProfilePage } from '@/features/shop/ShopProfilePage';
 import { ShopSetupPage } from '@/features/shop/ShopSetupPage';
+import { SimpleShopSetupPage } from '@/features/shop/simple/SimpleShopSetupPage';
+import { ShopPinPage } from '@/features/shop/simple/ShopPinPage';
 import { ShopOrdersPage, ShopOrdersEntry } from '@/features/shop/ShopOrdersPage';
 import { ShopShell } from '@/features/shop/ShopShell';
 import { ShopEarningsPage } from '@/features/shop/ShopEarningsPage';
@@ -140,7 +142,20 @@ export const routes: RouteObject[] = [
               },
               { path: 'shop/:shopId/orders', element: <ShopOrdersPage /> },
               { path: 'shop/:shopId/orders/:orderId', element: <ShopOrdersPage /> },
-              { path: 'shop/setup', element: <ShopSetupPage /> },
+              {
+                path: 'shop/setup',
+                element: appConfig.enableSimpleShopSetup ? (
+                  <SimpleShopSetupPage />
+                ) : (
+                  <ShopSetupPage />
+                ),
+              },
+              ...(appConfig.enableSimpleShopSetup
+                ? [
+                    { path: 'shop/add', element: <SimpleShopSetupPage another /> },
+                    { path: 'shop/:shopId/pin', element: <ShopPinPage /> },
+                  ]
+                : []),
               { path: 'shop/:shopId/profile', element: <ShopProfilePage /> },
               { path: 'shop/:shopId/catalogue', element: <ShopCataloguePage /> },
             ],

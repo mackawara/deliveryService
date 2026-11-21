@@ -1,4 +1,5 @@
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import AddBusinessIcon from '@mui/icons-material/AddBusiness';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -32,10 +33,14 @@ import { ADMIN_HOME } from '@/auth/returnPath';
 import { useOwnerAuth } from '@/auth/useOwnerAuth';
 import { ApiError } from '@/components/ApiError';
 import { appConfig } from '@/config';
+import { ShopReminders } from './simple/ShopReminders';
 
 const DRAWER_WIDTH = 248;
 
+const simple = () => appConfig.enableSimpleShopSetup;
+
 function branchSection(path: string): string {
+  if (simple() && path.endsWith('/pin')) return 'pin';
   if (path.includes('/payout-details')) return 'payout-details';
   if (path.includes('/earnings') || path.includes('/settlements')) return 'earnings';
   if (path.includes('/orders')) return 'orders';
@@ -77,14 +82,23 @@ function ShopNavigation({ shopId, close }: { shopId?: string; close?: () => void
             ]
           : []),
         {
-          label: 'Catalogue',
+          label: simple() ? 'Items' : 'Catalogue',
           path: `/shop/${shopId}/catalogue`,
           icon: <StorefrontIcon fontSize="small" />,
         },
+        ...(simple()
+          ? [
+              {
+                label: 'Add another shop',
+                path: '/shop/add',
+                icon: <AddBusinessIcon fontSize="small" />,
+              },
+            ]
+          : []),
       ]
     : [
         {
-          label: 'Set up a branch',
+          label: simple() ? 'Create your shop' : 'Set up a branch',
           path: '/shop/setup',
           icon: <StorefrontIcon fontSize="small" />,
         },
@@ -233,9 +247,11 @@ export function ShopShell() {
             displayEmpty
             onChange={(event) => switchShop(event.target.value)}
             sx={{ minWidth: { xs: 150, sm: 230 }, bgcolor: 'background.paper', borderRadius: 1 }}
-            inputProps={{ 'aria-label': 'Current shop branch' }}
+            inputProps={{ 'aria-label': simple() ? 'Current shop' : 'Current shop branch' }}
           >
-            {!shops.data?.items.length ? <MenuItem value="">No branches yet</MenuItem> : null}
+            {!shops.data?.items.length ? (
+              <MenuItem value="">{simple() ? 'No shop yet' : 'No branches yet'}</MenuItem>
+            ) : null}
             {shops.data?.items.map((shop) => (
               <MenuItem key={shop._id} value={shop._id}>
                 {shop.name}
@@ -243,14 +259,16 @@ export function ShopShell() {
               </MenuItem>
             ))}
           </Select>
-          <Button
-            color="inherit"
-            component={RouterLink}
-            to="/shop/setup"
-            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
-          >
-            New branch
-          </Button>
+          {simple() ? null : (
+            <Button
+              color="inherit"
+              component={RouterLink}
+              to="/shop/setup"
+              sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
+            >
+              New branch
+            </Button>
+          )}
         </Toolbar>
       </AppBar>
       <Box component="nav" sx={{ width: { md: DRAWER_WIDTH }, flexShrink: { md: 0 } }}>
@@ -270,7 +288,8 @@ export function ShopShell() {
         {shops.error ? (
           <ApiError error={shops.error as never} onRetry={() => void shops.refetch()} />
         ) : null}
-        {current && current.approvalState !== 'APPROVED' ? (
+        {simple() && current ? <ShopReminders shop={current} /> : null}
+        {!simple() && current && current.approvalState !== 'APPROVED' ? (
           <Box sx={{ mb: 2 }}>
             <Typography variant="body2" color="warning.main">
               This branch is awaiting approval. You can prepare its catalogue, but customers cannot
