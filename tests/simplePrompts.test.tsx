@@ -232,6 +232,31 @@ describe('prompts that encourage more detail', () => {
     expect(screen.queryByRole('dialog', { name: /category/ })).not.toBeInTheDocument();
   });
 
+  it('opens "Fix one" on an item the page has loaded', async () => {
+    const user = userEvent.setup();
+    serveCatalogue([simpleItem({ thumbnail: THUMBNAIL, description: 'Hot' })]);
+    // The API also counts an item beyond the loaded page; it cannot be opened in place.
+    mockServer.use(
+      http.get('/api/v1/shop/shops/shop-new', () =>
+        HttpResponse.json({
+          shop: simpleShop(),
+          readiness: [],
+          suggestions: [
+            { code: 'ADD_ITEM_CATEGORY', itemId: 'item-unloaded', message: 'c' },
+            { code: 'ADD_ITEM_CATEGORY', itemId: 'item-1', message: 'c' },
+          ],
+        }),
+      ),
+    );
+    mountCatalogue();
+    const card = await screen.findByRole('region', { name: 'Make your shop better' });
+    const row = within(card).getByText('2 items have no category').closest('li')!;
+    await user.click(within(row).getByRole('button', { name: 'Fix one' }));
+    expect(
+      await screen.findByRole('dialog', { name: /category for Sadza and beef/ }),
+    ).toBeInTheDocument();
+  });
+
   it('stays out of the way of "Save and add another"', async () => {
     const user = userEvent.setup();
     serveCatalogue();
