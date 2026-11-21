@@ -36,6 +36,7 @@ import type { NormalizedApiError } from '@/api/errors';
 import { useTownScope } from '@/app/useTownScope';
 import { ApiError } from '@/components/ApiError';
 import { useGuardedAction } from '@/lib/useGuardedAction';
+import { AdminCustomerPaymentsPanel } from '../CustomerPaymentsPanel';
 import { PickupPicker } from '../PickupPicker';
 import { hasCoordinates, type PickupDraft } from '../pickup';
 import { centsToUsd, deliverySizeLabel, itemImage } from '../shopUtils';
@@ -183,6 +184,8 @@ export function SimpleAdminShopCard({
               Configure terms
             </Button>
           </Stack>
+          {/* Customer payment controls stay with the shop, as on the full card. */}
+          <AdminCustomerPaymentsPanel shopId={record._id} townId={record.townId} />
         </Stack>
       </CardContent>
       {pinOpen ? <AdminPinDialog shop={record} onClose={() => setPinOpen(false)} /> : null}

@@ -5,6 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { WireFoodItem, WireShop } from '@/api/dto/shop';
 import { routes } from '@/app/router';
+import { appConfig } from '@/config';
 import { resetMockState } from '@/mocks/handlers';
 import { mockServer } from '@/mocks/server';
 import { PICKUP, THUMBNAIL, computeOverview, simpleItem, simpleShop } from './simpleShopFixture';
@@ -209,6 +210,30 @@ describe('admin approval for simple shops (issue 34)', () => {
       { weightGrams: 5000, dimensionsCm: { length: 60, width: 40, height: 30 }, profileVersion: 1 },
       null,
     ]);
+  });
+
+  it('keeps the customer payment controls on each shop', async () => {
+    const previous = appConfig.enableFoodEcoCash;
+    appConfig.enableFoodEcoCash = true;
+    try {
+      serveAdmin(simpleShop(), []);
+      let read = false;
+      mockServer.use(
+        http.get('/api/v1/admin/food/shops/shop-new/payment-settings', () => {
+          read = true;
+          return HttpResponse.json(
+            { code: 'NOT_FOUND', message: 'No settings.', correlationId: 'c' },
+            { status: 404 },
+          );
+        }),
+      );
+      mount();
+      const card = await shopCard();
+      expect(await card.findByRole('heading', { name: 'Customer payments' })).toBeInTheDocument();
+      await waitFor(() => expect(read).toBe(true));
+    } finally {
+      appConfig.enableFoodEcoCash = previous;
+    }
   });
 
   it('edits the big-order threshold for the selected town', async () => {
